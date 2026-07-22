@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声・音ビジュアライザー</title>
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --good: #5fd68a;
+    --warn: #ffce6b;
+    --bad: #ff6b6b;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 64px;
+  }
+  .app {
+    width: 100%;
+    max-width: 640px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    letter-spacing: 0.02em;
+  }
+  .sub {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+  .panel {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .mic-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), #5b7fe0);
+    color: #0d0f18;
+    margin-bottom: 12px;
+    transition: transform 0.1s;
+  }
+  .mic-btn:active { transform: scale(0.98); }
+  .mic-btn.listening {
+    background: linear-gradient(135deg, var(--bad), #c94848);
+    color: #1a0d0d;
+  }
+  .status {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    min-height: 20px;
+    margin-bottom: 16px;
+  }
+  .status.error { color: var(--bad); }
+
+  .gain-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .gain-row label {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    width: 90px;
+    flex-shrink: 0;
+  }
+  .gain-row input[type="range"] {
+    flex: 1;
+  }
+  .gain-value {
+    color: var(--text);
+    font-size: 0.85rem;
+    width: 42px;
+    text-align: right;
+  }
+
+  .pitch-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .note-name {
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: var(--accent-2);
+    min-width: 3.5ch;
+    text-align: center;
+  }
+  .freq-value {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+
+  .cents-meter {
+    position: relative;
+    height: 36px;
+    background: var(--panel-2);
+    border-radius: 10px;
+    margin: 12px 0 20px;
+    overflow: hidden;
+  }
+  .cents-meter .center-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #3a3f5c;
+  }
+  .cents-meter .needle {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    width: 6px;
+    border-radius: 3px;
+    background: var(--good);
+    left: 50%;
+    transform: translateX(-50%);
+    transition: left 0.06s linear, background 0.15s;
+  }
+  .cents-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    margin-top: -14px;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+
+  .volume-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .volume-label {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    width: 60px;
+  }
+  .volume-bar {
+    flex: 1;
+    height: 12px;
+    background: var(--panel-2);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .volume-bar .fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--good), var(--warn), var(--bad));
+    transition: width 0.05s linear;
+  }
+
+  canvas {
+    width: 100%;
+    display: block;
+    border-radius: 10px;
+    background: #0d0e16;
+  }
+  .canvas-label {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    margin: 14px 0 6px;
+  }
+  .mode-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .mode-toggle {
+    display: flex;
+    gap: 6px;
+  }
+  .mode-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #3a3f5c;
+    background: var(--panel-2);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.78rem;
+  }
+  .mode-btn.active {
+    background: var(--accent);
+    color: #10121c;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .freq-select-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .freq-select-wrap label {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+  }
+  #freqRangeSelect {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #3a3f5c;
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 0.78rem;
+  }
+  .legend {
+    height: 10px;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+      rgb(8,8,33), rgb(45,10,85), rgb(120,20,115),
+      rgb(200,40,60), rgb(235,120,20), rgb(250,200,40), rgb(255,255,240));
+  }
+  .legend-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    margin: 3px 0 6px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🎤 声・音ビジュアライザー</h1>
+  <div class="sub">マイクの音量・周波数・音程をリアルタイム表示</div>
+
+  <div class="panel">
+    <button class="mic-btn" id="micBtn">🎙️ マイクを開始</button>
+    <div class="status" id="status"></div>
+
+    <div class="gain-row">
+      <label for="gainSlider">入力ゲイン</label>
+      <input type="range" id="gainSlider" min="1" max="12" step="0.5" value="4">
+      <div class="gain-value" id="gainValue">4.0x</div>
+    </div>
+
+    <div class="pitch-display">
+      <div class="note-name" id="noteName">--</div>
+      <div class="freq-value" id="freqValue">-- Hz</div>
+    </div>
+    <div class="cents-meter">
+      <div class="center-line"></div>
+      <div class="needle" id="needle"></div>
+    </div>
+    <div class="cents-labels">
+      <span>-50c</span><span>低い</span><span>ぴったり</span><span>高い</span><span>+50c</span>
+    </div>
+
+    <div class="volume-row">
+      <div class="volume-label">音量</div>
+      <div class="volume-bar"><div class="fill" id="volumeFill"></div></div>
+    </div>
+
+    <div class="canvas-label">周波数スペクトラム</div>
+    <div class="mode-row">
+      <div class="mode-toggle" id="modeToggle">
+        <button class="mode-btn active" data-mode="waterfall">ウォーターフォール</button>
+        <button class="mode-btn" data-mode="bars">バー</button>
+      </div>
+      <div class="freq-select-wrap">
+        <label for="freqRangeSelect">上限周波数</label>
+        <select id="freqRangeSelect">
+          <option value="1000">1000 Hz</option>
+          <option value="2000">2000 Hz</option>
+          <option value="4000">4000 Hz</option>
+          <option value="8000" selected>8000 Hz</option>
+          <option value="12000">12000 Hz</option>
+          <option value="16000">16000 Hz</option>
+          <option value="20000">20000 Hz</option>
+        </select>
+      </div>
+    </div>
+    <div class="legend"></div>
+    <div class="legend-labels"><span>小さい</span><span>大きい</span></div>
+    <canvas id="spectrumCanvas" width="600" height="140"></canvas>
+
+    <div class="canvas-label">波形</div>
+    <canvas id="waveCanvas" width="600" height="100"></canvas>
+  </div>
+</div>
+
+<script>
+const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+const micBtn = document.getElementById("micBtn");
+const statusEl = document.getElementById("status");
+const gainSlider = document.getElementById("gainSlider");
+const gainValueEl = document.getElementById("gainValue");
+const noteNameEl = document.getElementById("noteName");
+const freqValueEl = document.getElementById("freqValue");
+const needleEl = document.getElementById("needle");
+const volumeFillEl = document.getElementById("volumeFill");
+const spectrumCanvas = document.getElementById("spectrumCanvas");
+const waveCanvas = document.getElementById("waveCanvas");
+const spectrumCtx = spectrumCanvas.getContext("2d");
+const waveCtx = waveCanvas.getContext("2d");
+const modeToggle = document.getElementById("modeToggle");
+const freqRangeSelect = document.getElementById("freqRangeSelect");
+
+let audioCtx = null;
+let analyser = null;
+let mediaStream = null;
+let sourceNode = null;
+let gainNode = null;
+let rafId = null;
+let listening = false;
+let frameCount = 0;
+let displayMode = "waterfall";
+let cutoffFreq = Number(freqRangeSelect.value);
+
+gainSlider.addEventListener("input", () => {
+  const value = Number(gainSlider.value);
+  gainValueEl.textContent = `${value.toFixed(1)}x`;
+  if (gainNode) gainNode.gain.value = value;
+});
+
+modeToggle.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    modeToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    displayMode = btn.dataset.mode;
+    spectrumCtx.clearRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+  });
+});
+
+freqRangeSelect.addEventListener("change", () => {
+  cutoffFreq = Number(freqRangeSelect.value);
+  spectrumCtx.clearRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+});
+
+function freqToNoteInfo(freq) {
+  const midi = 69 + 12 * Math.log2(freq / 440);
+  const rounded = Math.round(midi);
+  const cents = (midi - rounded) * 100;
+  const octave = Math.floor(rounded / 12) - 1;
+  const name = NOTE_NAMES[((rounded % 12) + 12) % 12];
+  return { name: `${name}${octave}`, cents };
+}
+
+function autoCorrelate(buffer, sampleRate) {
+  const SIZE = buffer.length;
+  let rms = 0;
+  for (let i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
+  rms = Math.sqrt(rms / SIZE);
+  if (rms < 0.006) return -1;
+
+  let start = 0, end = SIZE - 1;
+  const trimThreshold = 0.2;
+  while (start < SIZE / 2 && Math.abs(buffer[start]) < trimThreshold) start++;
+  while (end > SIZE / 2 && Math.abs(buffer[end]) < trimThreshold) end--;
+  const trimmed = buffer.slice(start, end);
+  const n = trimmed.length;
+  if (n < 512) return -1;
+
+  const c = new Float32Array(n);
+  for (let lag = 0; lag < n; lag++) {
+    let sum = 0;
+    for (let i = 0; i < n - lag; i++) sum += trimmed[i] * trimmed[i + lag];
+    c[lag] = sum;
+  }
+
+  let d = 0;
+  while (d < n - 1 && c[d] > c[d + 1]) d++;
+
+  let maxVal = -1, maxPos = -1;
+  for (let i = d; i < n; i++) {
+    if (c[i] > maxVal) { maxVal = c[i]; maxPos = i; }
+  }
+  if (maxPos <= 0) return -1;
+
+  const x1 = c[maxPos - 1] || 0, x2 = c[maxPos], x3 = c[maxPos + 1] || 0;
+  const a = (x1 + x3 - 2 * x2) / 2;
+  const b = (x3 - x1) / 2;
+  let refinedPos = maxPos;
+  if (a) refinedPos = maxPos - b / (2 * a);
+
+  const freq = sampleRate / refinedPos;
+  if (freq < 60 || freq > 1500) return -1;
+  return freq;
+}
+
+function updatePitchUI(freq) {
+  if (freq <= 0) {
+    noteNameEl.textContent = "--";
+    freqValueEl.textContent = "-- Hz";
+    needleEl.style.left = "50%";
+    needleEl.style.background = "var(--panel-2)";
+    return;
+  }
+  const { name, cents } = freqToNoteInfo(freq);
+  noteNameEl.textContent = name;
+  freqValueEl.textContent = `${freq.toFixed(1)} Hz`;
+
+  const clamped = Math.max(-50, Math.min(50, cents));
+  const pct = 50 + (clamped / 50) * 50;
+  needleEl.style.left = `${pct}%`;
+
+  const absCents = Math.abs(cents);
+  needleEl.style.background = absCents < 8 ? "var(--good)" : absCents < 20 ? "var(--warn)" : "var(--bad)";
+}
+
+function updateVolumeUI(buffer) {
+  let sum = 0;
+  for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
+  const rms = Math.sqrt(sum / buffer.length);
+  const pct = Math.min(100, rms * 400);
+  volumeFillEl.style.width = `${pct}%`;
+}
+
+const COLORMAP_STOPS = [
+  [0.00, 8, 8, 33],
+  [0.15, 45, 10, 85],
+  [0.35, 120, 20, 115],
+  [0.55, 200, 40, 60],
+  [0.75, 235, 120, 20],
+  [0.90, 250, 200, 40],
+  [1.00, 255, 255, 240],
+];
+
+function colormapHot(t) {
+  t = Math.max(0, Math.min(1, t));
+  for (let i = 0; i < COLORMAP_STOPS.length - 1; i++) {
+    const [t0, r0, g0, b0] = COLORMAP_STOPS[i];
+    const [t1, r1, g1, b1] = COLORMAP_STOPS[i + 1];
+    if (t >= t0 && t <= t1) {
+      const f = (t - t0) / (t1 - t0);
+      const r = Math.round(r0 + (r1 - r0) * f);
+      const g = Math.round(g0 + (g1 - g0) * f);
+      const b = Math.round(b0 + (b1 - b0) * f);
+      return `rgb(${r},${g},${b})`;
+    }
+  }
+  return "rgb(255,255,240)";
+}
+
+let freqData = null;
+
+function drawSpectrogram() {
+  const bufferLength = analyser.frequencyBinCount;
+  if (!freqData || freqData.length !== bufferLength) freqData = new Uint8Array(bufferLength);
+  analyser.getByteFrequencyData(freqData);
+
+  const w = spectrumCanvas.width, h = spectrumCanvas.height;
+  const nyquist = audioCtx.sampleRate / 2;
+  const cutoffBin = Math.min(bufferLength, Math.max(1, Math.floor((cutoffFreq / nyquist) * bufferLength)));
+
+  const shifted = spectrumCtx.getImageData(1, 0, w - 1, h);
+  spectrumCtx.putImageData(shifted, 0, 0);
+
+  for (let y = 0; y < h; y++) {
+    const bin = Math.min(cutoffBin - 1, Math.floor((1 - y / h) * cutoffBin));
+    const raw = freqData[bin] / 255;
+    const t = Math.pow(raw, 0.6);
+    spectrumCtx.fillStyle = colormapHot(t);
+    spectrumCtx.fillRect(w - 1, y, 1, 1);
+  }
+}
+
+function drawSpectrumBars() {
+  const bufferLength = analyser.frequencyBinCount;
+  if (!freqData || freqData.length !== bufferLength) freqData = new Uint8Array(bufferLength);
+  analyser.getByteFrequencyData(freqData);
+
+  const w = spectrumCanvas.width, h = spectrumCanvas.height;
+  spectrumCtx.clearRect(0, 0, w, h);
+
+  const nyquist = audioCtx.sampleRate / 2;
+  const cutoffBin = Math.min(bufferLength, Math.max(1, Math.floor((cutoffFreq / nyquist) * bufferLength)));
+  const barWidth = w / cutoffBin;
+
+  for (let i = 0; i < cutoffBin; i++) {
+    const raw = freqData[i] / 255;
+    const barHeight = raw * h;
+    spectrumCtx.fillStyle = colormapHot(Math.pow(raw, 0.6));
+    spectrumCtx.fillRect(i * barWidth, h - barHeight, barWidth + 0.5, barHeight);
+  }
+}
+
+function drawWave(timeData) {
+  const w = waveCanvas.width, h = waveCanvas.height;
+  waveCtx.clearRect(0, 0, w, h);
+  waveCtx.strokeStyle = "#7c9dff";
+  waveCtx.lineWidth = 2;
+  waveCtx.beginPath();
+  const step = w / timeData.length;
+  for (let i = 0; i < timeData.length; i++) {
+    const x = i * step;
+    const y = h / 2 + timeData[i] * (h / 2) * 0.9;
+    if (i === 0) waveCtx.moveTo(x, y); else waveCtx.lineTo(x, y);
+  }
+  waveCtx.stroke();
+}
+
+function loop() {
+  rafId = requestAnimationFrame(loop);
+  frameCount++;
+
+  const timeData = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(timeData);
+
+  if (displayMode === "waterfall") drawSpectrogram(); else drawSpectrumBars();
+  drawWave(timeData);
+  updateVolumeUI(timeData);
+
+  if (frameCount % 2 === 0) {
+    const freq = autoCorrelate(timeData, audioCtx.sampleRate);
+    updatePitchUI(freq);
+  }
+}
+
+async function startMic() {
+  const constraints = {
+    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+  };
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+  } catch (err) {
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err2) {
+      statusEl.textContent = "マイクへのアクセスが許可されませんでした";
+      statusEl.className = "status error";
+      return;
+    }
+  }
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.8;
+  sourceNode = audioCtx.createMediaStreamSource(mediaStream);
+  gainNode = audioCtx.createGain();
+  gainNode.gain.value = Number(gainSlider.value);
+  sourceNode.connect(gainNode).connect(analyser);
+
+  listening = true;
+  micBtn.textContent = "⏹ マイクを停止";
+  micBtn.classList.add("listening");
+  statusEl.textContent = "リスニング中…";
+  statusEl.className = "status";
+  loop();
+}
+
+function stopMic() {
+  listening = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close();
+  audioCtx = null;
+  analyser = null;
+  mediaStream = null;
+  gainNode = null;
+  micBtn.textContent = "🎙️ マイクを開始";
+  micBtn.classList.remove("listening");
+  statusEl.textContent = "";
+  updatePitchUI(-1);
+  volumeFillEl.style.width = "0%";
+  spectrumCtx.clearRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+  waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+}
+
+micBtn.addEventListener("click", () => {
+  if (listening) stopMic(); else startMic();
+});
+</script>
+</body>
+</html>

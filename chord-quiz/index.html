@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コード当てゲーム</title>
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --good: #5fd68a;
+    --bad: #ff6b6b;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 64px;
+  }
+  .app {
+    width: 100%;
+    max-width: 600px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    letter-spacing: 0.02em;
+  }
+  .sub {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+  .nav {
+    margin-bottom: 24px;
+  }
+  .nav a {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  .nav a:hover { text-decoration: underline; }
+  .panel {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .level-row {
+    margin-bottom: 16px;
+  }
+  .level-row label {
+    display: block;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+  select#levelSelect {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #3a3f5c;
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+  }
+  .stats b {
+    color: var(--text);
+    font-size: 1.1rem;
+  }
+  .play-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .play-btn {
+    flex: 1;
+    padding: 18px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), #5b7fe0);
+    color: #0d0f18;
+    transition: transform 0.1s;
+  }
+  .play-btn:active { transform: scale(0.97); }
+  .aux-btn {
+    padding: 18px 14px;
+    border-radius: 12px;
+    border: 1px solid #3a3f5c;
+    background: var(--panel-2);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .choice-btn {
+    padding: 14px 8px;
+    border-radius: 10px;
+    border: 1px solid #3a3f5c;
+    background: var(--panel-2);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+  .choice-btn:hover { border-color: var(--accent); }
+  .choice-btn.correct { background: var(--good); color: #0d1a10; border-color: var(--good); }
+  .choice-btn.wrong { background: var(--bad); color: #1a0d0d; border-color: var(--bad); }
+  .choice-btn:disabled { cursor: default; opacity: 0.7; }
+  .feedback {
+    min-height: 28px;
+    text-align: center;
+    margin-top: 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .feedback.good { color: var(--good); }
+  .feedback.bad { color: var(--bad); }
+  .answer-info {
+    text-align: center;
+    margin-top: 4px;
+    font-size: 1rem;
+    color: var(--accent-2);
+    font-weight: 600;
+    min-height: 22px;
+  }
+  .next-row {
+    margin-top: 16px;
+  }
+  .next-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 700;
+    background: var(--accent-2);
+    color: #1a0d14;
+    transition: opacity 0.15s;
+  }
+  .next-btn:disabled {
+    background: var(--panel-2);
+    color: var(--text-dim);
+    cursor: default;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🎯 コード当てゲーム</h1>
+  <div class="sub">同時に鳴らすので、コードの種類を当ててね</div>
+  <div class="nav"><a href="practice.html">🎹 コード再生ツールへ →</a></div>
+
+  <div class="panel">
+    <div class="level-row">
+      <label for="levelSelect">難易度</label>
+      <select id="levelSelect">
+        <option value="triad">Lv.1 三和音(Maj/min/dim/aug)</option>
+        <option value="sixthSus">Lv.2 6th・サスコード</option>
+        <option value="seventh">Lv.3 7th系</option>
+        <option value="tension">Lv.4 テンション系(9th等)</option>
+        <option value="mix">Lv.5 全種ミックス</option>
+      </select>
+    </div>
+    <div class="stats">
+      <div>正解数 <b id="score">0</b></div>
+      <div>連続正解 <b id="streak">0</b></div>
+      <div>出題数 <b id="total">0</b></div>
+    </div>
+    <div class="play-row">
+      <button class="play-btn" id="playBtn">🔊 コードを鳴らす</button>
+      <button class="aux-btn" id="arpBtn">分散で再生</button>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="answer-info" id="answerInfo"></div>
+    <div class="next-row">
+      <button class="next-btn" id="nextBtn" disabled>次の問題 →</button>
+    </div>
+  </div>
+</div>
+
+<script src="chords.js"></script>
+<script src="audio.js"></script>
+<script>
+let level = "triad";
+let current = null;
+let answered = false;
+let score = 0, streak = 0, total = 0;
+
+const levelSelect = document.getElementById("levelSelect");
+const playBtn = document.getElementById("playBtn");
+const arpBtn = document.getElementById("arpBtn");
+const nextBtn = document.getElementById("nextBtn");
+const choicesEl = document.getElementById("choices");
+const feedbackEl = document.getElementById("feedback");
+const answerInfoEl = document.getElementById("answerInfo");
+const scoreEl = document.getElementById("score");
+const streakEl = document.getElementById("streak");
+const totalEl = document.getElementById("total");
+
+levelSelect.addEventListener("change", () => {
+  level = levelSelect.value;
+  renderChoices();
+  newQuestion();
+  playChord(current.chordType.intervals, current.rootMidi, false);
+});
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function newQuestion() {
+  const rootMidi = 55 + Math.floor(Math.random() * 13);
+  const chordType = pick(CHORD_LIBRARY[level]);
+  current = { rootMidi, chordType };
+  answered = false;
+  feedbackEl.textContent = "";
+  feedbackEl.className = "feedback";
+  answerInfoEl.textContent = "";
+  nextBtn.disabled = true;
+  document.querySelectorAll(".choice-btn").forEach(b => {
+    b.disabled = false;
+    b.classList.remove("correct", "wrong");
+  });
+}
+
+function renderChoices() {
+  choicesEl.innerHTML = "";
+  CHORD_LIBRARY[level].forEach(ct => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.textContent = ct.name;
+    btn.addEventListener("click", () => onAnswer(ct, btn));
+    choicesEl.appendChild(btn);
+  });
+}
+
+function onAnswer(choice, btn) {
+  if (!current || answered) return;
+  answered = true;
+  total++;
+  totalEl.textContent = total;
+  document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
+
+  const isCorrect = choice.name === current.chordType.name;
+  if (isCorrect) {
+    score++;
+    streak++;
+    btn.classList.add("correct");
+    feedbackEl.textContent = "正解! 🎉";
+    feedbackEl.className = "feedback good";
+  } else {
+    streak = 0;
+    btn.classList.add("wrong");
+    feedbackEl.textContent = "不正解…";
+    feedbackEl.className = "feedback bad";
+    document.querySelectorAll(".choice-btn").forEach(b => {
+      if (b.textContent === current.chordType.name) b.classList.add("correct");
+    });
+  }
+  answerInfoEl.textContent = `答え: ${rootName(current.rootMidi)} ${current.chordType.name} (${fullChordSymbol(current.chordType, current.rootMidi)})`;
+  scoreEl.textContent = score;
+  streakEl.textContent = streak;
+  nextBtn.disabled = false;
+}
+
+playBtn.addEventListener("click", () => {
+  if (!current) newQuestion();
+  playChord(current.chordType.intervals, current.rootMidi, false);
+});
+
+arpBtn.addEventListener("click", () => {
+  if (!current) newQuestion();
+  playChord(current.chordType.intervals, current.rootMidi, true);
+});
+
+nextBtn.addEventListener("click", () => {
+  newQuestion();
+  playChord(current.chordType.intervals, current.rootMidi, false);
+});
+
+renderChoices();
+newQuestion();
+</script>
+</body>
+</html>

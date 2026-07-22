@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プログラミング未経験から始めるClaude Code 完全ガイド（Windows版）</title>
+<style>
+  :root{
+    --bg:#0e1116;
+    --surface:#161b22;
+    --surface2:#1c2430;
+    --border:#2a3441;
+    --text:#e6edf3;
+    --muted:#9aa7b4;
+    --accent:#d97757;
+    --accent-soft:#3a2820;
+    --green:#4ec98a;
+    --green-soft:#16281f;
+    --blue:#6ea8fe;
+    --blue-soft:#16233a;
+    --yellow:#e3b341;
+    --yellow-soft:#2b2413;
+    --red:#f2795f;
+    --code-bg:#0b0f14;
+    --shadow:0 8px 30px rgba(0,0,0,.35);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f6f7f9;
+      --surface:#ffffff;
+      --surface2:#f2f4f7;
+      --border:#e2e6ec;
+      --text:#1b2430;
+      --muted:#5a6572;
+      --accent:#c4552f;
+      --accent-soft:#fbeee8;
+      --green:#1a854f;
+      --green-soft:#e7f5ec;
+      --blue:#2563c9;
+      --blue-soft:#e9f0fd;
+      --yellow:#9a6b00;
+      --yellow-soft:#fbf3dc;
+      --red:#c0392b;
+      --code-bg:#0f141b;
+      --shadow:0 8px 30px rgba(20,30,50,.08);
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    line-height:1.85;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px 100px}
+
+  /* ---------- Hero ---------- */
+  header.hero{
+    background:linear-gradient(160deg,var(--accent-soft),var(--surface) 70%);
+    border-bottom:1px solid var(--border);
+    padding:64px 20px 48px;
+    text-align:center;
+    margin-bottom:40px;
+  }
+  .hero .badge{
+    display:inline-block;
+    font-size:13px;
+    letter-spacing:.08em;
+    color:var(--accent);
+    background:var(--surface);
+    border:1px solid var(--border);
+    padding:6px 14px;border-radius:999px;
+    margin-bottom:20px;font-weight:600;
+  }
+  .hero h1{
+    font-size:clamp(26px,5vw,40px);
+    line-height:1.35;
+    margin:0 0 16px;
+    letter-spacing:.01em;
+  }
+  .hero p{
+    color:var(--muted);
+    max-width:640px;margin:0 auto;
+    font-size:17px;
+  }
+  .hero .meta{
+    margin-top:24px;font-size:13px;color:var(--muted);
+    display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+  }
+  .hero .meta span{
+    background:var(--surface);border:1px solid var(--border);
+    padding:5px 12px;border-radius:999px;
+  }
+
+  /* ---------- Sections ---------- */
+  section{margin-bottom:44px}
+  h2{
+    font-size:24px;
+    margin:0 0 18px;
+    padding-bottom:12px;
+    border-bottom:2px solid var(--border);
+    scroll-margin-top:20px;
+  }
+  h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;border-radius:10px;
+    background:var(--accent);color:#fff;font-size:16px;
+    margin-right:12px;vertical-align:middle;font-weight:700;
+  }
+  h3{font-size:18px;margin:28px 0 10px}
+  p{margin:0 0 14px}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ---------- TOC ---------- */
+  .toc{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px 28px;
+    box-shadow:var(--shadow);
+  }
+  .toc h2{border:none;font-size:18px;padding:0;margin:0 0 14px}
+  .toc ol{margin:0;padding-left:22px;columns:2;column-gap:32px}
+  @media(max-width:600px){.toc ol{columns:1}}
+  .toc li{margin-bottom:9px}
+  .toc a{color:var(--text)}
+  .toc a:hover{color:var(--accent)}
+
+  /* ---------- Cards / callouts ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    margin:18px 0;
+  }
+  .callout{
+    border-radius:12px;
+    padding:16px 18px 16px 20px;
+    margin:18px 0;
+    border-left:4px solid var(--border);
+    background:var(--surface2);
+    font-size:15px;
+  }
+  .callout .lbl{font-weight:700;display:block;margin-bottom:4px;font-size:14px}
+  .callout.tip{border-left-color:var(--green);background:var(--green-soft)}
+  .callout.tip .lbl{color:var(--green)}
+  .callout.note{border-left-color:var(--blue);background:var(--blue-soft)}
+  .callout.note .lbl{color:var(--blue)}
+  .callout.warn{border-left-color:var(--yellow);background:var(--yellow-soft)}
+  .callout.warn .lbl{color:var(--yellow)}
+
+  /* ---------- Code ---------- */
+  code{
+    background:var(--surface2);
+    border:1px solid var(--border);
+    padding:1px 6px;border-radius:6px;
+    font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    font-size:.88em;
+  }
+  pre{
+    background:var(--code-bg);
+    color:#e6edf3;
+    border:1px solid #1f2937;
+    border-radius:12px;
+    padding:16px 18px;
+    overflow-x:auto;
+    margin:14px 0;
+    position:relative;
+    font-size:14px;line-height:1.7;
+  }
+  pre code{background:none;border:none;padding:0;color:inherit;font-size:14px}
+  pre .cmt{color:#7d8896}
+  .prompt-example{
+    background:var(--code-bg);
+    border:1px solid #1f2937;
+    border-left:4px solid var(--accent);
+    border-radius:10px;
+    padding:14px 16px;
+    margin:12px 0;
+    color:#e6edf3;
+    font-size:15px;
+  }
+  .prompt-example::before{
+    content:"入力例";
+    display:inline-block;
+    font-size:11px;color:var(--accent);
+    letter-spacing:.1em;font-weight:700;
+    margin-bottom:6px;
+  }
+  .prompt-example .txt{display:block;font-family:inherit}
+
+  /* ---------- Tables ---------- */
+  .table-wrap{overflow-x:auto;margin:16px 0}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:480px}
+  th,td{border:1px solid var(--border);padding:10px 13px;text-align:left;vertical-align:top}
+  th{background:var(--surface2);font-weight:700}
+  tr:nth-child(even) td{background:var(--surface)}
+  td code{white-space:nowrap}
+
+  /* ---------- Steps ---------- */
+  .steps{counter-reset:step;list-style:none;padding:0;margin:0}
+  .steps>li{
+    position:relative;
+    padding:2px 0 22px 52px;
+    border-left:2px solid var(--border);
+    margin-left:16px;
+  }
+  .steps>li:last-child{border-left-color:transparent;padding-bottom:0}
+  .steps>li::before{
+    counter-increment:step;content:counter(step);
+    position:absolute;left:-17px;top:-4px;
+    width:32px;height:32px;border-radius:50%;
+    background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;
+  }
+  .steps h3{margin-top:0}
+
+  /* ---------- Checklist ---------- */
+  .checklist{list-style:none;padding:0;margin:8px 0}
+  .checklist li{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:12px 14px;margin-bottom:8px;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;cursor:pointer;transition:.15s;
+  }
+  .checklist li:hover{border-color:var(--accent)}
+  .checklist input{
+    margin-top:4px;width:18px;height:18px;accent-color:var(--green);
+    flex-shrink:0;cursor:pointer;
+  }
+  .checklist li.done{opacity:.55}
+  .checklist li.done .ct{text-decoration:line-through}
+  .ct{flex:1}
+  .ct b{display:block}
+  .ct small{color:var(--muted)}
+
+  /* ---------- Path grid ---------- */
+  .levels{display:grid;gap:16px}
+  .level{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:20px 22px;
+    border-top:4px solid var(--accent);
+  }
+  .level .tag{
+    display:inline-block;font-size:12px;font-weight:700;
+    color:var(--accent);letter-spacing:.05em;margin-bottom:4px;
+  }
+  .level h3{margin:0 0 6px;font-size:19px}
+  .level .goal{color:var(--muted);font-size:14px;margin-bottom:12px}
+
+  /* ---------- Footer ---------- */
+  footer{
+    text-align:center;color:var(--muted);font-size:13px;
+    border-top:1px solid var(--border);padding-top:28px;margin-top:60px;
+  }
+  .backtop{
+    display:inline-block;margin-top:14px;font-size:13px;
+  }
+  ul.plain{padding-left:20px}
+  ul.plain li{margin-bottom:7px}
+  .faq details{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:4px 18px;margin-bottom:10px;
+  }
+  .faq summary{
+    cursor:pointer;font-weight:600;padding:12px 0;list-style:none;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"＋";color:var(--accent);font-size:18px}
+  .faq details[open] summary::after{content:"−"}
+  .faq details[open] summary{border-bottom:1px solid var(--border)}
+  .faq details p{padding:14px 0 4px;margin:0;color:var(--muted);font-size:15px}
+  .kbd{
+    background:var(--surface2);border:1px solid var(--border);
+    border-bottom-width:2px;border-radius:6px;padding:1px 7px;
+    font-size:.85em;font-family:inherit;
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="badge">WINDOWS版 ・ プログラミング未経験OK</span>
+  <h1>プログラミング未経験から始める<br>Claude Code 完全ガイド</h1>
+  <p>コードが書けなくても大丈夫。インストールから「日常作業の自動化」「かんたんなアプリ・サイト作り」までを、迷わない順番でひとつずつ進めていきます。</p>
+  <div class="meta">
+    <span>🖥 Windows 10 / 11</span>
+    <span>⏱ 最初の一歩は約15分</span>
+    <span>📅 2026年7月時点の情報</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- はじめに -->
+  <section id="intro">
+    <div class="callout tip">
+      <span class="lbl">まず結論：未経験でも問題なし</span>
+      Claude Codeは「自分でコードを書く道具」ではなく、<b>やりたいことを日本語で伝えると、AIが調べて・作って・直してくれる相棒</b>です。あなたの役割は、料理でいえば「シェフに注文する人」。包丁の使い方を知らなくても注文はできます。このガイドは、その"上手な注文の仕方"を身につけるためのものです。
+    </div>
+    <p>進め方の目安として、<b>まず「Lv.0 セットアップ」と「Lv.1 最初の会話」を今日やってみる</b>のがおすすめです。あとは気が向いたときに1レベルずつ。全部を一度にやる必要はありません。上から順に読み進めるだけで、自然と使いこなせるようになる構成にしています。</p>
+  </section>
+
+  <!-- 目次 -->
+  <nav class="toc" id="toc">
+    <h2>このガイドの歩き方（目次）</h2>
+    <ol>
+      <li><a href="#what">Claude Codeって何？</a></li>
+      <li><a href="#prep">はじめる前の準備（プラン）</a></li>
+      <li><a href="#choose">2つの始め方を選ぶ</a></li>
+      <li><a href="#install">インストール手順（Windows）</a></li>
+      <li><a href="#first">Lv.1 はじめての会話</a></li>
+      <li><a href="#basics">Lv.2 基本操作を覚える</a></li>
+      <li><a href="#prompt">Lv.3 上手な頼み方のコツ</a></li>
+      <li><a href="#automate">Lv.4 日常作業を自動化する</a></li>
+      <li><a href="#build">Lv.5 かんたんなアプリ・サイトを作る</a></li>
+      <li><a href="#roadmap">30日ロードマップ</a></li>
+      <li><a href="#safety">安全に使うための注意</a></li>
+      <li><a href="#trouble">困ったときは（トラブル対処）</a></li>
+      <li><a href="#faq">よくある質問</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1. 何？ -->
+  <section id="what">
+    <h2><span class="num">?</span>Claude Codeって何？</h2>
+    <p>Claude Code（クロード・コード）は、Anthropic社が作ったAIアシスタントです。あなたのパソコン上で動き、<b>お願いした作業を実際に手を動かして進めてくれます</b>。「ファイルを整理して」「このデータを集計して」「簡単なメモアプリを作って」といった依頼を、日本語の会話だけで頼めます。</p>
+    <p>ふつうのチャット型AIとの一番の違いは、<b>ただ答えるだけでなく、実際にファイルを作ったり書き換えたりできる</b>点です。しかも作業の前に「こう変更していいですか？」と必ず確認してくれるので、勝手に何かが壊れる心配は少なくなっています。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>できること（一例）</th><th>あなたが打つのはこれだけ</th></tr>
+        <tr><td>フォルダ内のファイルをルールで並べ替え・改名</td><td>「このフォルダの写真を撮影日ごとにフォルダ分けして」</td></tr>
+        <tr><td>CSVやExcelの集計・グラフ化</td><td>「売上データを月別に合計して、棒グラフにして」</td></tr>
+        <tr><td>定型作業を自動化する小さなプログラム作り</td><td>「毎朝この作業をやってくれる仕組みを作って」</td></tr>
+        <tr><td>メモ帳・電卓などのミニアプリやWebページ</td><td>「シンプルな買い物リストのアプリを作って」</td></tr>
+        <tr><td>わからないことの相談・下調べ</td><td>「このエラーの意味を教えて」「◯◯のやり方を調べて」</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2. 準備 -->
+  <section id="prep">
+    <h2><span class="num">1</span>はじめる前の準備</h2>
+    <p>必要なものは2つだけです。</p>
+    <div class="card">
+      <h3 style="margin-top:0">① 有料のClaudeプラン</h3>
+      <p>Claude Codeは<b>有料プランでのみ使えます</b>（無料プランでは使えません）。個人で始めるなら、いちばん安い <b>Proプラン（月20ドル前後）</b> で十分です。もっとたくさん使いたくなったら上位のMaxプランもあります。</p>
+      <div class="table-wrap">
+        <table>
+          <tr><th>プラン</th><th>目安の料金</th><th>Claude Code</th><th>こんな人に</th></tr>
+          <tr><td>Free（無料）</td><td>$0</td><td>×使えない</td><td>—</td></tr>
+          <tr><td><b>Pro</b></td><td>月$20前後</td><td>◯含まれる</td><td><b>まず試したい人（おすすめ）</b></td></tr>
+          <tr><td>Max</td><td>月$100〜</td><td>◯たっぷり</td><td>毎日ガッツリ使う人</td></tr>
+        </table>
+      </div>
+      <div class="callout note">
+        <span class="lbl">料金は変わることがあります</span>
+        最新の金額とプラン内容は必ず公式ページ <a href="https://claude.com/pricing" target="_blank" rel="noopener">claude.com/pricing</a> で確認してください。まだアカウントがなければ、ここでProプランに登録しておきます。
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">② Windowsパソコン</h3>
+      <p>Windows 10（1809以降）または Windows 11、メモリ4GB以上、インターネット接続があればOKです。今お使いのパソコンでほぼ問題なく動きます。</p>
+    </div>
+  </section>
+
+  <!-- 3. 始め方を選ぶ -->
+  <section id="choose">
+    <h2><span class="num">2</span>2つの始め方 ― まず「かんたんな方」でOK</h2>
+    <p>Claude Codeには入り口が2種類あります。未経験の方は、まず<b>A（デスクトップアプリ）</b>から始めるのがいちばんラクです。慣れてきたらB（ターミナル）も試す、という順番で構いません。</p>
+    <div class="levels">
+      <div class="level" style="border-top-color:var(--green)">
+        <span class="tag" style="color:var(--green)">▶ 未経験にはこちらが安心</span>
+        <h3>A. デスクトップアプリ版</h3>
+        <p class="goal">黒い画面（ターミナル）を触らず、ふつうのアプリとして使えます。ボタンとチャット欄だけ。まずはこれで「Claude Codeの雰囲気」をつかみましょう。</p>
+        <ul class="plain">
+          <li>公式サイト <a href="https://claude.com/download" target="_blank" rel="noopener">claude.com/download</a> からWindows版をダウンロードして、インストーラーの案内どおり進めるだけ。</li>
+          <li>起動したらClaudeアカウントでログイン。すぐに会話を始められます。</li>
+        </ul>
+      </div>
+      <div class="level" style="border-top-color:var(--blue)">
+        <span class="tag" style="color:var(--blue)">◆ 定番・本格派</span>
+        <h3>B. ターミナル版（コマンド）</h3>
+        <p class="goal">「黒い画面」に文字を打って使う昔ながらのスタイル。最初はとっつきにくいですが、ネットの解説記事や動画はこの方式が主流なので、いずれ覚えると情報を探しやすくなります。</p>
+        <ul class="plain">
+          <li>次の章のインストール手順で、コマンドを1行コピペするだけで入ります。</li>
+          <li>「ターミナル（黒い画面）って何？」という状態でも大丈夫。手順どおりでOKです。</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout tip">
+      <span class="lbl">迷ったら</span>
+      今日はまず<b>A（アプリ版）</b>を入れて会話に慣れ、余裕が出てきたら<b>B（ターミナル版）</b>も入れてみる、で完璧です。以降の「Lv.1〜」の内容はどちらでも同じように使えます。
+    </div>
+  </section>
+
+  <!-- 4. インストール -->
+  <section id="install">
+    <h2><span class="num">3</span>インストール手順（Windows）</h2>
+
+    <h3>A. デスクトップアプリ版を入れる（かんたん）</h3>
+    <ol class="steps">
+      <li>
+        <h3>ダウンロード</h3>
+        <p><a href="https://claude.com/download" target="_blank" rel="noopener">claude.com/download</a> を開き、Windows版をダウンロードします。</p>
+      </li>
+      <li>
+        <h3>インストール</h3>
+        <p>ダウンロードしたファイルをダブルクリックし、画面の案内どおり「次へ」を押していくだけです。</p>
+      </li>
+      <li>
+        <h3>ログイン</h3>
+        <p>アプリを起動し、①で作った<b>Proなどの有料プランのアカウント</b>でログインします。これで準備完了です。</p>
+      </li>
+    </ol>
+
+    <h3 style="margin-top:34px">B. ターミナル版を入れる（コマンド1行）</h3>
+    <ol class="steps">
+      <li>
+        <h3>PowerShellを開く</h3>
+        <p>キーボードの <span class="kbd">Windows</span> キーを押して <b>PowerShell</b> と入力し、出てきた「Windows PowerShell」をクリックして開きます。黒っぽい（または紺色の）画面が出ればOKです。</p>
+        <div class="callout note">
+          <span class="lbl">画面の見分け方</span>
+          行の先頭が <code>PS C:\</code> で始まっていれば PowerShell です。<code>PS</code> が無く <code>C:\</code> だけなら「コマンドプロンプト（CMD）」で、その場合は下のCMD用コマンドを使います。
+        </div>
+      </li>
+      <li>
+        <h3>インストールコマンドを貼り付けて実行</h3>
+        <p>下の1行をコピーし、PowerShellの画面をクリックしてから貼り付け（<span class="kbd">Ctrl</span>+<span class="kbd">V</span>）、<span class="kbd">Enter</span> を押します。数十秒〜数分待つと完了します。</p>
+        <pre><code>irm https://claude.ai/install.ps1 | iex</code></pre>
+        <p style="font-size:14px;color:var(--muted)">※もし画面が <code>C:\</code>（CMD）だった場合は、代わりにこちら：</p>
+        <pre><code>curl -fsSL https://claude.ai/install.cmd -o install.cmd &amp;&amp; install.cmd &amp;&amp; del install.cmd</code></pre>
+      </li>
+      <li>
+        <h3>ちゃんと入ったか確認</h3>
+        <p>続けて次を打って <span class="kbd">Enter</span>。<code>2.1.xxx (Claude Code)</code> のようにバージョン番号が出れば成功です。</p>
+        <pre><code>claude --version</code></pre>
+        <div class="callout warn">
+          <span class="lbl">「認識されません」と出たら</span>
+          いったんPowerShellを<b>閉じて開き直して</b>から、もう一度 <code>claude --version</code> を試してください。それでもダメなときは、後述の<a href="#trouble">トラブル対処</a>へ。
+        </div>
+      </li>
+      <li>
+        <h3>（推奨）Git for Windows も入れる</h3>
+        <p>必須ではありませんが、<a href="https://git-scm.com/downloads/win" target="_blank" rel="noopener">Git for Windows</a> を入れておくとClaude Codeがより多くの作業をこなせるようになります。案内どおり「Next」を押し続けるだけで入ります。あとからでも大丈夫です。</p>
+      </li>
+      <li>
+        <h3>起動してログイン</h3>
+        <p>作業したいフォルダで <code>claude</code> と打って <span class="kbd">Enter</span>。初回はログインを求められるので、ブラウザが開いたら有料プランのアカウントで許可します。次からはログイン不要です。</p>
+        <pre><code>claude</code></pre>
+      </li>
+    </ol>
+
+    <div class="callout tip">
+      <span class="lbl">「フォルダで開く」ってどういうこと？</span>
+      Claude Codeは「今いるフォルダ」を作業場所にします。例えばデスクトップの「練習」フォルダで作業したいなら、そのフォルダを開いた状態で始めるのがコツ。ターミナル版なら <code>cd</code> という命令で移動しますが、最初は<b>アプリ版のフォルダ選択</b>を使うのがかんたんです。
+    </div>
+  </section>
+
+  <!-- Lv1 最初の会話 -->
+  <section id="first">
+    <h2><span class="num">4</span>Lv.1 はじめての会話をしてみる</h2>
+    <p>準備ができたら、まずは気軽に話しかけてみましょう。難しいことは考えず、<b>日本語でそのまま入力</b>して <span class="kbd">Enter</span> を押すだけです。</p>
+    <div class="prompt-example"><span class="txt">Claude Codeで何ができるのか、初心者向けに教えて</span></div>
+    <div class="prompt-example"><span class="txt">このフォルダには何が入っている？わかりやすく説明して</span></div>
+    <div class="prompt-example"><span class="txt">「hello.txt」というファイルを作って、中に自己紹介文を書いて</span></div>
+    <p>3つめのように「ファイルを作って」と頼むと、Claudeは<b>作る内容を見せて「これでいいですか？」と確認</b>してきます。よければ承認、直したければ「もっと短くして」などと返せば作り直してくれます。この<b>会話→確認→承認</b>の流れが、Claude Codeの基本リズムです。</p>
+    <div class="callout tip">
+      <span class="lbl">最初の練習におすすめ</span>
+      デスクトップに「claude練習」など空のフォルダを1つ作り、その中で色々試してみましょう。空フォルダなら失敗しても何も壊れないので、安心してあれこれ頼めます。
+    </div>
+  </section>
+
+  <!-- Lv2 基本操作 -->
+  <section id="basics">
+    <h2><span class="num">5</span>Lv.2 基本操作を覚える</h2>
+    <p>会話に慣れたら、便利な操作をいくつか覚えましょう。全部いっぺんに覚える必要はなく、「へぇ、そんなのがあるんだ」くらいでOKです。</p>
+
+    <h3>スラッシュコマンド（<code>/</code> で始まる命令）</h3>
+    <p>入力欄で <code>/</code> を打つと、使える命令の一覧が出ます。よく使うのはこれくらい：</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>コマンド</th><th>何をする？</th></tr>
+        <tr><td><code>/help</code></td><td>使い方・コマンド一覧を表示する</td></tr>
+        <tr><td><code>/clear</code></td><td>会話をリセットして、まっさらな状態に戻す（話題を変えるとき便利）</td></tr>
+        <tr><td><code>/login</code></td><td>ログインし直す・アカウントを切り替える</td></tr>
+        <tr><td><code>/exit</code></td><td>Claude Codeを終了する</td></tr>
+      </table>
+    </div>
+
+    <h3>覚えておくと便利なキー操作</h3>
+    <ul class="plain">
+      <li><span class="kbd">↑</span>（上矢印）… 前に打った内容を呼び出す</li>
+      <li><span class="kbd">Tab</span> … コマンドやファイル名を自動補完する</li>
+      <li><span class="kbd">Shift</span>+<span class="kbd">Tab</span> … <b>許可モード</b>を切り替える（下記参照）</li>
+    </ul>
+
+    <h3>許可モードを知っておく（安心のカギ）</h3>
+    <p>Claude Codeには「どこまで自動でやらせるか」の設定があり、<span class="kbd">Shift</span>+<span class="kbd">Tab</span> で切り替えられます。未経験のうちは<b>いちばん慎重なモードのまま</b>で大丈夫です。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>モード</th><th>ふるまい</th><th>初心者は</th></tr>
+        <tr><td>ふつう（既定）</td><td>変更のたびに「していい？」と確認する</td><td><b>◎ まずはこれ</b></td></tr>
+        <tr><td>編集を自動承認</td><td>ファイル編集をいちいち聞かずに進める</td><td>△ 慣れてから</td></tr>
+        <tr><td>計画モード</td><td>実際には変更せず、やることの計画だけ提案する</td><td>◯ 下調べに便利</td></tr>
+      </table>
+    </div>
+    <div class="callout warn">
+      <span class="lbl">最初は「確認あり」で使うのが正解</span>
+      毎回確認が入るのは少し手間に感じるかもしれませんが、これが<b>意図しない変更を防ぐ安全ネット</b>です。中身をよく読んでから承認する習慣をつけましょう。
+    </div>
+  </section>
+
+  <!-- Lv3 頼み方 -->
+  <section id="prompt">
+    <h2><span class="num">6</span>Lv.3 上手な頼み方のコツ</h2>
+    <p>Claude Codeを使いこなせるかどうかは、プログラミング知識よりも<b>「頼み方（伝え方）」</b>で決まります。ここが未経験者にとっていちばん大事な"技術"です。コツは4つ。</p>
+
+    <h3>コツ①　具体的に伝える</h3>
+    <p>あいまいな指示より、状況・目的まで書いたほうが、ずっと良い結果になります。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>△ ざっくり</th><th>◎ 具体的</th></tr>
+        <tr><td>「整理して」</td><td>「このフォルダのPDFを、ファイル名の日付ごとに月別フォルダへ移動して」</td></tr>
+        <tr><td>「表を作って」</td><td>「名前・電話・メールの3列の表を作り、Excelで開ける形式で保存して」</td></tr>
+      </table>
+    </div>
+
+    <h3>コツ②　大きな作業は手順に分ける</h3>
+    <p>やりたいことが大きいときは、番号付きで段階的に頼むと迷子になりません。</p>
+    <div class="prompt-example"><span class="txt">1. まずこのフォルダにどんなファイルがあるか一覧にして<br>2. そのうち画像ファイルだけを「画像」フォルダにまとめて<br>3. 残ったファイルの一覧をテキストに書き出して</span></div>
+
+    <h3>コツ③　まず「調べて・計画して」から動かす</h3>
+    <p>いきなり作らせず、先に状況を把握させると精度が上がります。「まず〜を確認してから、どうするか教えて」と頼むのがコツ。</p>
+    <div class="prompt-example"><span class="txt">このExcelファイルの中身をまず確認して、どんな集計ができそうか提案して。作業はまだしないで</span></div>
+
+    <h3>コツ④　遠慮せず会話を続ける</h3>
+    <p>結果が思ったのと違っても、やり直しは一言でOK。<b>同僚に話しかけるように</b>、気軽に修正を頼みましょう。「もっと簡単にして」「色を青にして」「さっきのを元に戻して」など、何度でも直せます。</p>
+    <div class="callout tip">
+      <span class="lbl">わからない言葉が出てきたら</span>
+      Claudeの返事に専門用語が出てきたら、そのまま<b>「今の"◯◯"って何？初心者にもわかるように説明して」</b>と聞けばOK。Claude Code自体が最高の先生になります。
+    </div>
+  </section>
+
+  <!-- Lv4 自動化 -->
+  <section id="automate">
+    <h2><span class="num">7</span>Lv.4 日常作業を自動化する</h2>
+    <p>ここからが実用編、あなたの目標のひとつ<b>「日常作業の自動化」</b>です。面倒な手作業を、Claude Codeに任せてみましょう。まずは"失敗しても困らない練習用フォルダ"のコピーで試すのが安心です。</p>
+
+    <h3>まず試したい定番の自動化</h3>
+    <div class="card">
+      <h3 style="margin-top:0">📁 ファイル整理・改名</h3>
+      <div class="prompt-example"><span class="txt">このフォルダの画像を撮影日ごとにフォルダ分けして。ファイル名は「日付_連番」に統一して</span></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">📊 データ集計・グラフ化</h3>
+      <div class="prompt-example"><span class="txt">この売上CSVを商品カテゴリ別に月ごとで集計して、結果をExcelにまとめて。ついでに棒グラフも入れて</span></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🔁 繰り返し作業をまとめて処理</h3>
+      <div class="prompt-example"><span class="txt">このフォルダにある20個のWord文書、全部の先頭に会社ロゴと日付を入れて保存し直して</span></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">📝 定型文・書類のたたき台づくり</h3>
+      <div class="prompt-example"><span class="txt">請求書のテンプレートを作って。宛名・金額・日付を差し替えるだけで使える形にして</span></div>
+    </div>
+
+    <h3>「毎回やる作業」を仕組みにする</h3>
+    <p>同じ作業を繰り返すなら、その手順を<b>小さなプログラム（スクリプト）</b>にしてもらえます。中身がわからなくても大丈夫。「次からはこれをダブルクリックすれば同じことができる」状態を作ってくれます。</p>
+    <div class="prompt-example"><span class="txt">今やってくれたフォルダ整理を、次からワンクリックで実行できるようにして。使い方も初心者向けにメモにまとめて</span></div>
+    <div class="callout note">
+      <span class="lbl">仕組みの保存場所も頼める</span>
+      「使い方を README というメモに書いておいて」と頼めば、手順書も一緒に作ってくれます。半年後の自分が見てもわかるように残せます。
+    </div>
+  </section>
+
+  <!-- Lv5 アプリ作り -->
+  <section id="build">
+    <h2><span class="num">8</span>Lv.5 かんたんなアプリ・サイトを作る</h2>
+    <p>もうひとつの目標<b>「かんたんなアプリ・サイト作り」</b>に挑戦しましょう。専門知識ゼロでも、"どんなものが欲しいか"を伝えるだけで形になります。最初は1画面で完結する小さなものから。</p>
+
+    <h3>おすすめの最初の一作</h3>
+    <p>いちばん手軽なのは、<b>ブラウザで開ける1ファイルのWebページ／アプリ</b>です。作ってもらったファイルをダブルクリックすれば、すぐ自分のパソコンで動きます。</p>
+    <div class="card">
+      <h3 style="margin-top:0">🛒 買い物リストアプリ</h3>
+      <div class="prompt-example"><span class="txt">ブラウザで動くシンプルな買い物リストを作って。項目を追加・削除でき、チェックを付けられるようにして。1つのHTMLファイルにまとめて</span></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🧮 かんたん電卓・計算ツール</h3>
+      <div class="prompt-example"><span class="txt">消費税込みの金額を計算できるツールを作って。金額を入れると税込・税抜が両方出るようにして</span></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">🌐 自己紹介ページ</h3>
+      <div class="prompt-example"><span class="txt">自己紹介の1ページサイトを作って。名前・趣味・好きなもののセクションを付けて、見た目もおしゃれにして</span></div>
+    </div>
+
+    <h3>作ったあとの「育て方」</h3>
+    <p>一度できたら、会話で少しずつ改良していきましょう。これが"使いこなし"の醍醐味です。</p>
+    <div class="prompt-example"><span class="txt">さっきの買い物リストに、個数を入力できる欄を足して</span></div>
+    <div class="prompt-example"><span class="txt">全体の色をもっと明るい感じにして、スマホでも見やすくして</span></div>
+    <div class="callout tip">
+      <span class="lbl">動かして確かめる → 直す、を繰り返す</span>
+      作ってもらったファイルを実際に開いて動かし、気になったところを言葉で伝えて直す。この<b>「試す→直す」のサイクル</b>を回すうちに、自然と「どう頼めば伝わるか」の感覚が身についていきます。
+    </div>
+  </section>
+
+  <!-- ロードマップ -->
+  <section id="roadmap">
+    <h2><span class="num">9</span>30日ゆるっとロードマップ &amp; チェックリスト</h2>
+    <p>気負わず進めるための目安です。チェックボックスは押すと記録できます（※このページを閉じるとリセットされます）。</p>
+    <ul class="checklist" id="cl">
+      <li><input type="checkbox"><span class="ct"><b>1日目：セットアップ</b><small>有料プラン登録 → アプリ版 or ターミナル版をインストール → ログイン</small></span></li>
+      <li><input type="checkbox"><span class="ct"><b>2〜3日目：会話に慣れる</b><small>練習フォルダで「説明して」「ファイル作って」を試す（Lv.1）</small></span></li>
+      <li><input type="checkbox"><span class="ct"><b>4〜5日目：基本操作</b><small><code>/help</code> <code>/clear</code>、許可モードを触ってみる（Lv.2）</small></span></li>
+      <li><input type="checkbox"><span class="ct"><b>1週目後半：頼み方を磨く</b><small>「具体的に」「手順に分ける」を意識して依頼してみる（Lv.3）</small></span></li>
+      <li><input type="checkbox"><span class="ct"><b>2週目：自動化に挑戦</b><small>ファイル整理やデータ集計を1つ自動化してみる（Lv.4）</small></span></li>
+      <li><input type="checkbox"><span class="ct"><b>3週目：ミニアプリを作る</b><small>買い物リストなど1画面アプリを作って動かす（Lv.5）</small></span></li>
+      <li><input type="checkbox"><span class="ct"><b>4週目：自分の課題を解く</b><small>日常で「面倒だな」と思う作業を1つ、Claude Codeで解決してみる</small></span></li>
+    </ul>
+    <div class="callout tip">
+      <span class="lbl">いちばんの上達法</span>
+      教材をこなすより、<b>「自分が本当に面倒だと思っている作業」を持ち込む</b>のが最速です。やる気が続くうえ、できたときの効果を実感できます。
+    </div>
+  </section>
+
+  <!-- 安全 -->
+  <section id="safety">
+    <h2><span class="num">!</span>安全に使うための注意</h2>
+    <ul class="plain">
+      <li><b>大事なファイルはコピーで試す。</b> 慣れるまでは、元データではなく複製フォルダで作業しましょう。</li>
+      <li><b>変更内容は読んでから承認する。</b> 「確認しますか？」で中身にざっと目を通す習慣を。よくわからなければ「これは何をする変更？」と聞けばOK。</li>
+      <li><b>パスワードや個人情報は不用意に貼らない。</b> 必要な場合を除き、機密情報は入力を控えめに。</li>
+      <li><b>ネットからのコマンドを鵜呑みにしない。</b> 知らないサイトに書かれたコマンドをそのまま実行するのは避け、意味を尋ねてから。</li>
+      <li><b>「元に戻して」が使える。</b> 直前の変更なら会話で戻せることが多いです。Git for Windowsを入れておくと、変更履歴の管理も頼めてさらに安心です。</li>
+    </ul>
+  </section>
+
+  <!-- トラブル -->
+  <section id="trouble">
+    <h2><span class="num">⚙</span>困ったときは（トラブル対処）</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>症状</th><th>対処</th></tr>
+        <tr><td><code>claude</code> が「認識されません」と出る</td><td>ターミナルを一度閉じて開き直す。それでもダメなら <code>claude doctor</code> を実行して診断。</td></tr>
+        <tr><td>インストールでエラーが出る</td><td>PowerShellとCMDを取り違えていないか確認（先頭が <code>PS</code> かどうか）。正しい方のコマンドで再実行。</td></tr>
+        <tr><td>ログインできない</td><td>使っているのが<b>有料プラン</b>のアカウントか確認。無料プランではClaude Codeは使えません。</td></tr>
+        <tr><td>思ったのと違う結果になる</td><td>そのまま会話で「ここをこう直して」と伝える。具体的に言うほど直しやすい。</td></tr>
+        <tr><td>調子を確認したい</td><td>ターミナル版で <code>claude doctor</code> を打つと、状態を点検してくれます。</td></tr>
+      </table>
+    </div>
+    <div class="callout note">
+      <span class="lbl">いちばん確実な相談先</span>
+      困ったら、Claude Codeに<b>そのまま日本語で症状を伝える</b>のが最短です。「〜というエラーが出た。どうすればいい？」で、解決方法を一緒に探してくれます。公式ドキュメントは <a href="https://code.claude.com/docs/en/quickstart" target="_blank" rel="noopener">code.claude.com/docs</a>（英語）。
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="faq">
+    <h2><span class="num">Q</span>よくある質問</h2>
+    <details>
+      <summary>本当にプログラミングの知識はいらない？</summary>
+      <p>最初は不要です。日本語で頼めば動きます。ただ、使ううちに「これは何をしているんだろう？」と興味が出てきたら、その都度Claude Codeに解説してもらうと、自然と少しずつ理解が深まります。知識ゼロで始めて、遊びながら覚えていくのが理想的です。</p>
+    </details>
+    <details>
+      <summary>間違えて大事なファイルを壊さない？</summary>
+      <p>既定では変更のたびに確認が入るので、いきなり壊れることは基本ありません。加えて「大事なデータはコピーで試す」を守れば安心です。Git for Windowsを入れておくと、変更を記録して元に戻す作業も頼めます。</p>
+    </details>
+    <details>
+      <summary>アプリ版とターミナル版、結局どっちを使えばいい？</summary>
+      <p>どちらでも同じことができます。とっつきやすさ重視なら<b>アプリ版</b>、ネットの解説記事や動画を参考にしたいなら<b>ターミナル版</b>が便利（世の中の情報はターミナル版が多いため）。両方入れておいて、気分で使い分けるのもアリです。</p>
+    </details>
+    <details>
+      <summary>英語ができないと使えない？</summary>
+      <p>いいえ。日本語でそのまま会話できます。返事も日本語でお願いすれば日本語で返ってきます。</p>
+    </details>
+    <details>
+      <summary>料金はどのくらいかかる？使いすぎない？</summary>
+      <p>個人ならProプラン（月20ドル前後）の定額で始められ、その範囲内でたっぷり使えます。使用量に上限があり、超えそうなときは知らせてくれます。最新の料金は<a href="https://claude.com/pricing" target="_blank" rel="noopener">公式ページ</a>で確認を。</p>
+    </details>
+    <details>
+      <summary>Macでも同じようにできる？</summary>
+      <p>できます。インストールのコマンドが違うだけで、使い方（Lv.1以降）はまったく同じです。Mac版が必要になったら気軽に聞いてください。</p>
+    </details>
+  </section>
+
+  <footer>
+    <p>プログラミング未経験から始めるClaude Code 完全ガイド（Windows版）</p>
+    <p>2026年7月時点の情報をもとに作成。手順や料金は変更される場合があります。最新情報は公式サイトをご確認ください。</p>
+    <a class="backtop" href="#toc">↑ 目次へもどる</a>
+  </footer>
+
+</div>
+
+<script>
+  // チェックリスト（メモリ内のみ・保存なし）
+  document.querySelectorAll('#cl li').forEach(function(li){
+    var cb = li.querySelector('input');
+    function sync(){ li.classList.toggle('done', cb.checked); }
+    li.addEventListener('click', function(e){
+      if(e.target !== cb){ cb.checked = !cb.checked; }
+      sync();
+    });
+    cb.addEventListener('change', sync);
+  });
+</script>
+</body>
+</html>
