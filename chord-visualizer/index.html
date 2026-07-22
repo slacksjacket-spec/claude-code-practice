@@ -248,6 +248,41 @@
     font-size: 0.7rem;
     margin: 3px 0 6px;
   }
+  .source-toggle {
+    margin-bottom: 16px;
+  }
+  .file-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #3a3f5c;
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+  }
+  .file-name {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+  .seek-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .seek-row input[type="range"] {
+    flex: 1;
+  }
+  .time-label {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    min-width: 3.2em;
+  }
+  .time-label:last-child { text-align: right; }
 </style>
 </head>
 <body>
@@ -256,7 +291,26 @@
   <div class="sub">マイクの音量・周波数・音程をリアルタイム表示</div>
 
   <div class="panel">
-    <button class="mic-btn" id="micBtn">🎙️ マイクを開始</button>
+    <div class="mode-toggle source-toggle" id="sourceToggle">
+      <button class="mode-btn active" data-source="mic">🎙️ マイク</button>
+      <button class="mode-btn" data-source="file">📁 ファイル</button>
+    </div>
+
+    <div id="micPanel">
+      <button class="mic-btn" id="micBtn">🎙️ マイクを開始</button>
+    </div>
+
+    <div id="filePanel" style="display:none;">
+      <input type="file" id="fileInput" class="file-input" accept="audio/*">
+      <div class="file-name" id="fileNameEl"></div>
+      <button class="mic-btn" id="filePlayBtn" disabled>▶ 再生</button>
+      <div class="seek-row">
+        <span class="time-label" id="currentTimeEl">0:00</span>
+        <input type="range" id="seekBar" min="0" max="0" step="0.01" value="0" disabled>
+        <span class="time-label" id="durationEl">0:00</span>
+      </div>
+    </div>
+
     <div class="status" id="status"></div>
 
     <div class="gain-row">
@@ -327,6 +381,15 @@ const spectrumCtx = spectrumCanvas.getContext("2d");
 const waveCtx = waveCanvas.getContext("2d");
 const modeToggle = document.getElementById("modeToggle");
 const freqRangeSelect = document.getElementById("freqRangeSelect");
+const sourceToggle = document.getElementById("sourceToggle");
+const micPanel = document.getElementById("micPanel");
+const filePanel = document.getElementById("filePanel");
+const fileInput = document.getElementById("fileInput");
+const fileNameEl = document.getElementById("fileNameEl");
+const filePlayBtn = document.getElementById("filePlayBtn");
+const seekBar = document.getElementById("seekBar");
+const currentTimeEl = document.getElementById("currentTimeEl");
+const durationEl = document.getElementById("durationEl");
 
 let audioCtx = null;
 let analyser = null;
@@ -338,6 +401,13 @@ let listening = false;
 let frameCount = 0;
 let displayMode = "waterfall";
 let cutoffFreq = Number(freqRangeSelect.value);
+let audioBuffer = null;
+let fileSourceNode = null;
+let filePlaying = false;
+let pausedPosition = 0;
+let segmentStartOffset = 0;
+let segmentStartCtxTime = 0;
+let seeking = false;
 
 gainSlider.addEventListener("input", () => {
   const value = Number(gainSlider.value);
@@ -522,6 +592,27 @@ function drawWave(timeData) {
   waveCtx.stroke();
 }
 
+function formatTime(sec) {
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function currentFilePosition() {
+  if (!audioBuffer) return 0;
+  if (filePlaying) {
+    return Math.min(segmentStartOffset + (audioCtx.currentTime - segmentStartCtxTime), audioBuffer.duration);
+  }
+  return pausedPosition;
+}
+
+function updateSeekUI() {
+  const pos = currentFilePosition();
+  if (!seeking) seekBar.value = pos.toFixed(2);
+  currentTimeEl.textContent = formatTime(pos);
+}
+
 function loop() {
   rafId = requestAnimationFrame(loop);
   frameCount++;
@@ -532,10 +623,26 @@ function loop() {
   if (displayMode === "waterfall") drawSpectrogram(); else drawSpectrumBars();
   drawWave(timeData);
   updateVolumeUI(timeData);
+  if (filePlaying) updateSeekUI();
 
   if (frameCount % 2 === 0) {
     const freq = autoCorrelate(timeData, audioCtx.sampleRate);
     updatePitchUI(freq);
+  }
+}
+
+function ensureGraph() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  if (!analyser) {
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.8;
+  }
+  if (!gainNode) {
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = Number(gainSlider.value);
+    gainNode.connect(analyser);
   }
 }
 
@@ -554,14 +661,9 @@ async function startMic() {
       return;
     }
   }
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  analyser = audioCtx.createAnalyser();
-  analyser.fftSize = 2048;
-  analyser.smoothingTimeConstant = 0.8;
+  ensureGraph();
   sourceNode = audioCtx.createMediaStreamSource(mediaStream);
-  gainNode = audioCtx.createGain();
-  gainNode.gain.value = Number(gainSlider.value);
-  sourceNode.connect(gainNode).connect(analyser);
+  sourceNode.connect(gainNode);
 
   listening = true;
   micBtn.textContent = "⏹ マイクを停止";
@@ -573,7 +675,7 @@ async function startMic() {
 
 function stopMic() {
   listening = false;
-  if (rafId) cancelAnimationFrame(rafId);
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
   if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
   if (audioCtx) audioCtx.close();
   audioCtx = null;
@@ -591,6 +693,141 @@ function stopMic() {
 
 micBtn.addEventListener("click", () => {
   if (listening) stopMic(); else startMic();
+});
+
+async function loadFile(file) {
+  if (filePlaying) pauseFile();
+  ensureGraph();
+  fileNameEl.textContent = file.name;
+  filePlayBtn.disabled = true;
+  seekBar.disabled = true;
+  statusEl.textContent = "デコード中…";
+  statusEl.className = "status";
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    pausedPosition = 0;
+    seekBar.max = audioBuffer.duration;
+    seekBar.value = 0;
+    seekBar.disabled = false;
+    durationEl.textContent = formatTime(audioBuffer.duration);
+    currentTimeEl.textContent = "0:00";
+    filePlayBtn.disabled = false;
+    filePlayBtn.textContent = "▶ 再生";
+    statusEl.textContent = "準備できました";
+  } catch (err) {
+    audioBuffer = null;
+    statusEl.textContent = "このファイルは読み込めませんでした";
+    statusEl.className = "status error";
+  }
+}
+
+function startSourceAt(offset) {
+  fileSourceNode = audioCtx.createBufferSource();
+  fileSourceNode.buffer = audioBuffer;
+  fileSourceNode.connect(gainNode);
+  fileSourceNode.connect(audioCtx.destination);
+  fileSourceNode.onended = () => {
+    if (filePlaying) {
+      filePlaying = false;
+      pausedPosition = 0;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      fileSourceNode = null;
+      filePlayBtn.textContent = "▶ 再生";
+      seekBar.value = 0;
+      currentTimeEl.textContent = "0:00";
+      statusEl.textContent = "準備できました";
+      statusEl.className = "status";
+    }
+  };
+  fileSourceNode.start(0, offset);
+  segmentStartOffset = offset;
+  segmentStartCtxTime = audioCtx.currentTime;
+}
+
+function playFile() {
+  if (!audioBuffer) return;
+  ensureGraph();
+  const startAt = Math.min(pausedPosition, Math.max(audioBuffer.duration - 0.01, 0));
+  startSourceAt(startAt);
+  filePlaying = true;
+  filePlayBtn.textContent = "⏸ 一時停止";
+  statusEl.textContent = "再生中…";
+  statusEl.className = "status";
+  loop();
+}
+
+function pauseFile() {
+  if (!filePlaying) return;
+  pausedPosition = currentFilePosition();
+  filePlaying = false;
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  if (fileSourceNode) {
+    fileSourceNode.onended = null;
+    try { fileSourceNode.stop(); } catch (err) {}
+    fileSourceNode.disconnect();
+    fileSourceNode = null;
+  }
+  filePlayBtn.textContent = "▶ 再生";
+  statusEl.textContent = "一時停止中";
+  statusEl.className = "status";
+}
+
+function seekTo(newPos) {
+  if (!audioBuffer) return;
+  pausedPosition = Math.min(Math.max(newPos, 0), audioBuffer.duration);
+  if (filePlaying) {
+    if (fileSourceNode) {
+      fileSourceNode.onended = null;
+      try { fileSourceNode.stop(); } catch (err) {}
+      fileSourceNode.disconnect();
+    }
+    startSourceAt(pausedPosition);
+  } else {
+    currentTimeEl.textContent = formatTime(pausedPosition);
+  }
+}
+
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (file) loadFile(file);
+});
+
+filePlayBtn.addEventListener("click", () => {
+  if (filePlaying) pauseFile(); else playFile();
+});
+
+seekBar.addEventListener("input", () => {
+  seeking = true;
+  currentTimeEl.textContent = formatTime(Number(seekBar.value));
+});
+
+seekBar.addEventListener("change", () => {
+  seekTo(Number(seekBar.value));
+  seeking = false;
+});
+
+sourceToggle.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    sourceToggle.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const source = btn.dataset.source;
+    if (source === "mic") {
+      if (filePlaying) pauseFile();
+      micPanel.style.display = "";
+      filePanel.style.display = "none";
+    } else {
+      if (listening) stopMic();
+      micPanel.style.display = "none";
+      filePanel.style.display = "";
+    }
+    statusEl.textContent = "";
+    statusEl.className = "status";
+    updatePitchUI(-1);
+    volumeFillEl.style.width = "0%";
+    spectrumCtx.clearRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+    waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+  });
 });
 </script>
 </body>
