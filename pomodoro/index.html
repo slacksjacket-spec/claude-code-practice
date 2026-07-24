@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイポモドーロ</title>
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --work: #ff8a65;
+    --break: #6fe3b4;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 48px 16px 64px;
+  }
+  .page { width: 100%; max-width: 480px; }
+
+  .back {
+    display: inline-block;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  .back:hover { color: var(--accent); }
+
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 6px;
+  }
+  .sub {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    margin-bottom: 32px;
+    line-height: 1.6;
+    max-width: 44ch;
+  }
+
+  .mode-label {
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 18px;
+    transition: color 0.2s ease;
+  }
+  .mode-label.work { color: var(--work); }
+  .mode-label.break { color: var(--break); }
+
+  .ring-wrap {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    margin: 0 auto 28px;
+  }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--panel-2); stroke-width: 12; }
+  .ring-progress {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s linear, stroke 0.2s ease;
+  }
+  .ring-progress.work { stroke: var(--work); }
+  .ring-progress.break { stroke: var(--break); }
+
+  .time-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+  button {
+    font-family: inherit;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+  }
+  button:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #14161f;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 14px 40px;
+  }
+  .btn-secondary {
+    background: var(--panel-2);
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    padding: 14px 20px;
+  }
+  .btn-secondary:hover { color: var(--text); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid #2f3350;
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 14px;
+    font-weight: 600;
+  }
+
+  .presets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .preset-btn {
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 0.82rem;
+    padding: 9px 14px;
+    border: 1px solid transparent;
+  }
+  .preset-btn:hover { border-color: var(--accent); }
+  .preset-btn.active {
+    background: rgba(124,157,255,0.18);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .custom-row {
+    display: flex;
+    gap: 20px;
+  }
+  .field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label { font-size: 0.78rem; color: var(--text-dim); }
+  .field input {
+    background: var(--panel-2);
+    border: 1px solid #33375200;
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 9px 10px;
+    width: 100%;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* フェーズ終了オーバーレイ */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,11,18,0.82);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 10;
+  }
+  .overlay.show { display: flex; }
+  .overlay-card {
+    background: var(--panel);
+    border: 1px solid #3a3f60;
+    border-radius: 18px;
+    padding: 32px 28px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .overlay-card .icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .overlay-card h3 { margin: 0 0 8px; font-size: 1.15rem; }
+  .overlay-card p { color: var(--text-dim); font-size: 0.85rem; margin: 0 0 22px; line-height: 1.6; }
+  .overlay-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .overlay-actions .btn-primary { padding: 13px; width: 100%; }
+  .overlay-actions .btn-extend {
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 0.92rem;
+    padding: 12px;
+    width: 100%;
+  }
+  .overlay-actions .btn-extend:hover { color: var(--accent); }
+
+  footer {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    text-align: center;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="../index.html">← ツールキットに戻る</a>
+  <h1>🍅 マイポモドーロ</h1>
+  <p class="sub">
+    時間が来ても強制的には止めません。集中が乗っているときは「延長」でそのまま続けられます。
+  </p>
+
+  <div class="mode-label work" id="modeLabel">作業中</div>
+
+  <div class="ring-wrap">
+    <svg width="260" height="260" viewBox="0 0 260 260">
+      <circle class="ring-bg" cx="130" cy="130" r="114"></circle>
+      <circle class="ring-progress work" id="ringProgress" cx="130" cy="130" r="114"></circle>
+    </svg>
+    <div class="time-display" id="timeDisplay">25:00</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-primary" id="startPauseBtn">スタート</button>
+    <button class="btn-secondary" id="resetBtn">リセット</button>
+  </div>
+
+  <div class="panel">
+    <h2>プリセット</h2>
+    <div class="presets" id="presets"></div>
+    <div class="custom-row">
+      <div class="field">
+        <label for="workInput">作業(分)</label>
+        <input type="number" id="workInput" min="1" max="180" step="1">
+      </div>
+      <div class="field">
+        <label for="breakInput">休憩(分)</label>
+        <input type="number" id="breakInput" min="1" max="60" step="1">
+      </div>
+    </div>
+  </div>
+
+  <footer>設定は自動的にこのブラウザに保存されます</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="icon" id="overlayIcon">⏰</div>
+    <h3 id="overlayTitle">作業時間が終わりました</h3>
+    <p id="overlayText">集中できていたら、そのまま延長できます。</p>
+    <div class="overlay-actions" id="overlayActions"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const PRESETS = [
+    { label: '集中25', work: 25, break: 5 },
+    { label: '軽め15', work: 15, break: 5 },
+    { label: 'がっつり50', work: 50, break: 10 },
+  ];
+  const STORAGE_KEY = 'pomodoro-settings-v1';
+  const ORIGINAL_TITLE = document.title;
+
+  const el = {
+    modeLabel: document.getElementById('modeLabel'),
+    ring: document.getElementById('ringProgress'),
+    time: document.getElementById('timeDisplay'),
+    startPauseBtn: document.getElementById('startPauseBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    presets: document.getElementById('presets'),
+    workInput: document.getElementById('workInput'),
+    breakInput: document.getElementById('breakInput'),
+    overlay: document.getElementById('overlay'),
+    overlayIcon: document.getElementById('overlayIcon'),
+    overlayTitle: document.getElementById('overlayTitle'),
+    overlayText: document.getElementById('overlayText'),
+    overlayActions: document.getElementById('overlayActions'),
+  };
+
+  const RADIUS = 114;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  el.ring.style.strokeDasharray = CIRCUMFERENCE.toFixed(2);
+
+  let settings = loadSettings();
+  let state = {
+    mode: 'work',
+    running: false,
+    endTime: null,
+    remainingMs: settings.workMinutes * 60000,
+  };
+  let tickHandle = null;
+  let titleFlashHandle = null;
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.workMinutes > 0 && parsed.breakMinutes > 0) return parsed;
+      }
+    } catch (e) {}
+    return { workMinutes: 25, breakMinutes: 5 };
+  }
+
+  function saveSettings() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  }
+
+  function totalMsForMode(mode) {
+    return (mode === 'work' ? settings.workMinutes : settings.breakMinutes) * 60000;
+  }
+
+  function renderPresets() {
+    el.presets.innerHTML = '';
+    PRESETS.forEach((p) => {
+      const btn = document.createElement('button');
+      btn.className = 'preset-btn';
+      btn.textContent = `${p.label}`;
+      if (settings.workMinutes === p.work && settings.breakMinutes === p.break) {
+        btn.classList.add('active');
+      }
+      btn.addEventListener('click', () => {
+        settings.workMinutes = p.work;
+        settings.breakMinutes = p.break;
+        saveSettings();
+        syncInputs();
+        renderPresets();
+        if (!state.running) resetCurrentPhase();
+      });
+      el.presets.appendChild(btn);
+    });
+  }
+
+  function syncInputs() {
+    el.workInput.value = settings.workMinutes;
+    el.breakInput.value = settings.breakMinutes;
+  }
+
+  function resetCurrentPhase() {
+    state.remainingMs = totalMsForMode(state.mode);
+    state.endTime = null;
+    render();
+  }
+
+  function formatTime(ms) {
+    const totalSec = Math.max(0, Math.ceil(ms / 1000));
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function render() {
+    const total = totalMsForMode(state.mode);
+    const remaining = state.running ? state.remainingMs : state.remainingMs;
+    el.time.textContent = formatTime(remaining);
+    const ratio = Math.min(1, Math.max(0, remaining / total));
+    el.ring.style.strokeDashoffset = (CIRCUMFERENCE * (1 - ratio)).toFixed(2);
+
+    el.modeLabel.textContent = state.mode === 'work' ? '作業中' : '休憩中';
+    el.modeLabel.className = 'mode-label ' + state.mode;
+    el.ring.className = 'ring-progress ' + state.mode;
+
+    el.startPauseBtn.textContent = state.running ? '一時停止' : (state.remainingMs < total ? '再開' : 'スタート');
+  }
+
+  function tick() {
+    if (!state.running || state.endTime == null) return;
+    const remaining = state.endTime - Date.now();
+    state.remainingMs = remaining;
+    if (remaining <= 0) {
+      state.remainingMs = 0;
+      stopRunning();
+      render();
+      onPhaseEnd();
+      return;
+    }
+    render();
+  }
+
+  function startRunning() {
+    if (state.remainingMs <= 0) state.remainingMs = totalMsForMode(state.mode);
+    state.endTime = Date.now() + state.remainingMs;
+    state.running = true;
+    requestNotificationPermission();
+    tickHandle = setInterval(tick, 250);
+    render();
+  }
+
+  function stopRunning() {
+    state.running = false;
+    if (tickHandle) { clearInterval(tickHandle); tickHandle = null; }
+  }
+
+  function requestNotificationPermission() {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
+  }
+
+  function playChime() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const notes = [880, 1108.73];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.18);
+        gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i * 0.18 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.5);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.18);
+        osc.stop(ctx.currentTime + i * 0.18 + 0.5);
+      });
+    } catch (e) {}
+  }
+
+  function flashTitle(message) {
+    if (titleFlashHandle) return;
+    let toggled = false;
+    titleFlashHandle = setInterval(() => {
+      document.title = toggled ? ORIGINAL_TITLE : message;
+      toggled = !toggled;
+    }, 1000);
+  }
+
+  function stopTitleFlash() {
+    if (titleFlashHandle) {
+      clearInterval(titleFlashHandle);
+      titleFlashHandle = null;
+      document.title = ORIGINAL_TITLE;
+    }
+  }
+
+  function showBrowserNotification(title, body) {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission === 'granted' && document.hidden) {
+      try { new Notification(title, { body, icon: undefined }); } catch (e) {}
+    }
+  }
+
+  function onPhaseEnd() {
+    playChime();
+    flashTitle('⏰ 時間です!');
+
+    if (state.mode === 'work') {
+      showBrowserNotification('作業時間が終わりました', '延長するか、休憩に入りましょう');
+      el.overlayIcon.textContent = '🍅';
+      el.overlayTitle.textContent = '作業時間が終わりました';
+      el.overlayText.textContent = '集中できていたら、そのまま延長できます。';
+      el.overlayActions.innerHTML = '';
+      addOverlayButton('btn-extend', '+5分 続ける', () => extend(5));
+      addOverlayButton('btn-extend', '+10分 続ける', () => extend(10));
+      addOverlayButton('btn-primary', '休憩にする', () => switchMode('break', true));
+    } else {
+      showBrowserNotification('休憩時間が終わりました', 'そろそろ作業を再開しましょう');
+      el.overlayIcon.textContent = '☕';
+      el.overlayTitle.textContent = '休憩時間が終わりました';
+      el.overlayText.textContent = 'もう少し休むか、作業に戻りましょう。';
+      el.overlayActions.innerHTML = '';
+      addOverlayButton('btn-extend', '+5分 休む', () => extend(5));
+      addOverlayButton('btn-primary', '作業を始める', () => switchMode('work', true));
+    }
+    el.overlay.classList.add('show');
+  }
+
+  function addOverlayButton(cls, label, onClick) {
+    const btn = document.createElement('button');
+    btn.className = cls;
+    btn.textContent = label;
+    btn.addEventListener('click', () => {
+      stopTitleFlash();
+      el.overlay.classList.remove('show');
+      onClick();
+    });
+    el.overlayActions.appendChild(btn);
+  }
+
+  function extend(minutes) {
+    state.remainingMs = minutes * 60000;
+    startRunning();
+  }
+
+  function switchMode(mode, autoStart) {
+    state.mode = mode;
+    state.remainingMs = totalMsForMode(mode);
+    state.endTime = null;
+    if (autoStart) {
+      startRunning();
+    } else {
+      state.running = false;
+      render();
+    }
+  }
+
+  el.startPauseBtn.addEventListener('click', () => {
+    if (state.running) {
+      state.remainingMs = state.endTime - Date.now();
+      stopRunning();
+      render();
+    } else {
+      startRunning();
+    }
+  });
+
+  el.resetBtn.addEventListener('click', () => {
+    stopRunning();
+    stopTitleFlash();
+    el.overlay.classList.remove('show');
+    resetCurrentPhase();
+  });
+
+  function commitCustomInputs() {
+    const w = parseInt(el.workInput.value, 10);
+    const b = parseInt(el.breakInput.value, 10);
+    if (w > 0 && w <= 180) settings.workMinutes = w;
+    if (b > 0 && b <= 60) settings.breakMinutes = b;
+    saveSettings();
+    renderPresets();
+    if (!state.running) resetCurrentPhase();
+  }
+  el.workInput.addEventListener('change', commitCustomInputs);
+  el.breakInput.addEventListener('change', commitCustomInputs);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) stopTitleFlash();
+  });
+
+  syncInputs();
+  renderPresets();
+  render();
+})();
+</script>
+</body>
+</html>
