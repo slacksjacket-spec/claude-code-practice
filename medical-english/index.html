@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>医学英語 語源トレーニング</title>
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --green: #7dd0a0;
+    --ok: #7dd0a0;
+    --ng: #ff8a8a;
+    --warn: #ffb26b;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+    --border: #2f3350;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px 72px;
+  }
+  .page { width: 100%; max-width: 900px; }
+
+  .top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .back { font-size: 0.85rem; color: var(--text-dim); text-decoration: none; }
+  .back:hover { color: var(--accent); }
+  .sub { color: var(--text-dim); font-size: 0.9rem; margin: 4px 0 24px; line-height: 1.7; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab {
+    flex: 1 1 140px; padding: 11px 8px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text-dim); font-size: 0.88rem;
+    cursor: pointer; font-family: inherit; transition: border-color .15s, color .15s;
+  }
+  .tab.active { color: var(--text); border-color: var(--accent); background: var(--panel-2); }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px 22px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .card h2 { font-size: 1.02rem; margin: 0 0 10px; }
+  .card p.body { font-size: 0.9rem; line-height: 1.85; margin: 0; color: var(--text); }
+
+  button {
+    font-family: inherit; cursor: pointer;
+  }
+  .btn {
+    padding: 11px 20px; border-radius: 10px; border: 1px solid var(--accent);
+    background: var(--accent); color: #10131c; font-weight: 700; font-size: 0.9rem;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn.ghost:hover { background: rgba(124,157,255,0.12); }
+  .btn.danger { border-color: var(--ng); background: transparent; color: var(--ng); }
+  .btn:disabled { opacity: .4; cursor: default; filter: none; }
+
+  input[type=text], select {
+    padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.9rem;
+  }
+  input[type=text]:focus, select:focus { outline: 1px solid var(--accent); }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .chip {
+    padding: 6px 13px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text-dim); font-size: 0.8rem;
+  }
+  .chip.active { border-color: var(--accent); color: var(--text); }
+
+  /* ---- 辞典 ---- */
+  .rule { border-left: 2px solid var(--accent); padding: 2px 0 2px 14px; margin-bottom: 16px; }
+  .rule h3 { margin: 0 0 5px; font-size: 0.92rem; }
+  .rule p { margin: 0; font-size: 0.86rem; line-height: 1.8; color: var(--text-dim); }
+  .rule code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+
+  .m-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .m-item {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; position: relative;
+  }
+  .m-item .form { font-size: 1rem; font-weight: 700; color: var(--accent); font-family: Consolas, monospace; }
+  .m-item.suffix .form { color: var(--accent-2); }
+  .m-item.prefix .form { color: var(--warn); }
+  .m-item.drug .form { color: var(--green); }
+  .m-item.phrase .form { color: var(--text); font-size: 0.95rem; }
+
+  table.plural { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table.plural th, table.plural td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.plural th { color: var(--text-dim); font-weight: 500; font-size: 0.78rem; }
+  table.plural td.rule { font-family: Consolas, monospace; color: var(--accent); white-space: nowrap; }
+  table.plural td.pair { font-family: Consolas, monospace; line-height: 1.9; }
+  table.plural .pl { color: var(--accent-2); }
+  table.plural .jp { font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif; color: var(--text-dim); }
+  .m-item .mean { font-size: 0.9rem; margin: 4px 0 6px; }
+  .m-item .ex { font-size: 0.78rem; color: var(--text-dim); line-height: 1.6; }
+  .m-item .tag {
+    position: absolute; top: 10px; right: 12px; font-size: 0.68rem; color: var(--text-dim);
+  }
+  .m-item .bar { height: 3px; border-radius: 2px; background: var(--border); margin-top: 9px; overflow: hidden; }
+  .m-item .bar > i { display: block; height: 100%; background: var(--green); }
+  .empty { color: var(--text-dim); font-size: 0.88rem; padding: 20px 0; }
+
+  /* ---- クイズ共通 ---- */
+  .qhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .qhead .score { font-size: 0.82rem; color: var(--text-dim); }
+  .prompt-word {
+    font-size: 2rem; font-weight: 700; font-family: Consolas, monospace; letter-spacing: 0.01em;
+    word-break: break-all; margin: 6px 0 4px;
+  }
+  .prompt-ja { font-size: 1.4rem; font-weight: 700; margin: 6px 0 4px; }
+  .prompt-note { font-size: 0.82rem; color: var(--text-dim); }
+
+  .choices { display: grid; gap: 8px; margin-top: 18px; }
+  .choice {
+    text-align: left; padding: 13px 16px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text); font-size: 0.92rem; transition: border-color .12s;
+  }
+  .choice:hover:not(:disabled) { border-color: var(--accent); }
+  .choice.correct { border-color: var(--ok); background: rgba(125,208,160,0.14); }
+  .choice.wrong { border-color: var(--ng); background: rgba(255,138,138,0.12); }
+  .choice .sup { color: var(--text-dim); font-size: 0.8rem; margin-left: 8px; }
+
+  .verdict { margin-top: 16px; font-size: 0.9rem; line-height: 1.8; }
+  .verdict.ok { color: var(--ok); }
+  .verdict.ng { color: var(--ng); }
+  .verdict .detail { color: var(--text); display: block; margin-top: 6px; }
+
+  /* ---- 分解 ---- */
+  .parts-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; margin: 18px 0 4px; }
+  .part-box {
+    flex: 1 1 180px; background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px;
+  }
+  .part-box .pf {
+    font-family: Consolas, monospace; font-size: 1rem; font-weight: 700; color: var(--accent);
+    margin-bottom: 8px; display: block;
+  }
+  .part-box select { width: 100%; }
+  .part-box.correct { border-color: var(--ok); }
+  .part-box.wrong { border-color: var(--ng); }
+  .part-box .ans { font-size: 0.82rem; margin-top: 8px; color: var(--ok); }
+  .part-box .ans.ng { color: var(--ng); }
+  .plus { align-self: center; color: var(--text-dim); font-size: 1.1rem; }
+
+  /* ---- 組み立て ---- */
+  .slots {
+    display: flex; gap: 8px; flex-wrap: wrap; min-height: 56px; padding: 10px;
+    border: 1px dashed var(--border); border-radius: 12px; margin: 16px 0 12px; align-items: center;
+  }
+  .slots .hintline { color: var(--text-dim); font-size: 0.84rem; }
+  .tile {
+    padding: 9px 14px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text); font-family: Consolas, monospace;
+    font-size: 0.92rem;
+  }
+  .tile.pool:hover { border-color: var(--accent); }
+  .tile.placed { border-color: var(--accent); }
+  .tile.used { opacity: .28; pointer-events: none; }
+  .pool { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ---- 学習状況 ---- */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .stat .n { font-size: 1.5rem; font-weight: 700; }
+  .stat .l { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+  table.weak { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  table.weak th, table.weak td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  table.weak th { color: var(--text-dim); font-weight: 500; font-size: 0.78rem; }
+  table.weak td.f { font-family: Consolas, monospace; color: var(--accent); }
+  .rate-ng { color: var(--ng); }
+
+  .hidden { display: none; }
+  footer { color: var(--text-dim); font-size: 0.78rem; margin-top: 28px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <h1>🩺 医学英語 語源トレーニング</h1>
+    <a class="back" href="../index.html">← ツールキットに戻る</a>
+  </div>
+  <p class="sub">
+    医学英語を1語ずつ丸暗記するのではなく、<strong>接頭辞・語根・接尾辞</strong>という部品に分解して、
+    意味の足し算として体系的に覚えるためのドリルです。英文論文の抄読会を想定して、
+    語尾で分類が読める<strong>薬剤ステム</strong>と、語源では解けない<strong>研究デザイン・統計の語彙</strong>も収録しています。
+    成績はブラウザに保存され、間違えた項目が優先的に出題されます。
+  </p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="dict">📚 語源辞典</button>
+    <button class="tab" data-tab="breakdown">🧩 分解トレーニング</button>
+    <button class="tab" data-tab="meaning">⚡ 意味クイズ</button>
+    <button class="tab" data-tab="build">🔨 組み立て</button>
+    <button class="tab" data-tab="paper">📄 論文語彙</button>
+    <button class="tab" data-tab="stats">📊 学習状況</button>
+  </div>
+
+  <!-- ============ 語源辞典 ============ -->
+  <section id="tab-dict">
+    <div class="card">
+      <h2>読み解きの原則</h2>
+      <div id="rules"></div>
+    </div>
+
+    <div class="card">
+      <h2>ギリシャ語・ラテン語の複数形</h2>
+      <p class="body" style="color:var(--text-dim); font-size:0.86rem; margin-bottom:14px;">
+        論文では単数形と綴りが変わります。<code>metastases</code> や <code>criteria</code> を辞書で引けずに詰まるのは、たいていこれが原因です。
+      </p>
+      <table class="plural" id="plural-table"></table>
+    </div>
+
+    <div class="card">
+      <h2>語源リスト <span id="dict-count" class="prompt-note"></span></h2>
+      <div class="chips" id="dict-type"></div>
+      <div class="chips" id="dict-sub"></div>
+      <input type="text" id="dict-search" placeholder="綴り・意味・例語で検索(例: 炎症 / cardi / 切除)" style="width:100%; margin-bottom:14px;">
+      <div class="m-list" id="dict-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ 分解トレーニング ============ -->
+  <section id="tab-breakdown" class="hidden">
+    <div class="card">
+      <h2>🧩 分解トレーニング</h2>
+      <p class="body" style="color:var(--text-dim); font-size:0.86rem;">
+        単語がどう区切られるかは示されます。各パーツの意味を選んで、単語全体の意味を自分で組み立ててください。
+      </p>
+      <div class="qhead" style="margin-top:14px;">
+        <div class="chips" id="bd-sys" style="margin:0;"></div>
+        <div class="score" id="bd-score"></div>
+      </div>
+      <div class="prompt-word" id="bd-word">—</div>
+      <div class="prompt-note" id="bd-sysname"></div>
+      <div class="parts-row" id="bd-parts"></div>
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+        <button class="btn" id="bd-check">答え合わせ</button>
+        <button class="btn ghost" id="bd-next">次の単語 →</button>
+      </div>
+      <div class="verdict" id="bd-verdict"></div>
+    </div>
+  </section>
+
+  <!-- ============ 意味クイズ ============ -->
+  <section id="tab-meaning" class="hidden">
+    <div class="card">
+      <h2>⚡ 意味クイズ</h2>
+      <div class="qhead" style="margin-top:12px;">
+        <div>
+          <div class="chips" id="mq-type" style="margin-bottom:6px;"></div>
+          <div class="chips" id="mq-dir" style="margin:0;"></div>
+        </div>
+        <div class="score" id="mq-score"></div>
+      </div>
+      <div id="mq-prompt"></div>
+      <div class="choices" id="mq-choices"></div>
+      <div class="verdict" id="mq-verdict"></div>
+      <div style="margin-top:16px;">
+        <button class="btn ghost" id="mq-next">次の問題 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 組み立て ============ -->
+  <section id="tab-build" class="hidden">
+    <div class="card">
+      <h2>🔨 組み立てトレーニング</h2>
+      <p class="body" style="color:var(--text-dim); font-size:0.86rem;">
+        日本語の意味から、パーツを<strong>前から順に</strong>並べて英単語を作ってください。クリックで置き、置いたパーツをもう一度クリックで戻せます。
+      </p>
+      <div class="qhead" style="margin-top:14px;">
+        <div class="prompt-ja" id="bl-ja">—</div>
+        <div class="score" id="bl-score"></div>
+      </div>
+      <div class="slots" id="bl-slots"></div>
+      <div class="pool" id="bl-pool"></div>
+      <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;">
+        <button class="btn" id="bl-check">答え合わせ</button>
+        <button class="btn ghost" id="bl-next">次の問題 →</button>
+      </div>
+      <div class="verdict" id="bl-verdict"></div>
+    </div>
+  </section>
+
+  <!-- ============ 論文語彙 ============ -->
+  <section id="tab-paper" class="hidden">
+    <div class="card">
+      <h2>📄 論文語彙クイズ</h2>
+      <p class="body" style="color:var(--text-dim); font-size:0.86rem;">
+        研究デザイン・統計・安全性の語彙は<strong>語源分解では意味が出てきません</strong>。決まり文句として覚える層です。
+      </p>
+      <div class="qhead" style="margin-top:14px;">
+        <div class="chips" id="ph-dir" style="margin:0;"></div>
+        <div class="score" id="ph-score"></div>
+      </div>
+      <div id="ph-prompt"></div>
+      <div class="choices" id="ph-choices"></div>
+      <div class="verdict" id="ph-verdict"></div>
+      <div style="margin-top:16px;">
+        <button class="btn ghost" id="ph-next">次の問題 →</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>論文語彙リスト <span id="ph-count" class="prompt-note"></span></h2>
+      <div class="chips" id="ph-cat"></div>
+      <input type="text" id="ph-search" placeholder="英語・日本語で検索(例: hazard / 有意 / 盲検)" style="width:100%; margin-bottom:14px;">
+      <div class="m-list" id="ph-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ 学習状況 ============ -->
+  <section id="tab-stats" class="hidden">
+    <div class="card">
+      <h2>📊 学習状況</h2>
+      <div class="stats-grid" id="st-grid"></div>
+      <h2 style="margin-top:22px;">苦手な部品 ワースト15</h2>
+      <div id="st-weak"></div>
+      <div style="margin-top:20px;">
+        <button class="btn danger" id="st-reset">学習記録をリセット</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    語源データは一般的な医学用語の構成要素をまとめたものです。学習用の目安として使ってください。<br>
+    成績はこのブラウザの localStorage にのみ保存されます。
+  </footer>
+</div>
+
+<script src="morphemes.js"></script>
+<script>
+/* ================= 共通 ================= */
+const BY_ID = {};
+MORPHEMES.forEach(m => BY_ID[m.id] = m);
+PHRASES.forEach(p => { p.type = "phrase"; BY_ID[p.id] = p; });
+
+const TYPE_LABEL = { prefix: "接頭辞", root: "語根", suffix: "接尾辞", drug: "薬剤ステム", phrase: "論文語彙" };
+const STORE_KEY = "medEngStats.v1";
+
+let stats = loadStats();
+function loadStats() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function saveStats() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(stats)); } catch (e) {}
+}
+function record(id, ok) {
+  const s = stats[id] || (stats[id] = { ok: 0, ng: 0 });
+  if (ok) s.ok++; else s.ng++;
+  saveStats();
+}
+function statOf(id) { return stats[id] || { ok: 0, ng: 0 }; }
+
+// 苦手なものほど選ばれやすい重み
+function weightOf(id) {
+  const s = statOf(id);
+  if (s.ok === 0 && s.ng === 0) return 2.0;      // 未出題を優先
+  if (s.ng === 0 && s.ok >= 3) return 0.4;       // 定着したものは控えめ
+  return 1.0 + s.ng * 2.0;
+}
+function pickWeighted(items, weightFn) {
+  const ws = items.map(weightFn);
+  const total = ws.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < items.length; i++) {
+    r -= ws[i];
+    if (r <= 0) return items[i];
+  }
+  return items[items.length - 1];
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function sampleOther(pool, excludeIds, n) {
+  return shuffle(pool.filter(m => !excludeIds.includes(m.id))).slice(0, n);
+}
+function el(id) { return document.getElementById(id); }
+
+/* ================= タブ ================= */
+const TABS = ["dict", "breakdown", "meaning", "build", "paper", "stats"];
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+    const name = btn.dataset.tab;
+    TABS.forEach(t => el("tab-" + t).classList.toggle("hidden", t !== name));
+    if (name === "stats") renderStats();
+  });
+});
+
+/* ================= 語源辞典 ================= */
+const RULES_HTML = RULES.map(r => `<div class="rule"><h3>${r.title}</h3><p>${r.body}</p></div>`).join("");
+el("rules").innerHTML = RULES_HTML;
+
+let dictType = "all";
+let dictSub = "all";
+
+function subKeyFor(type) { return type === "root" ? "sys" : "cat"; }
+function subValuesFor(type) {
+  if (type === "all") return [];
+  const key = subKeyFor(type);
+  const seen = [];
+  MORPHEMES.filter(m => m.type === type).forEach(m => {
+    if (m[key] && !seen.includes(m[key])) seen.push(m[key]);
+  });
+  return seen;
+}
+
+// 複数形ルール表
+el("plural-table").innerHTML =
+  `<tr><th>ルール</th><th>単数 → 複数</th></tr>` +
+  PLURALS.map(p => `<tr>
+    <td class="rule">${p.rule}</td>
+    <td class="pair">${p.ex.map(([sg, pl, ja]) =>
+      `${sg} → <span class="pl">${pl}</span> <span class="jp">${ja}</span>`).join("<br>")}</td>
+  </tr>`).join("");
+
+function renderDictChips() {
+  const types = [["all", "すべて"], ["prefix", "接頭辞"], ["root", "語根"], ["suffix", "接尾辞"], ["drug", "薬剤ステム"]];
+  el("dict-type").innerHTML = types.map(([v, l]) =>
+    `<button class="chip ${dictType === v ? "active" : ""}" data-v="${v}">${l}</button>`).join("");
+  el("dict-type").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    dictType = c.dataset.v; dictSub = "all"; renderDictChips(); renderDict();
+  }));
+
+  const subs = subValuesFor(dictType);
+  el("dict-sub").innerHTML = subs.length === 0 ? "" :
+    [["all", "全分類"]].concat(subs.map(s => [s, s])).map(([v, l]) =>
+      `<button class="chip ${dictSub === v ? "active" : ""}" data-v="${v}">${l}</button>`).join("");
+  el("dict-sub").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    dictSub = c.dataset.v; renderDictChips(); renderDict();
+  }));
+}
+
+function renderDict() {
+  const q = el("dict-search").value.trim().toLowerCase();
+  const list = MORPHEMES.filter(m => {
+    if (dictType !== "all" && m.type !== dictType) return false;
+    if (dictSub !== "all") {
+      const key = subKeyFor(m.type);
+      if (m[key] !== dictSub) return false;
+    }
+    if (!q) return true;
+    return (m.form + " " + m.meaning + " " + (m.ex || "") + " " + (m.sys || "") + " " + (m.cat || ""))
+      .toLowerCase().includes(q);
+  });
+  el("dict-count").textContent = `(${list.length} / ${MORPHEMES.length}件)`;
+  if (list.length === 0) {
+    el("dict-list").innerHTML = `<div class="empty">該当する語源がありません。</div>`;
+    return;
+  }
+  el("dict-list").innerHTML = list.map(m => {
+    const s = statOf(m.id);
+    const total = s.ok + s.ng;
+    const pct = total === 0 ? 0 : Math.round(s.ok / total * 100);
+    const bar = total === 0 ? "" :
+      `<div class="bar" title="正答率 ${pct}% (${s.ok}/${total})"><i style="width:${pct}%"></i></div>`;
+    return `<div class="m-item ${m.type}">
+      <span class="tag">${m.sys || m.cat || TYPE_LABEL[m.type]}</span>
+      <div class="form">${m.form}</div>
+      <div class="mean">${m.meaning}</div>
+      <div class="ex">${m.ex || ""}</div>
+      ${bar}
+    </div>`;
+  }).join("");
+}
+el("dict-search").addEventListener("input", renderDict);
+renderDictChips();
+renderDict();
+
+/* ================= 分解トレーニング ================= */
+const WORD_SYSTEMS = [];
+WORDS.forEach(w => { if (!WORD_SYSTEMS.includes(w.sys)) WORD_SYSTEMS.push(w.sys); });
+
+let bdSys = "all";
+let bdWord = null;
+let bdScore = { ok: 0, total: 0 };
+
+function renderBdChips() {
+  const items = [["all", "全分野"]].concat(WORD_SYSTEMS.map(s => [s, s]));
+  el("bd-sys").innerHTML = items.map(([v, l]) =>
+    `<button class="chip ${bdSys === v ? "active" : ""}" data-v="${v}">${l}</button>`).join("");
+  el("bd-sys").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    bdSys = c.dataset.v; renderBdChips(); newBreakdown();
+  }));
+}
+
+function bdPool() {
+  return bdSys === "all" ? WORDS : WORDS.filter(w => w.sys === bdSys);
+}
+
+function newBreakdown() {
+  const pool = bdPool();
+  // 未習得のパーツを多く含む単語ほど出やすくする
+  bdWord = pickWeighted(pool, w =>
+    w.parts.reduce((sum, p) => sum + weightOf(p.id), 0) / w.parts.length);
+
+  el("bd-word").textContent = bdWord.word;
+  el("bd-sysname").textContent = `分野: ${bdWord.sys} ・ ${bdWord.parts.length}パーツ`;
+  el("bd-verdict").textContent = "";
+  el("bd-verdict").className = "verdict";
+  el("bd-check").disabled = false;
+
+  el("bd-parts").innerHTML = bdWord.parts.map((p, i) => {
+    const m = BY_ID[p.id];
+    const distractors = sampleOther(MORPHEMES.filter(x => x.type === m.type), [m.id], 4);
+    const opts = shuffle([m].concat(distractors));
+    const optionHtml = [`<option value="">— 意味を選ぶ —</option>`]
+      .concat(opts.map(o => `<option value="${o.id}">${o.meaning}</option>`)).join("");
+    const arrow = i < bdWord.parts.length - 1 ? `<div class="plus">+</div>` : "";
+    return `<div class="part-box" data-i="${i}">
+        <span class="pf">${p.form}</span>
+        <select data-i="${i}">${optionHtml}</select>
+      </div>${arrow}`;
+  }).join("");
+  updateBdScore();
+}
+
+function updateBdScore() {
+  el("bd-score").textContent = bdScore.total === 0 ? "" :
+    `パーツ正解 ${bdScore.ok} / ${bdScore.total}`;
+}
+
+el("bd-check").addEventListener("click", () => {
+  if (!bdWord) return;
+  const boxes = el("bd-parts").querySelectorAll(".part-box");
+  let allOk = true, unanswered = false;
+  boxes.forEach(box => {
+    const i = +box.dataset.i;
+    const sel = box.querySelector("select");
+    const part = bdWord.parts[i];
+    const m = BY_ID[part.id];
+    if (!sel.value) unanswered = true;
+    const ok = sel.value === part.id;
+    if (!ok) allOk = false;
+    box.classList.toggle("correct", ok);
+    box.classList.toggle("wrong", !ok);
+    sel.disabled = true;
+    const note = document.createElement("div");
+    note.className = "ans" + (ok ? "" : " ng");
+    note.innerHTML = `${ok ? "○" : "×"} <strong>${m.form}</strong> = ${m.meaning}`;
+    box.appendChild(note);
+    record(part.id, ok);
+    bdScore.total++; if (ok) bdScore.ok++;
+  });
+  el("bd-check").disabled = true;
+  const chain = bdWord.parts.map(p => BY_ID[p.id].meaning).join(" + ");
+  const v = el("bd-verdict");
+  v.className = "verdict " + (allOk ? "ok" : "ng");
+  v.innerHTML = (allOk ? "✔ 全パーツ正解！" : (unanswered ? "未選択のパーツがありました。" : "△ 惜しい。")) +
+    `<span class="detail"><strong style="font-size:1.05rem;">${bdWord.word}</strong> = ${chain}<br>
+     → <strong>${bdWord.ja}</strong></span>`;
+  updateBdScore();
+  renderDict();
+});
+el("bd-next").addEventListener("click", newBreakdown);
+renderBdChips();
+newBreakdown();
+
+/* ================= 意味クイズ ================= */
+let mqType = "all";
+let mqDir = "f2m";  // f2m: 綴り→意味 / m2f: 意味→綴り
+let mqCurrent = null;
+let mqScore = { ok: 0, total: 0, streak: 0, best: 0 };
+
+function renderMqChips() {
+  const types = [["all", "すべて"], ["prefix", "接頭辞"], ["root", "語根"], ["suffix", "接尾辞"], ["drug", "薬剤ステム"]];
+  el("mq-type").innerHTML = types.map(([v, l]) =>
+    `<button class="chip ${mqType === v ? "active" : ""}" data-v="${v}">${l}</button>`).join("");
+  el("mq-type").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    mqType = c.dataset.v; renderMqChips(); newMeaning();
+  }));
+
+  const dirs = [["f2m", "綴り → 意味"], ["m2f", "意味 → 綴り"]];
+  el("mq-dir").innerHTML = dirs.map(([v, l]) =>
+    `<button class="chip ${mqDir === v ? "active" : ""}" data-v="${v}">${l}</button>`).join("");
+  el("mq-dir").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    mqDir = c.dataset.v; renderMqChips(); newMeaning();
+  }));
+}
+
+function newMeaning() {
+  const pool = mqType === "all" ? MORPHEMES : MORPHEMES.filter(m => m.type === mqType);
+  const answer = pickWeighted(pool, m => weightOf(m.id));
+  // 選択肢は同じ種類から集める(接尾辞の中で迷わせる方が実戦的)
+  const sameType = MORPHEMES.filter(m => m.type === answer.type);
+  const choices = shuffle([answer].concat(sampleOther(sameType, [answer.id], 3)));
+  mqCurrent = { answer, choices, done: false };
+
+  if (mqDir === "f2m") {
+    el("mq-prompt").innerHTML =
+      `<div class="prompt-word" style="color:var(--accent)">${answer.form}</div>
+       <div class="prompt-note">${TYPE_LABEL[answer.type]}${answer.sys ? " ・ " + answer.sys : ""} — 意味は?</div>`;
+  } else {
+    el("mq-prompt").innerHTML =
+      `<div class="prompt-ja">${answer.meaning}</div>
+       <div class="prompt-note">${TYPE_LABEL[answer.type]} — この意味を表す綴りは?</div>`;
+  }
+
+  el("mq-choices").innerHTML = choices.map((c, i) =>
+    `<button class="choice" data-id="${c.id}">${mqDir === "f2m" ? c.meaning : c.form}</button>`).join("");
+  el("mq-choices").querySelectorAll(".choice").forEach(b =>
+    b.addEventListener("click", () => answerMeaning(b.dataset.id)));
+  el("mq-verdict").textContent = "";
+  el("mq-verdict").className = "verdict";
+  updateMqScore();
+}
+
+function answerMeaning(id) {
+  if (!mqCurrent || mqCurrent.done) return;
+  mqCurrent.done = true;
+  const ans = mqCurrent.answer;
+  const ok = id === ans.id;
+  record(ans.id, ok);
+  mqScore.total++;
+  if (ok) { mqScore.ok++; mqScore.streak++; mqScore.best = Math.max(mqScore.best, mqScore.streak); }
+  else { mqScore.streak = 0; }
+
+  el("mq-choices").querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.id === ans.id) b.classList.add("correct");
+    else if (b.dataset.id === id) b.classList.add("wrong");
+  });
+  const v = el("mq-verdict");
+  v.className = "verdict " + (ok ? "ok" : "ng");
+  v.innerHTML = (ok ? "✔ 正解" : "✘ 不正解") +
+    `<span class="detail"><strong>${ans.form}</strong> = ${ans.meaning}<br>
+     <span style="color:var(--text-dim)">例: ${ans.ex || "—"}</span></span>`;
+  updateMqScore();
+  renderDict();
+}
+
+function updateMqScore() {
+  const rate = mqScore.total ? Math.round(mqScore.ok / mqScore.total * 100) : 0;
+  el("mq-score").textContent = mqScore.total === 0 ? "" :
+    `${mqScore.ok} / ${mqScore.total} (${rate}%) ・ 連続 ${mqScore.streak} (最高 ${mqScore.best})`;
+}
+el("mq-next").addEventListener("click", newMeaning);
+renderMqChips();
+newMeaning();
+
+/* ================= 組み立て ================= */
+// 妨害用のパーツ綴りは、他の単語で実際に使われている表記から集める
+const ALL_PART_FORMS = [];
+WORDS.forEach(w => w.parts.forEach(p => {
+  if (!ALL_PART_FORMS.some(x => x.form === p.form)) ALL_PART_FORMS.push({ id: p.id, form: p.form });
+}));
+
+let blWord = null;
+let blPlaced = [];      // {id, form, poolIndex}
+let blPool = [];
+let blScore = { ok: 0, total: 0 };
+
+function newBuild() {
+  blWord = pickWeighted(WORDS, w =>
+    w.parts.reduce((sum, p) => sum + weightOf(p.id), 0) / w.parts.length);
+  const correctForms = blWord.parts.map(p => ({ id: p.id, form: p.form }));
+  const usedForms = correctForms.map(p => p.form);
+  const distractors = shuffle(ALL_PART_FORMS.filter(x => !usedForms.includes(x.form)))
+    .slice(0, Math.min(4, 8 - correctForms.length));
+  blPool = shuffle(correctForms.concat(distractors));
+  blPlaced = [];
+
+  el("bl-ja").textContent = blWord.ja;
+  el("bl-verdict").textContent = "";
+  el("bl-verdict").className = "verdict";
+  el("bl-check").disabled = false;
+  renderBuild();
+  updateBlScore();
+}
+
+function renderBuild() {
+  const slots = el("bl-slots");
+  if (blPlaced.length === 0) {
+    slots.innerHTML = `<span class="hintline">↓ 下のパーツをクリックして、${blWord.parts.length}個を前から順に並べてください</span>`;
+  } else {
+    slots.innerHTML = blPlaced.map((p, i) =>
+      `<button class="tile placed" data-slot="${i}">${p.form}</button>`).join("");
+    slots.querySelectorAll(".tile").forEach(b => b.addEventListener("click", () => {
+      if (el("bl-check").disabled) return;
+      blPlaced.splice(+b.dataset.slot, 1);
+      renderBuild();
+    }));
+  }
+  el("bl-pool").innerHTML = blPool.map((p, i) => {
+    const used = blPlaced.some(x => x.poolIndex === i);
+    return `<button class="tile pool ${used ? "used" : ""}" data-pool="${i}">${p.form}</button>`;
+  }).join("");
+  el("bl-pool").querySelectorAll(".tile").forEach(b => b.addEventListener("click", () => {
+    if (el("bl-check").disabled) return;
+    const i = +b.dataset.pool;
+    blPlaced.push({ id: blPool[i].id, form: blPool[i].form, poolIndex: i });
+    renderBuild();
+  }));
+}
+
+function updateBlScore() {
+  el("bl-score").textContent = blScore.total === 0 ? "" : `${blScore.ok} / ${blScore.total} 語 正解`;
+}
+
+el("bl-check").addEventListener("click", () => {
+  if (!blWord) return;
+  const correct = blWord.parts;
+  const ok = blPlaced.length === correct.length &&
+    blPlaced.every((p, i) => p.id === correct[i].id && p.form === correct[i].form);
+  blScore.total++; if (ok) blScore.ok++;
+  correct.forEach((p, i) => {
+    const hit = blPlaced[i] && blPlaced[i].id === p.id && blPlaced[i].form === p.form;
+    record(p.id, hit);
+  });
+  el("bl-check").disabled = true;
+  const chain = correct.map(p => `<strong>${p.form}</strong>(${BY_ID[p.id].meaning})`).join(" + ");
+  const v = el("bl-verdict");
+  v.className = "verdict " + (ok ? "ok" : "ng");
+  v.innerHTML = (ok ? "✔ 正解！" : "✘ 正解は次の並びです") +
+    `<span class="detail">${chain}<br>
+     → <strong style="font-size:1.05rem; font-family:Consolas,monospace;">${blWord.word}</strong> ${blWord.ja}</span>`;
+  updateBlScore();
+  renderDict();
+});
+el("bl-next").addEventListener("click", newBuild);
+newBuild();
+
+/* ================= 論文語彙 ================= */
+const PH_CATS = [];
+PHRASES.forEach(p => { if (!PH_CATS.includes(p.cat)) PH_CATS.push(p.cat); });
+
+let phDir = "e2j";
+let phCat = "all";
+let phCurrent = null;
+let phScore = { ok: 0, total: 0, streak: 0, best: 0 };
+
+function renderPhChips() {
+  const dirs = [["e2j", "英語 → 日本語"], ["j2e", "日本語 → 英語"]];
+  el("ph-dir").innerHTML = dirs.map(([v, l]) =>
+    `<button class="chip ${phDir === v ? "active" : ""}" data-v="${v}">${l}</button>`).join("");
+  el("ph-dir").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    phDir = c.dataset.v; renderPhChips(); newPhrase();
+  }));
+
+  const items = [["all", "全カテゴリ"]].concat(PH_CATS.map(c => [c, c]));
+  el("ph-cat").innerHTML = items.map(([v, l]) =>
+    `<button class="chip ${phCat === v ? "active" : ""}" data-v="${v}">${l}</button>`).join("");
+  el("ph-cat").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    phCat = c.dataset.v; renderPhChips(); renderPhList();
+  }));
+}
+
+function newPhrase() {
+  const answer = pickWeighted(PHRASES, p => weightOf(p.id));
+  // 同じカテゴリの中から選択肢を作る(統計用語どうしで迷わせる)
+  const same = PHRASES.filter(p => p.cat === answer.cat);
+  const base = same.length >= 4 ? same : PHRASES;
+  const choices = shuffle([answer].concat(sampleOther(base, [answer.id], 3)));
+  phCurrent = { answer, done: false };
+
+  el("ph-prompt").innerHTML = phDir === "e2j"
+    ? `<div class="prompt-word" style="font-size:1.5rem; color:var(--accent)">${answer.form}</div>
+       <div class="prompt-note">${answer.cat} — 意味は?</div>`
+    : `<div class="prompt-ja">${answer.meaning}</div>
+       <div class="prompt-note">${answer.cat} — 英語では?</div>`;
+
+  el("ph-choices").innerHTML = choices.map(c =>
+    `<button class="choice" data-id="${c.id}">${phDir === "e2j" ? c.meaning : c.form}</button>`).join("");
+  el("ph-choices").querySelectorAll(".choice").forEach(b =>
+    b.addEventListener("click", () => answerPhrase(b.dataset.id)));
+  el("ph-verdict").textContent = "";
+  el("ph-verdict").className = "verdict";
+  updatePhScore();
+}
+
+function answerPhrase(id) {
+  if (!phCurrent || phCurrent.done) return;
+  phCurrent.done = true;
+  const ans = phCurrent.answer;
+  const ok = id === ans.id;
+  record(ans.id, ok);
+  phScore.total++;
+  if (ok) { phScore.ok++; phScore.streak++; phScore.best = Math.max(phScore.best, phScore.streak); }
+  else { phScore.streak = 0; }
+
+  el("ph-choices").querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.id === ans.id) b.classList.add("correct");
+    else if (b.dataset.id === id) b.classList.add("wrong");
+  });
+  const v = el("ph-verdict");
+  v.className = "verdict " + (ok ? "ok" : "ng");
+  v.innerHTML = (ok ? "✔ 正解" : "✘ 不正解") +
+    `<span class="detail"><strong>${ans.form}</strong> = ${ans.meaning}<br>
+     <span style="color:var(--text-dim)">${ans.ex}</span></span>`;
+  updatePhScore();
+  renderPhList();
+}
+
+function updatePhScore() {
+  const rate = phScore.total ? Math.round(phScore.ok / phScore.total * 100) : 0;
+  el("ph-score").textContent = phScore.total === 0 ? "" :
+    `${phScore.ok} / ${phScore.total} (${rate}%) ・ 連続 ${phScore.streak} (最高 ${phScore.best})`;
+}
+
+function renderPhList() {
+  const q = el("ph-search").value.trim().toLowerCase();
+  const list = PHRASES.filter(p => {
+    if (phCat !== "all" && p.cat !== phCat) return false;
+    if (!q) return true;
+    return (p.form + " " + p.meaning + " " + p.ex + " " + p.cat).toLowerCase().includes(q);
+  });
+  el("ph-count").textContent = `(${list.length} / ${PHRASES.length}件)`;
+  if (list.length === 0) {
+    el("ph-list").innerHTML = `<div class="empty">該当する語彙がありません。</div>`;
+    return;
+  }
+  el("ph-list").innerHTML = list.map(p => {
+    const s = statOf(p.id);
+    const total = s.ok + s.ng;
+    const pct = total === 0 ? 0 : Math.round(s.ok / total * 100);
+    const bar = total === 0 ? "" :
+      `<div class="bar" title="正答率 ${pct}% (${s.ok}/${total})"><i style="width:${pct}%"></i></div>`;
+    return `<div class="m-item phrase">
+      <div class="form">${p.form}</div>
+      <div class="mean" style="color:var(--accent-2)">${p.meaning}</div>
+      <div class="ex">${p.ex}</div>
+      ${bar}
+    </div>`;
+  }).join("");
+}
+el("ph-search").addEventListener("input", renderPhList);
+el("ph-next").addEventListener("click", newPhrase);
+renderPhChips();
+renderPhList();
+newPhrase();
+
+/* ================= 学習状況 ================= */
+const ALL_ITEMS = MORPHEMES.concat(PHRASES);
+
+function renderStats() {
+  let attempted = 0, totalOk = 0, totalNg = 0, mastered = 0;
+  ALL_ITEMS.forEach(m => {
+    const s = statOf(m.id);
+    const t = s.ok + s.ng;
+    if (t > 0) attempted++;
+    totalOk += s.ok; totalNg += s.ng;
+    if (s.ok >= 3 && s.ok / Math.max(t, 1) >= 0.8) mastered++;
+  });
+  const total = totalOk + totalNg;
+  const rate = total ? Math.round(totalOk / total * 100) : 0;
+  el("st-grid").innerHTML = `
+    <div class="stat"><div class="n">${MORPHEMES.length}</div><div class="l">語源・薬剤ステム</div></div>
+    <div class="stat"><div class="n">${PHRASES.length}</div><div class="l">論文語彙</div></div>
+    <div class="stat"><div class="n">${WORDS.length}</div><div class="l">分解済みの単語</div></div>
+    <div class="stat"><div class="n">${attempted}</div><div class="l">出題された項目</div></div>
+    <div class="stat"><div class="n" style="color:var(--green)">${mastered}</div><div class="l">定着(3回以上・正答率80%↑)</div></div>
+    <div class="stat"><div class="n">${rate}%</div><div class="l">通算正答率 (${totalOk}/${total})</div></div>
+  `;
+
+  const weak = ALL_ITEMS
+    .map(m => { const s = statOf(m.id); return { m, s, t: s.ok + s.ng }; })
+    .filter(x => x.s.ng > 0)
+    .sort((a, b) => (b.s.ng - a.s.ng) || (a.s.ok / a.t - b.s.ok / b.t))
+    .slice(0, 15);
+
+  if (weak.length === 0) {
+    el("st-weak").innerHTML = `<div class="empty">まだ間違えた記録がありません。クイズを解くとここに苦手な部品が並びます。</div>`;
+    return;
+  }
+  el("st-weak").innerHTML = `<table class="weak">
+    <tr><th>綴り</th><th>意味</th><th>種類</th><th>誤答</th><th>正答率</th></tr>
+    ${weak.map(x => `<tr>
+      <td class="f">${x.m.form}</td>
+      <td>${x.m.meaning}</td>
+      <td style="color:var(--text-dim)">${TYPE_LABEL[x.m.type]}</td>
+      <td class="rate-ng">${x.s.ng}回</td>
+      <td>${Math.round(x.s.ok / x.t * 100)}% (${x.s.ok}/${x.t})</td>
+    </tr>`).join("")}
+  </table>`;
+}
+
+el("st-reset").addEventListener("click", () => {
+  if (!confirm("これまでの学習記録をすべて消去します。よろしいですか?")) return;
+  stats = {};
+  saveStats();
+  renderStats();
+  renderDict();
+  renderPhList();
+});
+</script>
+</body>
+</html>

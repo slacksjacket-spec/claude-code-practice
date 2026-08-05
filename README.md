@@ -10,6 +10,14 @@ Claude Codeを使ったプログラミング学習用のリポジトリです。
   - `chords.js` — コードライブラリ(和音の音程定義)
   - `audio.js` — Web Audio APIによるピアノ風の音声合成
 - **[chord-visualizer](chord-visualizer/index.html)** — マイク入力の音量・周波数スペクトラム・音程(セント単位のズレ)をリアルタイム表示するビジュアライザー。
+- **[medical-english](medical-english/index.html)** — 医学英語を接頭辞・語根・接尾辞に分解して体系的に覚えるドリル。英文論文(NEJMなど)の抄読会を想定した構成。
+  - `index.html` — 語源辞典 / 分解トレーニング / 意味クイズ / 組み立て / 論文語彙 / 学習状況の6タブ
+  - `morphemes.js` — 語源データ。3つの層で構成:
+    - ①臨床用語の語源(接頭辞・語根・接尾辞 246件)＋分解済みの医学用語 162語
+    - ②薬剤ステム 44件(`-pril`=ACE阻害薬、`-mab`=モノクローナル抗体 など、語尾で薬効分類が読める)
+    - ③論文語彙 73件(hazard ratio、intention-to-treat など、語源分解では意味が出てこない層)
+  - ギリシャ語・ラテン語の複数形(metastasis→metastases など)の一覧つき
+  - 成績はlocalStorageに保存され、間違えた項目が優先的に出題されます
 - **[claude-code-guide.html](claude-code-guide.html)** — Claude Codeの使い方をまとめた個人用ガイド(Windows版)。
 - **[hello.txt](hello.txt)** — はじめの自己紹介メモ。
 
