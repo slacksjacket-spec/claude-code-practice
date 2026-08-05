@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>構造化トレーニング</title>
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --ok: #7dd0a0;
+    --warn: #ffb26b;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+    --border: #2f3350;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px 64px;
+  }
+  .page { width: 100%; max-width: 860px; }
+
+  .top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .back { font-size: 0.85rem; color: var(--text-dim); text-decoration: none; }
+  .back:hover { color: var(--accent); }
+  .sub { color: var(--text-dim); font-size: 0.9rem; margin: 4px 0 24px; line-height: 1.7; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab {
+    flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text-dim); font-size: 0.95rem;
+    cursor: pointer; font-family: inherit; transition: border-color .15s, color .15s;
+  }
+  .tab.active { color: var(--text); border-color: var(--accent); background: var(--panel-2); }
+  .tab.active.pink { border-color: var(--accent-2); }
+
+  .picker { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .picker label { font-size: 0.85rem; color: var(--text-dim); }
+  select {
+    flex: 1; min-width: 220px; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+    font-family: inherit; font-size: 0.9rem;
+  }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px 22px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .card h2 { font-size: 1.05rem; margin: 0 0 10px; }
+  .card h2 .badge {
+    font-size: 0.7rem; font-weight: 600; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 999px; padding: 2px 10px;
+    margin-right: 8px; vertical-align: 2px;
+  }
+  .card.pink h2 .badge { color: var(--accent-2); border-color: var(--accent-2); }
+  .card p.body { font-size: 0.92rem; line-height: 1.9; margin: 0; color: var(--text); }
+
+  /* ツリーエディタ */
+  .root-node {
+    display: inline-block; background: var(--panel-2); border: 1px solid var(--accent);
+    border-radius: 10px; padding: 8px 16px; font-size: 0.95rem; font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .branch { border-left: 2px solid var(--border); margin: 0 0 14px 10px; padding-left: 16px; }
+  .node-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .node-row.child { margin-left: 28px; }
+  .node-row input {
+    flex: 1; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.9rem;
+  }
+  .node-row input:focus { outline: none; border-color: var(--accent); }
+  .node-row.child input { border-style: dashed; }
+  .mini-btn {
+    padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text-dim); cursor: pointer;
+    font-family: inherit; font-size: 0.8rem; white-space: nowrap;
+  }
+  .mini-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 0; }
+  .btn {
+    padding: 12px 20px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text); cursor: pointer;
+    font-family: inherit; font-size: 0.9rem; transition: border-color .15s;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #10121a; font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.1); }
+  .btn.ghost { color: var(--text-dim); }
+
+  /* 模範例ツリー表示 */
+  .model-tree { margin-top: 4px; }
+  .model-branch {
+    border-left: 2px solid var(--accent); margin: 0 0 12px 10px; padding: 2px 0 2px 14px;
+  }
+  .model-branch .b-label { font-size: 0.92rem; font-weight: 600; margin-bottom: 6px; }
+  .model-branch .b-child {
+    font-size: 0.87rem; color: var(--text-dim); margin: 0 0 4px 16px; line-height: 1.6;
+  }
+  .model-branch .b-child::before { content: "└ "; color: var(--border); }
+
+  .commentary {
+    background: var(--panel-2); border-radius: 10px; padding: 14px 16px;
+    font-size: 0.88rem; line-height: 1.9; color: var(--text);
+  }
+  .commentary strong { color: var(--accent); }
+
+  .checklist { list-style: none; margin: 0; padding: 0; }
+  .checklist li { margin-bottom: 10px; }
+  .checklist label {
+    display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem;
+    line-height: 1.6; cursor: pointer;
+  }
+  .checklist input { margin-top: 4px; accent-color: var(--accent); }
+
+  /* ラダー */
+  .step { margin-bottom: 4px; }
+  .step .instruction { font-size: 0.92rem; margin: 0 0 8px; font-weight: 600; }
+  .step textarea {
+    width: 100%; min-height: 64px; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    font-family: inherit; font-size: 0.92rem; line-height: 1.7; resize: vertical;
+  }
+  .step textarea:focus { outline: none; border-color: var(--accent-2); }
+  .step textarea:disabled { opacity: 0.7; }
+  .counter { font-size: 0.8rem; color: var(--text-dim); text-align: right; margin: 4px 0 8px; }
+  .counter.over { color: var(--warn); font-weight: 600; }
+  .step .decided { font-size: 0.8rem; color: var(--ok); }
+
+  .compare { border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 12px; }
+  .compare .row { margin-bottom: 10px; font-size: 0.9rem; line-height: 1.8; }
+  .compare .tag {
+    display: inline-block; font-size: 0.72rem; border-radius: 6px; padding: 1px 8px;
+    margin-right: 8px; vertical-align: 1px;
+  }
+  .tag.you { background: var(--panel-2); color: var(--text-dim); border: 1px solid var(--border); }
+  .tag.model { background: var(--accent-2); color: #10121a; font-weight: 600; }
+  .kw-feedback { font-size: 0.83rem; margin: 2px 0 0; line-height: 1.7; }
+  .kw-feedback .hit { color: var(--ok); }
+  .kw-feedback .miss { color: var(--warn); }
+
+  .hidden { display: none; }
+  .done-note { font-size: 0.8rem; color: var(--text-dim); margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <h1>🧩 構造化トレーニング</h1>
+    <a class="back" href="../index.html">← トップに戻る</a>
+  </div>
+  <p class="sub">
+    状況をロジックツリーに分解する演習と、文章を段階的に要約する「抽象化ラダー」で、考えと文章の構造化力を鍛えるドリルです。答えは自動保存されます。
+  </p>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-tree">🌳 ロジックツリー</button>
+    <button class="tab pink" id="tab-ladder">🪜 抽象化ラダー</button>
+  </div>
+
+  <div class="picker">
+    <label for="problem-select">問題:</label>
+    <select id="problem-select"></select>
+  </div>
+
+  <div id="mode-tree"></div>
+  <div id="mode-ladder" class="hidden"></div>
+</div>
+
+<script src="problems.js"></script>
+<script>
+(() => {
+  const STORAGE_KEY = "structure-training-v1";
+
+  const store = loadStore();
+  function loadStore() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    } catch { return {}; }
+  }
+  function saveStore() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  }
+  store.tree = store.tree || {};     // id -> {branches, revealed, checks}
+  store.ladder = store.ladder || {}; // id -> {answers, decided, revealed}
+
+  let mode = "tree";
+  let currentTreeId = TREE_PROBLEMS[0].id;
+  let currentLadderId = LADDER_PROBLEMS[0].id;
+
+  const $ = (id) => document.getElementById(id);
+  const selectEl = $("problem-select");
+
+  // ---------- タブ・問題選択 ----------
+  $("tab-tree").addEventListener("click", () => switchMode("tree"));
+  $("tab-ladder").addEventListener("click", () => switchMode("ladder"));
+
+  function switchMode(m) {
+    mode = m;
+    $("tab-tree").classList.toggle("active", m === "tree");
+    $("tab-ladder").classList.toggle("active", m === "ladder");
+    $("mode-tree").classList.toggle("hidden", m !== "tree");
+    $("mode-ladder").classList.toggle("hidden", m !== "ladder");
+    renderPicker();
+    render();
+  }
+
+  function renderPicker() {
+    const problems = mode === "tree" ? TREE_PROBLEMS : LADDER_PROBLEMS;
+    selectEl.innerHTML = "";
+    for (const p of problems) {
+      const opt = document.createElement("option");
+      const st = (mode === "tree" ? store.tree : store.ladder)[p.id];
+      opt.value = p.id;
+      opt.textContent = (st && st.revealed ? "✅ " : "") + p.title;
+      selectEl.appendChild(opt);
+    }
+    selectEl.value = mode === "tree" ? currentTreeId : currentLadderId;
+  }
+
+  selectEl.addEventListener("change", () => {
+    if (mode === "tree") currentTreeId = selectEl.value;
+    else currentLadderId = selectEl.value;
+    render();
+  });
+
+  function render() {
+    if (mode === "tree") renderTree();
+    else renderLadder();
+  }
+
+  // ---------- ロジックツリー ----------
+  function treeState(p) {
+    if (!store.tree[p.id]) {
+      store.tree[p.id] = {
+        branches: [{ text: "", children: [""] }],
+        revealed: false,
+        checks: TREE_CHECKLIST.map(() => false),
+      };
+    }
+    return store.tree[p.id];
+  }
+
+  function renderTree() {
+    const p = TREE_PROBLEMS.find((x) => x.id === currentTreeId);
+    const st = treeState(p);
+    const el = $("mode-tree");
+    el.innerHTML = "";
+
+    // お題
+    const q = document.createElement("div");
+    q.className = "card";
+    q.innerHTML = `<h2><span class="badge">お題</span>${esc(p.title)}</h2>
+      <p class="body">${esc(p.situation)}</p>`;
+    el.appendChild(q);
+
+    // エディタ
+    const editor = document.createElement("div");
+    editor.className = "card";
+    editor.innerHTML = `<h2><span class="badge">あなたのツリー</span>原因を分解して書き出そう</h2>
+      <div class="root-node">${esc(p.root)}</div>`;
+
+    st.branches.forEach((branch, bi) => {
+      const bEl = document.createElement("div");
+      bEl.className = "branch";
+
+      const row = document.createElement("div");
+      row.className = "node-row";
+      const input = document.createElement("input");
+      input.placeholder = `枝${bi + 1}: 大きな切り口(例: 〜の問題)`;
+      input.value = branch.text;
+      input.addEventListener("input", () => { branch.text = input.value; saveStore(); });
+      const addChild = miniBtn("+ 子", () => { branch.children.push(""); saveStore(); renderTree(); });
+      const del = miniBtn("✕", () => { st.branches.splice(bi, 1); saveStore(); renderTree(); });
+      row.append(input, addChild, del);
+      bEl.appendChild(row);
+
+      branch.children.forEach((child, ci) => {
+        const cRow = document.createElement("div");
+        cRow.className = "node-row child";
+        const cInput = document.createElement("input");
+        cInput.placeholder = "具体的な原因";
+        cInput.value = child;
+        cInput.addEventListener("input", () => { branch.children[ci] = cInput.value; saveStore(); });
+        const cDel = miniBtn("✕", () => { branch.children.splice(ci, 1); saveStore(); renderTree(); });
+        cRow.append(cInput, cDel);
+        bEl.appendChild(cRow);
+      });
+
+      editor.appendChild(bEl);
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    actions.appendChild(btn("+ 枝を追加", "", () => {
+      st.branches.push({ text: "", children: [""] });
+      saveStore(); renderTree();
+    }));
+    actions.appendChild(btn("💡 切り口のヒント", "ghost", (b) => {
+      hintEl.classList.toggle("hidden");
+    }));
+    actions.appendChild(btn(st.revealed ? "模範例を隠す" : "模範例と見比べる", "primary", () => {
+      st.revealed = !st.revealed;
+      saveStore(); renderPicker(); renderTree();
+    }));
+    actions.appendChild(btn("リセット", "ghost", () => {
+      if (!confirm("この問題の答えとチェックを消しますか?")) return;
+      delete store.tree[p.id];
+      saveStore(); renderPicker(); renderTree();
+    }));
+    editor.appendChild(actions);
+
+    const hintEl = document.createElement("p");
+    hintEl.className = "commentary hidden";
+    hintEl.style.marginTop = "14px";
+    hintEl.textContent = "💡 " + p.hint;
+    editor.appendChild(hintEl);
+
+    el.appendChild(editor);
+
+    // 模範例 + 解説 + チェックリスト
+    if (st.revealed) {
+      const modelCard = document.createElement("div");
+      modelCard.className = "card";
+      modelCard.innerHTML = `<h2><span class="badge">模範例</span>分解の一例(正解は一つではありません)</h2>
+        <div class="root-node">${esc(p.root)}</div>`;
+      const tree = document.createElement("div");
+      tree.className = "model-tree";
+      for (const b of p.model) {
+        const bEl = document.createElement("div");
+        bEl.className = "model-branch";
+        const label = document.createElement("div");
+        label.className = "b-label";
+        label.textContent = b.label;
+        bEl.appendChild(label);
+        for (const c of b.children) {
+          const cEl = document.createElement("div");
+          cEl.className = "b-child";
+          cEl.textContent = c;
+          bEl.appendChild(cEl);
+        }
+        tree.appendChild(bEl);
+      }
+      modelCard.appendChild(tree);
+
+      const comm = document.createElement("div");
+      comm.className = "commentary";
+      comm.innerHTML = `<strong>解説:</strong> ${esc(p.commentary)}`;
+      modelCard.appendChild(comm);
+      el.appendChild(modelCard);
+
+      const checkCard = document.createElement("div");
+      checkCard.className = "card";
+      checkCard.innerHTML = `<h2><span class="badge">自己チェック</span>自分のツリーを見直そう</h2>`;
+      const ul = document.createElement("ul");
+      ul.className = "checklist";
+      TREE_CHECKLIST.forEach((text, i) => {
+        const li = document.createElement("li");
+        const label = document.createElement("label");
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!st.checks[i];
+        cb.addEventListener("change", () => { st.checks[i] = cb.checked; saveStore(); });
+        label.append(cb, document.createTextNode(text));
+        li.appendChild(label);
+        ul.appendChild(li);
+      });
+      checkCard.appendChild(ul);
+      el.appendChild(checkCard);
+    }
+  }
+
+  // ---------- 抽象化ラダー ----------
+  function ladderState(p) {
+    if (!store.ladder[p.id]) {
+      store.ladder[p.id] = {
+        answers: p.steps.map(() => ""),
+        decided: 0,   // 何ステップ目まで確定したか
+        revealed: false,
+      };
+    }
+    return store.ladder[p.id];
+  }
+
+  function renderLadder() {
+    const p = LADDER_PROBLEMS.find((x) => x.id === currentLadderId);
+    const st = ladderState(p);
+    const el = $("mode-ladder");
+    el.innerHTML = "";
+
+    const q = document.createElement("div");
+    q.className = "card pink";
+    q.innerHTML = `<h2><span class="badge">課題文</span>${esc(p.title)}</h2>
+      <p class="body">${esc(p.passage)}</p>`;
+    el.appendChild(q);
+
+    const visibleSteps = Math.min(st.decided + 1, p.steps.length);
+    for (let i = 0; i < visibleSteps; i++) {
+      el.appendChild(renderStep(p, st, i));
+    }
+
+    if (st.decided >= p.steps.length || st.revealed) {
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      if (!st.revealed) {
+        actions.appendChild(btn("模範例と見比べる", "primary", () => {
+          st.revealed = true;
+          saveStore(); renderPicker(); renderLadder();
+        }));
+      }
+      actions.appendChild(btn("リセット", "ghost", () => {
+        if (!confirm("この問題の答えを消しますか?")) return;
+        delete store.ladder[p.id];
+        saveStore(); renderPicker(); renderLadder();
+      }));
+      el.appendChild(actions);
+    }
+
+    if (st.revealed) {
+      const card = document.createElement("div");
+      card.className = "card pink";
+      card.innerHTML = `<h2><span class="badge">見比べ</span>あなたの要約 vs 模範例</h2>`;
+      p.steps.forEach((step, i) => {
+        const cmp = document.createElement("div");
+        cmp.className = "compare";
+        const yours = st.answers[i].trim() || "(未記入)";
+        cmp.innerHTML = `
+          <div class="row"><span class="tag you">あなた</span>${esc(yours)}</div>
+          <div class="row"><span class="tag model">模範例</span>${esc(step.model)}</div>`;
+        const kw = keywordFeedback(step, st.answers[i]);
+        if (kw) cmp.appendChild(kw);
+        card.appendChild(cmp);
+      });
+      const comm = document.createElement("div");
+      comm.className = "commentary";
+      comm.style.marginTop = "14px";
+      comm.innerHTML = `<strong>解説:</strong> ${esc(p.commentary)}`;
+      card.appendChild(comm);
+      el.appendChild(card);
+    }
+  }
+
+  function renderStep(p, st, i) {
+    const step = p.steps[i];
+    const card = document.createElement("div");
+    card.className = "card pink step";
+    card.innerHTML = `<h2><span class="badge">STEP ${i + 1}</span></h2>
+      <p class="instruction">${esc(step.instruction)}</p>`;
+
+    const ta = document.createElement("textarea");
+    ta.value = st.answers[i];
+    const counter = document.createElement("div");
+    counter.className = "counter";
+
+    const updateCounter = () => {
+      const len = [...ta.value.trim()].length;
+      counter.textContent = `${len} / ${step.limit}字`;
+      counter.classList.toggle("over", len > step.limit);
+    };
+    updateCounter();
+    ta.addEventListener("input", () => {
+      st.answers[i] = ta.value;
+      saveStore();
+      updateCounter();
+    });
+    card.append(ta, counter);
+
+    if (i === st.decided) {
+      const b = btn("この要約で決定 →", "primary", () => {
+        if (!ta.value.trim()) { alert("要約を書いてから決定してください。"); return; }
+        st.decided = i + 1;
+        saveStore(); renderLadder();
+      });
+      card.appendChild(b);
+    } else if (i < st.decided) {
+      const note = document.createElement("div");
+      note.className = "decided";
+      note.textContent = "✔ 決定済み(修正もできます)";
+      card.appendChild(note);
+    }
+    return card;
+  }
+
+  function keywordFeedback(step, answer) {
+    if (!step.keywords || !step.keywords.length) return null;
+    const el = document.createElement("p");
+    el.className = "kw-feedback";
+    const parts = step.keywords.map((variants) => {
+      const hit = variants.some((v) => answer.includes(v));
+      const label = variants[0];
+      return `<span class="${hit ? "hit" : "miss"}">${hit ? "✔" : "△"} ${esc(label)}</span>`;
+    });
+    el.innerHTML = `キーワード: ${parts.join(" · ")}<span style="color:var(--text-dim)"> (△は要約に入っていない要素。意図して削ったならOK)</span>`;
+    return el;
+  }
+
+  // ---------- 小物 ----------
+  function miniBtn(label, onClick) {
+    const b = document.createElement("button");
+    b.className = "mini-btn";
+    b.textContent = label;
+    b.addEventListener("click", onClick);
+    return b;
+  }
+  function btn(label, extra, onClick) {
+    const b = document.createElement("button");
+    b.className = "btn" + (extra ? " " + extra : "");
+    b.textContent = label;
+    b.addEventListener("click", () => onClick(b));
+    return b;
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  // 起動
+  renderPicker();
+  render();
+})();
+</script>
+</body>
+</html>
