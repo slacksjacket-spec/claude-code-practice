@@ -23,6 +23,7 @@ Claude Codeを使ったプログラミング学習用のリポジトリです。
   - 科目・出典(回数/問題番号)・タグつきで登録でき、検索・科目別フィルタ・定着度フィルタで見返せる
   - 科目別の平均定着度から「要注意の科目」を自動表示
   - データはlocalStorage保存。JSONエクスポート/インポートでバックアップ・端末間の移行が可能
+  - PWA対応。スマホで[公開ページ](https://slacksjacket-spec.github.io/claude-code-practice/exam-review/)を開いて「ホーム画面に追加」すると、アプリとしてオフラインでも使える
 - **[claude-code-guide.html](claude-code-guide.html)** — Claude Codeの使い方をまとめた個人用ガイド(Windows版)。
 - **[hello.txt](hello.txt)** — はじめの自己紹介メモ。
 
