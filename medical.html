@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国試ツールキット — メディカルツール一覧</title>
+<meta name="theme-color" content="#14161f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="国試ツール">
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --good: #6fd598;
+    --warn: #ffd27c;
+    --bad: #ff8a8a;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+    --border: #2f3350;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 40px 14px 56px;
+  }
+  .page { width: 100%; max-width: 780px; }
+  h1 { font-size: 1.7rem; margin: 0 0 6px; letter-spacing: 0.02em; }
+  .sub { color: var(--text-dim); font-size: 0.9rem; margin: 0 0 22px; line-height: 1.7; }
+
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 480px) { .hero { grid-template-columns: 1fr 1fr; } }
+  .hero a {
+    display: block;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .hero a:hover { border-color: var(--accent); }
+  .hero .num { font-size: 1.9rem; font-weight: 700; line-height: 1.2; }
+  .hero .num.days { color: var(--accent); }
+  .hero .num.due { color: var(--accent-2); }
+  .hero .label { font-size: 0.75rem; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+
+  .tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 32px; }
+  .tool {
+    position: relative;
+    display: block;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    text-decoration: none;
+    color: var(--text);
+    transition: transform 0.12s ease, border-color 0.12s ease;
+  }
+  .tool:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .tool .icon { font-size: 1.6rem; margin-bottom: 8px; }
+  .tool h2 { font-size: 1rem; margin: 0 0 5px; }
+  .tool p { font-size: 0.8rem; color: var(--text-dim); margin: 0; line-height: 1.6; }
+  .tool .badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--accent-2);
+    color: #10121b;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+  footer {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+    line-height: 1.8;
+  }
+  footer a { color: var(--text-dim); }
+  footer a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>🩺 国試ツールキット</h1>
+  <p class="sub">医師国家試験の勉強ツール集。データは各ツールごとにこの端末へ保存されます。</p>
+
+  <div class="hero">
+    <a href="exam-countdown/index.html">
+      <div class="num days" id="hero-days">—</div>
+      <div class="label" id="hero-exam">国試まで</div>
+    </a>
+    <a href="exam-review/index.html">
+      <div class="num due" id="hero-due">—</div>
+      <div class="label">今日の復習カード</div>
+    </a>
+  </div>
+
+  <div class="tools">
+    <a class="tool" href="exam-review/index.html" id="tile-review">
+      <div class="icon">📋</div>
+      <h2>間違いノート</h2>
+      <p>間違えた問題を登録して、定着度に応じた間隔で復習。画像・穴埋め対応。</p>
+    </a>
+    <a class="tool" href="lab-values/index.html">
+      <div class="icon">🧪</div>
+      <h2>検査値ドリル</h2>
+      <p>血算・生化学・血ガスなどの基準値を、フラッシュカード/4択/高低判定で反射的に。</p>
+    </a>
+    <a class="tool" href="pubhealth-stats/index.html">
+      <div class="icon">📊</div>
+      <h2>公衆衛生 数値ドリル</h2>
+      <p>出生数・死因順位・医療費など「毎年変わる数字」専用の暗記ドリル。数値は自分で更新可能。</p>
+    </a>
+    <a class="tool" href="exam-countdown/index.html">
+      <div class="icon">⏳</div>
+      <h2>カウントダウン</h2>
+      <p>残り日数と教材の消化ペースを逆算。このペースで間に合うかを毎日確認。</p>
+    </a>
+    <a class="tool" href="mock-tracker/index.html">
+      <div class="icon">📈</div>
+      <h2>模試トラッカー</h2>
+      <p>模試の得点・偏差値・分野別成績を記録して、推移とレーダーチャートで弱点を可視化。</p>
+    </a>
+    <a class="tool" href="medical-english/index.html">
+      <div class="icon">🔤</div>
+      <h2>医学英語 語源トレーニング</h2>
+      <p>医学英語を接頭辞・語根・接尾辞に分解して覚える。論文語彙も収録。</p>
+    </a>
+  </div>
+
+  <footer>
+    スマホは共有メニューから「ホーム画面に追加」でアプリとして使えます(オフライン対応)。<br>
+    <a href="index.html">音楽系などその他のツール →</a>
+  </footer>
+</div>
+
+<script>
+'use strict';
+(function () {
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  // 国試までの残り日数(カウントダウンアプリの設定を読む。未設定ならデフォルト日程)
+  let examDate = '2027-02-06';
+  let examName = '第121回 医師国家試験(予定)';
+  try {
+    const cd = JSON.parse(localStorage.getItem('exam-countdown-v1'));
+    if (cd && cd.settings) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(cd.settings.examDate)) examDate = cd.settings.examDate;
+      if (cd.settings.examName) examName = cd.settings.examName;
+    }
+  } catch (e) {}
+  try {
+    const [y1, m1, d1] = todayStr().split('-').map(Number);
+    const [y2, m2, d2] = examDate.split('-').map(Number);
+    const days = Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 86400000);
+    document.getElementById('hero-days').textContent = days >= 0 ? 'あと' + days + '日' : '—';
+    document.getElementById('hero-exam').textContent = examName;
+  } catch (e) {}
+  // 今日の復習カード数(間違いノートのデータを読む)
+  try {
+    const store = JSON.parse(localStorage.getItem('kokushi-review-v1'));
+    if (store && Array.isArray(store.cards)) {
+      const t = todayStr();
+      const due = store.cards.filter(c => c && c.due <= t).length;
+      document.getElementById('hero-due').textContent = due + '枚';
+      if (due > 0) {
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = due + '枚待ち';
+        document.getElementById('tile-review').appendChild(badge);
+      }
+    } else {
+      document.getElementById('hero-due').textContent = '0枚';
+    }
+  } catch (e) {}
+  // PWA
+  if ('serviceWorker' in navigator &&
+      (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>

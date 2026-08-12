@@ -1,14 +1,29 @@
 'use strict';
 
+// 医学系ツール共通のService Worker(サイトルートスコープ)。
 // アプリを更新したらこのバージョンを上げる(古いキャッシュが破棄される)
-const CACHE = 'exam-review-v1';
+const CACHE = 'medical-hub-v1';
 const ASSETS = [
   './',
   './index.html',
+  './medical.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
-  './icon-180.png'
+  './icon-180.png',
+  './exam-review/',
+  './exam-review/index.html',
+  './lab-values/',
+  './lab-values/index.html',
+  './pubhealth-stats/',
+  './pubhealth-stats/index.html',
+  './exam-countdown/',
+  './exam-countdown/index.html',
+  './mock-tracker/',
+  './mock-tracker/index.html',
+  './medical-english/',
+  './medical-english/index.html',
+  './medical-english/morphemes.js'
 ];
 
 self.addEventListener('install', e => {
@@ -35,7 +50,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, copy));
           return res;
         })
-        .catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
+        .catch(() => caches.match(e.request).then(r => r || caches.match('./medical.html')))
     );
   } else {
     e.respondWith(

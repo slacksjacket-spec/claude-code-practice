@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国試カウントダウン&ペース逆算</title>
+<meta name="theme-color" content="#14161f">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --good: #6fd598;
+    --warn: #ffd27c;
+    --bad: #ff8a8a;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+    --border: #2f3350;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 12px 64px;
+  }
+  .page { width: 100%; max-width: 780px; }
+  a.back { color: var(--text-dim); font-size: 0.8rem; text-decoration: none; }
+  a.back:hover { color: var(--accent); }
+  h1 { font-size: 1.5rem; margin: 10px 0 6px; letter-spacing: 0.02em; }
+  .sub { color: var(--text-dim); font-size: 0.88rem; margin: 0 0 18px; line-height: 1.6; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  h2 { font-size: 1.02rem; margin: 0 0 12px; }
+
+  /* ---- countdown ---- */
+  .cd-wrap { text-align: center; padding: 22px 18px; }
+  .cd-exam { font-size: 0.95rem; color: var(--text-dim); margin-bottom: 4px; }
+  .cd-days { font-size: 3.4rem; font-weight: 800; line-height: 1.15; letter-spacing: 0.02em; }
+  .cd-days .n { color: var(--accent); }
+  .cd-days.over .n { color: var(--bad); font-size: 1.6rem; }
+  .cd-eff { color: var(--text-dim); font-size: 0.88rem; margin-top: 6px; }
+  .cd-eff b { color: var(--accent-2); font-weight: 700; }
+
+  details.settings { margin-top: 14px; text-align: left; }
+  details.settings summary {
+    cursor: pointer; color: var(--text-dim); font-size: 0.85rem;
+    padding: 8px 4px; user-select: none;
+  }
+  details.settings summary:hover { color: var(--accent); }
+  .set-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .set-grid .full { grid-column: 1 / -1; }
+  label.fld { display: block; font-size: 0.78rem; color: var(--text-dim); }
+  label.fld span { display: block; margin-bottom: 4px; }
+  input, select {
+    width: 100%;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .note { font-size: 0.75rem; color: var(--warn); margin: 10px 0 0; line-height: 1.6; }
+
+  /* ---- buttons ---- */
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 0.92rem;
+    padding: 10px 16px;
+    min-height: 44px;
+  }
+  button:active { transform: translateY(1px); }
+  .btn-accent { background: var(--accent); border-color: var(--accent); color: #10121b; font-weight: 700; }
+  .btn-ghost { background: transparent; color: var(--text-dim); }
+  .btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
+  .btn-danger { background: transparent; color: var(--bad); border-color: var(--bad); }
+  .btn-plus { flex: 1; min-width: 64px; font-weight: 700; font-size: 1rem; }
+
+  /* ---- summary strip ---- */
+  .dash { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .dash .box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+  }
+  .dash .num { font-size: 1.45rem; font-weight: 700; line-height: 1.3; word-break: break-all; }
+  .dash .num.today { color: var(--accent-2); font-size: 1.15rem; }
+  .dash .label { font-size: 0.74rem; color: var(--text-dim); margin-top: 3px; }
+
+  /* ---- progress bar ---- */
+  .bar { background: var(--panel-2); border-radius: 999px; height: 12px; overflow: hidden; margin: 8px 0 4px; }
+  .bar .fill { height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.25s; }
+  .bar.mini { height: 8px; margin: 8px 0 0; }
+
+  /* ---- tasks ---- */
+  .task {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .task-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .task-name { font-weight: 700; font-size: 1rem; }
+  .task-meta { color: var(--text-dim); font-size: 0.78rem; }
+  .task-count { font-size: 0.85rem; color: var(--text-dim); }
+  .task-count b { color: var(--text); font-size: 1.05rem; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+  .stat .v { font-size: 0.95rem; font-weight: 700; }
+  .stat .k { font-size: 0.68rem; color: var(--text-dim); margin-top: 2px; }
+  .good { color: var(--good); }
+  .warn { color: var(--warn); }
+  .bad { color: var(--bad); }
+  .dim { color: var(--text-dim); }
+  .quick { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: stretch; }
+  .quick input { flex: 1.4; min-width: 90px; width: auto; }
+  .task-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .task-foot button { min-height: 36px; padding: 6px 14px; font-size: 0.82rem; }
+
+  .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .edit-grid .full { grid-column: 1 / -1; }
+  .edit-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .edit-actions .spacer { flex: 1; }
+
+  .add-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+  .add-grid .full { grid-column: 1 / -1; }
+  .add-actions { margin-top: 12px; }
+  .add-actions button { width: 100%; }
+  .empty { color: var(--text-dim); font-size: 0.88rem; text-align: center; padding: 16px 0; }
+
+  /* ---- chart ---- */
+  .chart-box { overflow-x: auto; }
+  .chart-box svg { width: 100%; height: auto; display: block; min-width: 320px; }
+
+  /* ---- backup ---- */
+  .io-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .io-row button { flex: 1; min-width: 140px; }
+  .io-msg { font-size: 0.8rem; margin-top: 10px; min-height: 1.2em; }
+
+  @media (max-width: 600px) {
+    .dash { grid-template-columns: 1fr; }
+    .set-grid, .edit-grid, .add-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+    .cd-days { font-size: 2.7rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="../medical.html">&larr; メディカルツール一覧</a>
+  <h1>国試カウントダウン&ペース逆算</h1>
+  <p class="sub">試験日までの残り日数と、教材ごとの「1日あたり必要ペース」を自動で逆算。毎日の消化量をワンタップで記録して、完了予測日をチェック。</p>
+
+  <!-- countdown -->
+  <div class="panel cd-wrap">
+    <div class="cd-exam" id="cdExam"></div>
+    <div class="cd-days" id="cdDays"></div>
+    <div class="cd-eff" id="cdEff"></div>
+    <details class="settings">
+      <summary>試験の設定を変更</summary>
+      <div class="set-grid">
+        <label class="fld full"><span>試験名</span>
+          <input type="text" id="setName" maxlength="60">
+        </label>
+        <label class="fld"><span>試験日</span>
+          <input type="date" id="setDate">
+        </label>
+        <label class="fld"><span>週あたり勉強日数</span>
+          <select id="setWeek">
+            <option value="1">週1日</option><option value="2">週2日</option>
+            <option value="3">週3日</option><option value="4">週4日</option>
+            <option value="5">週5日</option><option value="6">週6日</option>
+            <option value="7">週7日(毎日)</option>
+          </select>
+        </label>
+        <div class="full"><button class="btn-accent" id="setSave" style="width:100%">設定を保存</button></div>
+      </div>
+      <p class="note">※ 試験日程は必ず公式発表(厚生労働省など)を確認してください。初期値は目安です。</p>
+    </details>
+  </div>
+
+  <!-- summary -->
+  <div class="dash">
+    <div class="box">
+      <div class="num" id="sumRate">—</div>
+      <div class="label">全タスク合計の進捗率</div>
+      <div class="bar mini"><div class="fill" id="sumBar" style="width:0%"></div></div>
+    </div>
+    <div class="box">
+      <div class="num today" id="sumToday">0</div>
+      <div class="label">今日消化した量</div>
+    </div>
+  </div>
+
+  <!-- tasks -->
+  <div class="panel">
+    <h2>教材タスク</h2>
+    <div id="taskList"></div>
+    <details class="settings" id="addBox">
+      <summary>+ 教材タスクを追加</summary>
+      <div class="add-grid" style="margin-top:8px">
+        <label class="fld full"><span>教材名(例: QB 必修)</span>
+          <input type="text" id="addName" maxlength="60">
+        </label>
+        <label class="fld"><span>総量</span>
+          <input type="number" id="addTotal" min="1" step="1" inputmode="numeric" placeholder="例: 300">
+        </label>
+        <label class="fld"><span>単位</span>
+          <input type="text" id="addUnit" maxlength="10" placeholder="問 / コマ / ページ" value="問">
+        </label>
+        <label class="fld"><span>目標完了日(省略時は試験日)</span>
+          <input type="date" id="addTarget">
+        </label>
+      </div>
+      <div class="add-actions"><button class="btn-accent" id="addBtn">タスクを追加</button></div>
+    </details>
+  </div>
+
+  <!-- chart -->
+  <div class="panel">
+    <h2>過去30日の消化量(全タスク合計)</h2>
+    <div class="chart-box" id="chartBox"></div>
+  </div>
+
+  <!-- backup -->
+  <div class="panel">
+    <h2>バックアップ</h2>
+    <div class="io-row">
+      <button class="btn-ghost" id="exportBtn">JSONエクスポート</button>
+      <button class="btn-ghost" id="importBtn">JSONインポート</button>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="io-msg" id="ioMsg"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var LS_KEY = 'exam-countdown-v1';
+  var MS_DAY = 86400000;
+
+  /* ---------- utils ---------- */
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function fmtDate(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function todayStr() { return fmtDate(new Date()); }
+  function parseDate(s) {
+    if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+    var p = s.split('-');
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+  function daysBetween(a, b) { return Math.round((b.getTime() - a.getTime()) / MS_DAY); }
+  function dispDate(s) {
+    var d = parseDate(s);
+    if (!d) return '—';
+    return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+  }
+  function genId() { return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function num(v) { var n = Number(v); return Number.isFinite(n) ? n : 0; }
+
+  /* ---------- state ---------- */
+  function defaultState() {
+    return {
+      settings: { examDate: '2027-02-06', examName: '第121回 医師国家試験', studyDaysPerWeek: 7 },
+      tasks: [],
+      log: {}
+    };
+  }
+  function sanitize(p) {
+    var out = defaultState();
+    if (!p || typeof p !== 'object') return out;
+    var s = (p.settings && typeof p.settings === 'object') ? p.settings : {};
+    if (typeof s.examDate === 'string' && parseDate(s.examDate)) out.settings.examDate = s.examDate;
+    if (typeof s.examName === 'string' && s.examName.trim()) out.settings.examName = s.examName.slice(0, 60);
+    var w = Number(s.studyDaysPerWeek);
+    if (Number.isFinite(w) && w >= 1 && w <= 7) out.settings.studyDaysPerWeek = Math.round(w);
+    if (Array.isArray(p.tasks)) {
+      p.tasks.forEach(function (t) {
+        if (!t || typeof t !== 'object') return;
+        var name = (typeof t.name === 'string') ? t.name.trim().slice(0, 60) : '';
+        var total = Math.round(Number(t.total));
+        if (!name || !Number.isFinite(total) || total <= 0) return;
+        var done = Math.round(Number(t.done));
+        if (!Number.isFinite(done) || done < 0) done = 0;
+        if (done > total) done = total;
+        out.tasks.push({
+          id: (typeof t.id === 'string' && t.id) ? t.id : genId(),
+          name: name,
+          total: total,
+          done: done,
+          unit: (typeof t.unit === 'string' && t.unit.trim()) ? t.unit.trim().slice(0, 10) : '問',
+          targetDate: (typeof t.targetDate === 'string' && parseDate(t.targetDate)) ? t.targetDate : ''
+        });
+      });
+    }
+    if (p.log && typeof p.log === 'object') {
+      Object.keys(p.log).forEach(function (k) {
+        if (!parseDate(k)) return;
+        var rec = p.log[k];
+        if (!rec || typeof rec !== 'object') return;
+        var o = {};
+        Object.keys(rec).forEach(function (tid) {
+          var v = Number(rec[tid]);
+          if (Number.isFinite(v) && v > 0) o[tid] = v;
+        });
+        if (Object.keys(o).length) out.log[k] = o;
+      });
+    }
+    return out;
+  }
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (!raw) return defaultState();
+      return sanitize(JSON.parse(raw));
+    } catch (e) {
+      return defaultState();
+    }
+  }
+  function saveState() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+    } catch (e) { /* localStorage無効・容量超過でも落とさない */ }
+  }
+
+  var state = loadState();
+  var editingId = null;
+
+  /* ---------- calculations ---------- */
+  function effDays(calDays, perWeek) {
+    if (calDays <= 0) return 0;
+    return Math.max(0, Math.round(calDays * perWeek / 7));
+  }
+  function taskTargetDate(t) {
+    return t.targetDate || state.settings.examDate;
+  }
+  function last7Avg(taskId) {
+    var today = parseDate(todayStr());
+    var sum = 0;
+    for (var i = 0; i < 7; i++) {
+      var ds = fmtDate(addDays(today, -i));
+      var rec = state.log[ds];
+      if (rec) sum += num(rec[taskId]);
+    }
+    return sum / 7;
+  }
+  function addProgress(taskId, delta) {
+    var t = null;
+    for (var i = 0; i < state.tasks.length; i++) if (state.tasks[i].id === taskId) t = state.tasks[i];
+    if (!t) return;
+    delta = Math.round(num(delta));
+    if (!delta) return;
+    var newDone = Math.min(t.total, Math.max(0, t.done + delta));
+    var applied = newDone - t.done;
+    if (!applied) return;
+    t.done = newDone;
+    var ds = todayStr();
+    if (!state.log[ds] || typeof state.log[ds] !== 'object') state.log[ds] = {};
+    var cur = num(state.log[ds][taskId]) + applied;
+    if (cur > 0) state.log[ds][taskId] = cur;
+    else delete state.log[ds][taskId];
+    if (!Object.keys(state.log[ds]).length) delete state.log[ds];
+    saveState();
+    renderAll();
+  }
+
+  /* ---------- render: countdown ---------- */
+  function renderCountdown() {
+    var s = state.settings;
+    var today = parseDate(todayStr());
+    var exam = parseDate(s.examDate);
+    var days = exam ? daysBetween(today, exam) : 0;
+    document.getElementById('cdExam').textContent = s.examName + '(' + dispDate(s.examDate) + ')';
+    var el = document.getElementById('cdDays');
+    if (days >= 0) {
+      el.className = 'cd-days';
+      el.innerHTML = 'あと <span class="n">' + days + '</span> 日';
+    } else {
+      el.className = 'cd-days over';
+      el.innerHTML = '<span class="n">試験日を過ぎています(' + Math.abs(days) + '日経過)</span>';
+    }
+    var eff = effDays(Math.max(0, days), s.studyDaysPerWeek);
+    document.getElementById('cdEff').innerHTML =
+      '実質勉強日数 <b>約 ' + eff + ' 日</b>(週' + s.studyDaysPerWeek + '日ペース換算)';
+    document.getElementById('setName').value = s.examName;
+    document.getElementById('setDate').value = s.examDate;
+    document.getElementById('setWeek').value = String(s.studyDaysPerWeek);
+  }
+
+  /* ---------- render: summary ---------- */
+  function renderSummary() {
+    var totalAll = 0, doneAll = 0;
+    state.tasks.forEach(function (t) { totalAll += t.total; doneAll += t.done; });
+    var rateEl = document.getElementById('sumRate');
+    var barEl = document.getElementById('sumBar');
+    if (totalAll > 0) {
+      var pct = Math.round(doneAll / totalAll * 1000) / 10;
+      rateEl.textContent = pct + '%';
+      barEl.style.width = Math.min(100, pct) + '%';
+    } else {
+      rateEl.textContent = '—';
+      barEl.style.width = '0%';
+    }
+    var rec = state.log[todayStr()] || {};
+    var byUnit = {};
+    state.tasks.forEach(function (t) {
+      var v = num(rec[t.id]);
+      if (v > 0) byUnit[t.unit] = (byUnit[t.unit] || 0) + v;
+    });
+    var parts = Object.keys(byUnit).map(function (u) { return byUnit[u] + ' ' + u; });
+    var todayEl = document.getElementById('sumToday');
+    todayEl.textContent = '';
+    todayEl.insertAdjacentHTML('beforeend', parts.length ? parts.map(function (p) { return esc(p); }).join(' / ') : '0');
+  }
+
+  /* ---------- render: tasks ---------- */
+  function taskCardHTML(t) {
+    var s = state.settings;
+    var today = parseDate(todayStr());
+    var targetStr = taskTargetDate(t);
+    var target = parseDate(targetStr);
+    var remain = Math.max(0, t.total - t.done);
+    var pct = t.total > 0 ? Math.min(100, Math.round(t.done / t.total * 100)) : 0;
+    var unit = esc(t.unit);
+
+    // 必要ペース
+    var needHTML;
+    if (remain === 0) {
+      needHTML = '<span class="good">完了</span>';
+    } else if (!target || daysBetween(today, target) <= 0) {
+      needHTML = '<span class="bad">期限超過</span>';
+    } else {
+      var e = Math.max(1, effDays(daysBetween(today, target), s.studyDaysPerWeek));
+      needHTML = (Math.round(remain / e * 10) / 10).toFixed(1) + ' ' + unit + '/日';
+    }
+
+    // 実績ペース(直近7日)
+    var avg = last7Avg(t.id);
+    var avgHTML = (Math.round(avg * 10) / 10).toFixed(1) + ' ' + unit + '/日';
+
+    // 完了予測
+    var fcHTML, fcClass = 'dim';
+    if (remain === 0) {
+      fcHTML = '完了';
+      fcClass = 'good';
+    } else if (avg <= 0) {
+      fcHTML = '実績なし';
+    } else {
+      var needDays = Math.ceil(remain / avg);
+      var fcDate = addDays(today, needDays);
+      var late = target ? daysBetween(target, fcDate) : 0;
+      fcClass = late <= 0 ? 'good' : (late <= 3 ? 'warn' : 'bad');
+      fcHTML = dispDate(fmtDate(fcDate));
+      if (late > 0) fcHTML += '(+' + late + '日)';
+    }
+
+    var targetLabel = t.targetDate ? ('目標 ' + dispDate(t.targetDate)) : ('目標 ' + dispDate(s.examDate) + '(試験日)');
+
+    return '<div class="task" data-id="' + esc(t.id) + '">' +
+      '<div class="task-head">' +
+        '<div><div class="task-name">' + esc(t.name) + '</div>' +
+        '<div class="task-meta">' + esc(targetLabel) + '</div></div>' +
+        '<div class="task-count"><b>' + t.done + '</b> / ' + t.total + ' ' + unit + '</div>' +
+      '</div>' +
+      '<div class="bar"><div class="fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="stats">' +
+        '<div class="stat"><div class="v">' + needHTML + '</div><div class="k">必要ペース</div></div>' +
+        '<div class="stat"><div class="v">' + avgHTML + '</div><div class="k">実績ペース(直近7日)</div></div>' +
+        '<div class="stat"><div class="v ' + fcClass + '">' + fcHTML + '</div><div class="k">実績ペースでの完了予測</div></div>' +
+      '</div>' +
+      '<div class="quick">' +
+        '<button class="btn-plus" data-act="plus" data-n="1">+1</button>' +
+        '<button class="btn-plus" data-act="plus" data-n="5">+5</button>' +
+        '<button class="btn-plus" data-act="plus" data-n="10">+10</button>' +
+        '<input type="number" step="1" inputmode="numeric" placeholder="加算量" id="amt-' + esc(t.id) + '" aria-label="加算量">' +
+        '<button class="btn-accent" data-act="addAmt">加算</button>' +
+      '</div>' +
+      '<div class="task-foot">' +
+        '<button class="btn-ghost" data-act="edit">編集</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function taskEditHTML(t) {
+    return '<div class="task" data-id="' + esc(t.id) + '">' +
+      '<div class="edit-grid">' +
+        '<label class="fld full"><span>教材名</span><input type="text" id="ed-name" maxlength="60" value="' + esc(t.name) + '"></label>' +
+        '<label class="fld"><span>総量</span><input type="number" id="ed-total" min="1" step="1" inputmode="numeric" value="' + t.total + '"></label>' +
+        '<label class="fld"><span>消化済(修正用・記録には加算されません)</span><input type="number" id="ed-done" min="0" step="1" inputmode="numeric" value="' + t.done + '"></label>' +
+        '<label class="fld"><span>単位</span><input type="text" id="ed-unit" maxlength="10" value="' + esc(t.unit) + '"></label>' +
+        '<label class="fld"><span>目標完了日(空欄で試験日)</span><input type="date" id="ed-target" value="' + esc(t.targetDate) + '"></label>' +
+      '</div>' +
+      '<div class="edit-actions">' +
+        '<button class="btn-accent" data-act="save">保存</button>' +
+        '<button class="btn-ghost" data-act="cancel">キャンセル</button>' +
+        '<div class="spacer"></div>' +
+        '<button class="btn-danger" data-act="del">削除</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderTasks() {
+    var box = document.getElementById('taskList');
+    if (!state.tasks.length) {
+      box.innerHTML = '<div class="empty">まだタスクがありません。下の「+ 教材タスクを追加」から登録してください。</div>';
+      return;
+    }
+    box.innerHTML = state.tasks.map(function (t) {
+      return t.id === editingId ? taskEditHTML(t) : taskCardHTML(t);
+    }).join('');
+  }
+
+  /* ---------- render: chart ---------- */
+  function niceMax(v) {
+    if (v <= 5) return 5;
+    var p = Math.pow(10, Math.floor(Math.log(v) / Math.LN10));
+    var n = v / p;
+    var m = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+    return m * p;
+  }
+  function renderChart() {
+    var today = parseDate(todayStr());
+    var days = [], vals = [];
+    for (var i = 29; i >= 0; i--) {
+      var d = addDays(today, -i);
+      var ds = fmtDate(d);
+      days.push(d);
+      var rec = state.log[ds];
+      var sum = 0;
+      if (rec) Object.keys(rec).forEach(function (k) { sum += num(rec[k]); });
+      vals.push(sum);
+    }
+    var rawMax = Math.max.apply(null, vals);
+    var max = niceMax(rawMax > 0 ? rawMax : 1);
+    var W = 700, H = 230, L = 46, R = 8, T = 12, B = 30;
+    var plotW = W - L - R, plotH = H - T - B;
+    var step = plotW / 30, barW = step * 0.62;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="過去30日の日次消化量の棒グラフ">';
+    // gridlines + y labels (0, half, max)
+    [0, 0.5, 1].forEach(function (f) {
+      var y = T + plotH - plotH * f;
+      svg += '<line x1="' + L + '" y1="' + y + '" x2="' + (W - R) + '" y2="' + y +
+        '" stroke="#2f3350" stroke-width="1"' + (f === 0 ? '' : ' stroke-dasharray="3 4"') + '/>';
+      svg += '<text x="' + (L - 7) + '" y="' + (y + 3.5) + '" text-anchor="end" font-size="10" fill="#9aa0b8">' +
+        (f === 0.5 && max % 2 === 1 ? (max / 2).toFixed(1) : max * f) + '</text>';
+    });
+    // bars
+    for (var j = 0; j < 30; j++) {
+      var v = vals[j];
+      var bh = v > 0 ? Math.max(2, plotH * v / max) : 0;
+      var x = L + step * j + (step - barW) / 2;
+      var y2 = T + plotH - bh;
+      var fill = j === 29 ? '#ff9ecf' : '#7c9dff';
+      var label = (days[j].getMonth() + 1) + '/' + days[j].getDate();
+      if (bh > 0) {
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + y2.toFixed(1) + '" width="' + barW.toFixed(1) +
+          '" height="' + bh.toFixed(1) + '" rx="2" fill="' + fill + '"><title>' + label + ': ' + v + '</title></rect>';
+      }
+      // x labels: 5個(両端と等間隔)
+      if (j === 0 || j === 7 || j === 14 || j === 21 || j === 29) {
+        svg += '<text x="' + (L + step * j + step / 2).toFixed(1) + '" y="' + (H - 10) +
+          '" text-anchor="middle" font-size="10" fill="#9aa0b8">' + label + '</text>';
+      }
+    }
+    svg += '</svg>';
+    document.getElementById('chartBox').innerHTML = svg;
+  }
+
+  function renderAll() {
+    renderCountdown();
+    renderSummary();
+    renderTasks();
+    renderChart();
+  }
+
+  /* ---------- events ---------- */
+  document.getElementById('setSave').addEventListener('click', function () {
+    var name = document.getElementById('setName').value.trim();
+    var date = document.getElementById('setDate').value;
+    var week = Number(document.getElementById('setWeek').value);
+    if (name) state.settings.examName = name.slice(0, 60);
+    if (parseDate(date)) state.settings.examDate = date;
+    if (Number.isFinite(week) && week >= 1 && week <= 7) state.settings.studyDaysPerWeek = Math.round(week);
+    saveState();
+    renderAll();
+  });
+
+  document.getElementById('addBtn').addEventListener('click', function () {
+    var name = document.getElementById('addName').value.trim();
+    var total = Math.round(Number(document.getElementById('addTotal').value));
+    var unit = document.getElementById('addUnit').value.trim() || '問';
+    var target = document.getElementById('addTarget').value;
+    if (!name) { alert('教材名を入力してください'); return; }
+    if (!Number.isFinite(total) || total <= 0) { alert('総量は1以上の数値で入力してください'); return; }
+    state.tasks.push({
+      id: genId(),
+      name: name.slice(0, 60),
+      total: total,
+      done: 0,
+      unit: unit.slice(0, 10),
+      targetDate: parseDate(target) ? target : ''
+    });
+    saveState();
+    document.getElementById('addName').value = '';
+    document.getElementById('addTotal').value = '';
+    document.getElementById('addTarget').value = '';
+    renderAll();
+  });
+
+  document.getElementById('taskList').addEventListener('click', function (ev) {
+    var btn = ev.target.closest('button[data-act]');
+    if (!btn) return;
+    var card = btn.closest('.task');
+    if (!card) return;
+    var id = card.getAttribute('data-id');
+    var act = btn.getAttribute('data-act');
+    if (act === 'plus') {
+      addProgress(id, Number(btn.getAttribute('data-n')));
+    } else if (act === 'addAmt') {
+      var inp = document.getElementById('amt-' + id);
+      var v = inp ? Number(inp.value) : NaN;
+      if (!Number.isFinite(v) || !Math.round(v)) { alert('加算量を数値で入力してください(マイナスで取り消し)'); return; }
+      addProgress(id, v);
+    } else if (act === 'edit') {
+      editingId = id;
+      renderTasks();
+    } else if (act === 'cancel') {
+      editingId = null;
+      renderTasks();
+    } else if (act === 'del') {
+      var t0 = state.tasks.filter(function (t) { return t.id === id; })[0];
+      if (!t0) return;
+      if (!confirm('「' + t0.name + '」を削除しますか?\n(このタスクの日次記録も削除されます)')) return;
+      state.tasks = state.tasks.filter(function (t) { return t.id !== id; });
+      Object.keys(state.log).forEach(function (ds) {
+        if (state.log[ds] && state.log[ds][id] !== undefined) {
+          delete state.log[ds][id];
+          if (!Object.keys(state.log[ds]).length) delete state.log[ds];
+        }
+      });
+      editingId = null;
+      saveState();
+      renderAll();
+    } else if (act === 'save') {
+      var t = state.tasks.filter(function (x) { return x.id === id; })[0];
+      if (!t) return;
+      var name = document.getElementById('ed-name').value.trim();
+      var total = Math.round(Number(document.getElementById('ed-total').value));
+      var done = Math.round(Number(document.getElementById('ed-done').value));
+      var unit = document.getElementById('ed-unit').value.trim() || '問';
+      var target = document.getElementById('ed-target').value;
+      if (!name) { alert('教材名を入力してください'); return; }
+      if (!Number.isFinite(total) || total <= 0) { alert('総量は1以上の数値で入力してください'); return; }
+      if (!Number.isFinite(done) || done < 0) done = 0;
+      if (done > total) done = total;
+      t.name = name.slice(0, 60);
+      t.total = total;
+      t.done = done;
+      t.unit = unit.slice(0, 10);
+      t.targetDate = parseDate(target) ? target : '';
+      editingId = null;
+      saveState();
+      renderAll();
+    }
+  });
+
+  /* ---------- backup ---------- */
+  function ioMsg(text, cls) {
+    var el = document.getElementById('ioMsg');
+    el.textContent = text;
+    el.className = 'io-msg ' + (cls || 'dim');
+  }
+  document.getElementById('exportBtn').addEventListener('click', function () {
+    try {
+      var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'exam-countdown-backup-' + todayStr() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      ioMsg('エクスポートしました', 'good');
+    } catch (e) {
+      ioMsg('エクスポートに失敗しました', 'bad');
+    }
+  });
+  document.getElementById('importBtn').addEventListener('click', function () {
+    document.getElementById('importFile').click();
+  });
+  document.getElementById('importFile').addEventListener('change', function (ev) {
+    var file = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var parsed = JSON.parse(String(reader.result));
+        if (!parsed || typeof parsed !== 'object' || !parsed.settings) {
+          ioMsg('形式が違うファイルです(このアプリのエクスポートJSONを選んでください)', 'bad');
+          return;
+        }
+        if (!confirm('現在のデータをインポート内容で上書きします。よろしいですか?')) return;
+        state = sanitize(parsed);
+        editingId = null;
+        saveState();
+        renderAll();
+        ioMsg('インポートしました', 'good');
+      } catch (e) {
+        ioMsg('読み込みに失敗しました(JSONが壊れています)', 'bad');
+      }
+    };
+    reader.onerror = function () { ioMsg('ファイルを読み込めませんでした', 'bad'); };
+    reader.readAsText(file);
+  });
+
+  renderAll();
+
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) { navigator.serviceWorker.register('../sw.js').catch(function () {}); }
+})();
+</script>
+</body>
+</html>

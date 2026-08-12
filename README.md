@@ -18,12 +18,17 @@ Claude Codeを使ったプログラミング学習用のリポジトリです。
     - ③論文語彙 73件(hazard ratio、intention-to-treat など、語源分解では意味が出てこない層)
   - ギリシャ語・ラテン語の複数形(metastasis→metastases など)の一覧つき
   - 成績はlocalStorageに保存され、間違えた項目が優先的に出題されます
+- **[medical.html](medical.html)** — 医学系ツールをまとめた「国試ツールキット」ハブ。国試までの残り日数と今日の復習カード数を表示。スマホで[公開ページ](https://slacksjacket-spec.github.io/claude-code-practice/medical.html)を開いて「ホーム画面に追加」すると、1つのアイコンから全医学系ツールにオフラインでアクセスできる(PWA。Service Worker/manifest/アイコンはリポジトリルートに配置)。
 - **[exam-review](exam-review/index.html)** — 医師国家試験の勉強用「間違いノート」。間違えた問題やあやふやな知識を自分で登録すると、定着度レベル(0〜5)に応じた間隔(当日→1日→3日→7日→14日→30日)で復習に出てくる間隔反復ツール。
   - 復習時は「×まだ / △あやしい / ○覚えた」の3択で自己評価。×はレベル0に戻って当日中に再出題、○でレベルが上がり間隔が伸びる
+  - 画像添付(IndexedDB保存・スマホカメラ/貼り付け対応)、`{答え}`記法の穴埋めカード、GitHub風の学習ヒートマップ、登録内容から類題生成プロンプトを作るコピー機能つき
   - 科目・出典(回数/問題番号)・タグつきで登録でき、検索・科目別フィルタ・定着度フィルタで見返せる
   - 科目別の平均定着度から「要注意の科目」を自動表示
-  - データはlocalStorage保存。JSONエクスポート/インポートでバックアップ・端末間の移行が可能
-  - PWA対応。スマホで[公開ページ](https://slacksjacket-spec.github.io/claude-code-practice/exam-review/)を開いて「ホーム画面に追加」すると、アプリとしてオフラインでも使える
+  - データはlocalStorage保存。JSONエクスポート/インポート(画像込み)でバックアップ・端末間の移行が可能
+- **[lab-values](lab-values/index.html)** — 臨床検査基準値の暗記ドリル。フラッシュカード/4択クイズ/高低判定の3モード+早見表。苦手な項目ほど高頻度で出題される。
+- **[pubhealth-stats](pubhealth-stats/index.html)** — 公衆衛生の統計数値ドリル。出生数・死因順位・医療費などをフラッシュカード/3択/順位当てで暗記。統計は毎年変わるため、数値・年度をアプリ内で編集してlocalStorageに上書き保存できる。
+- **[exam-countdown](exam-countdown/index.html)** — 国試カウントダウン&ペース逆算ダッシュボード。教材ごとの総量と消化量から必要ペース/日と完了予測日を計算し、間に合うかを色分け表示。日次消化量の棒グラフつき。
+- **[mock-tracker](mock-tracker/index.html)** — 模試成績トラッカー。総合・必修得点率の推移折れ線、最新模試の分野別レーダーチャート(前回比較つき)、分野別の弱点バーを素のSVGで描画。分野リストは受ける模試に合わせて編集可能。
 - **[claude-code-guide.html](claude-code-guide.html)** — Claude Codeの使い方をまとめた個人用ガイド(Windows版)。
 - **[hello.txt](hello.txt)** — はじめの自己紹介メモ。
 

@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公衆衛生 数値ドリル</title>
+<meta name="theme-color" content="#14161f">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --good: #6fd598;
+    --warn: #ffd27c;
+    --bad: #ff8a8a;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+    --border: #2f3350;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 12px 64px;
+  }
+  .page { width: 100%; max-width: 780px; }
+  a.back { color: var(--text-dim); font-size: 0.8rem; text-decoration: none; }
+  a.back:hover { color: var(--accent); }
+  h1 { font-size: 1.6rem; margin: 10px 0 6px; letter-spacing: 0.02em; }
+  .sub { color: var(--text-dim); font-size: 0.9rem; margin: 0 0 14px; line-height: 1.6; }
+
+  .notice {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--warn);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .notice .date { color: var(--warn); font-weight: 700; }
+
+  /* ---- tabs ---- */
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tabs button {
+    background: var(--panel);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tabs button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #10121b;
+    font-weight: 700;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  /* ---- chips ---- */
+  .chip {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text-dim);
+    margin: 0 4px 4px 0;
+    vertical-align: middle;
+  }
+  .chip.cat { color: var(--accent); border-color: var(--accent); background: transparent; }
+  .chip.year { color: var(--warn); }
+  .chip.edited { color: var(--accent-2); border-color: var(--accent-2); background: transparent; }
+  .chip.rank-mark { color: var(--good); border-color: var(--good); background: transparent; }
+  .chip.trend.up { color: var(--accent-2); }
+  .chip.trend.down { color: var(--accent); }
+  .chip.trend.flat { color: var(--text-dim); }
+
+  /* ---- buttons ---- */
+  .btn {
+    font-family: inherit;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    padding: 12px 18px;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #10121b;
+    font-weight: 700;
+  }
+  .btn.ghost { background: transparent; color: var(--text-dim); }
+  .btn.big { padding: 14px 26px; font-size: 1rem; }
+  .btn.small { padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; }
+  .btn.danger { color: var(--bad); }
+  .btn.danger:hover { border-color: var(--bad); }
+
+  select, input[type="text"] {
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+  }
+  select:focus, input[type="text"]:focus { outline: none; border-color: var(--accent); }
+
+  /* ---- flashcard ---- */
+  .fc-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .fc-top label { font-size: 0.85rem; color: var(--text-dim); }
+  .fc-stats { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 14px; line-height: 1.7; }
+  .fc-stats b { color: var(--text); }
+  .fc-stats b.bad { color: var(--bad); }
+  .fc-card {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px 18px;
+    text-align: center;
+    min-height: 220px;
+  }
+  .fc-name { font-size: 1.35rem; font-weight: 700; margin: 12px 0 20px; line-height: 1.5; }
+  .fc-value { font-size: 1.5rem; font-weight: 700; color: var(--good); margin: 14px 0 8px; line-height: 1.5; }
+  .fc-note { font-size: 0.82rem; color: var(--text-dim); line-height: 1.7; margin: 10px auto 18px; max-width: 560px; }
+  .rate-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+  .rate-row .btn { flex: 1; min-width: 110px; max-width: 180px; font-weight: 700; }
+  .btn.rate-bad { color: var(--bad); border-color: var(--bad); background: transparent; }
+  .btn.rate-mid { color: var(--warn); border-color: var(--warn); background: transparent; }
+  .btn.rate-good { color: var(--good); border-color: var(--good); background: transparent; }
+  .btn.rate-bad:hover { background: rgba(255,138,138,0.12); }
+  .btn.rate-mid:hover { background: rgba(255,210,124,0.12); }
+  .btn.rate-good:hover { background: rgba(111,213,152,0.12); }
+
+  /* ---- quiz ---- */
+  .q-head { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 12px; display: flex; justify-content: space-between; }
+  .q-score { color: var(--good); font-weight: 700; }
+  .q-name { font-size: 1.2rem; font-weight: 700; margin: 8px 0 16px; line-height: 1.5; }
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice {
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-align: left;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    line-height: 1.5;
+  }
+  .choice:hover { border-color: var(--accent); }
+  .choice.correct { border-color: var(--good); color: var(--good); background: rgba(111,213,152,0.10); font-weight: 700; }
+  .choice.wrong { border-color: var(--bad); color: var(--bad); background: rgba(255,138,138,0.10); }
+  .choice:disabled { cursor: default; }
+  .choice:disabled:not(.correct):not(.wrong) { opacity: 0.55; }
+  .q-feedback { margin-top: 14px; font-size: 0.88rem; line-height: 1.7; }
+  .q-feedback .verdict { font-size: 1.05rem; font-weight: 700; }
+  .q-feedback .verdict.ok { color: var(--good); }
+  .q-feedback .verdict.ng { color: var(--bad); }
+  .q-feedback .note { color: var(--text-dim); font-size: 0.8rem; }
+  .q-result { text-align: center; padding: 20px 0; }
+  .q-result .score { font-size: 2.4rem; font-weight: 700; color: var(--accent); margin: 8px 0; }
+  .q-result .msg { color: var(--text-dim); margin-bottom: 20px; }
+  .q-start { text-align: center; padding: 16px 0; }
+  .q-start p { color: var(--text-dim); font-size: 0.88rem; line-height: 1.8; }
+
+  /* ---- list / edit ---- */
+  .list-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .list-head .info { font-size: 0.8rem; color: var(--text-dim); }
+  .cat-title {
+    font-size: 1.02rem;
+    margin: 22px 0 10px;
+    padding-left: 10px;
+    border-left: 4px solid var(--accent);
+  }
+  .cat-title .cat-count { font-size: 0.75rem; color: var(--text-dim); font-weight: 400; }
+  .item-row {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .item-row .name { font-weight: 700; font-size: 0.95rem; line-height: 1.5; }
+  .item-row .value { color: var(--good); font-size: 0.95rem; margin: 4px 0; line-height: 1.6; }
+  .item-row .meta { margin: 4px 0 2px; }
+  .item-row .note { color: var(--text-dim); font-size: 0.78rem; line-height: 1.6; margin-top: 4px; }
+  .item-btns { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .edit-form label { display: block; font-size: 0.78rem; color: var(--text-dim); margin: 10px 0 4px; }
+  .edit-form input[type="text"], .edit-form select { width: 100%; }
+  .edit-btns { display: flex; gap: 8px; margin-top: 14px; }
+
+  @media (max-width: 600px) {
+    body { padding: 20px 10px 48px; }
+    .panel { padding: 14px; }
+    .fc-name { font-size: 1.2rem; }
+    .fc-value { font-size: 1.3rem; }
+    .rate-row .btn { min-width: 90px; padding: 12px 8px; font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="../medical.html">← メディカルツール一覧</a>
+  <h1>公衆衛生 数値ドリル</h1>
+  <p class="sub">国試頻出の「毎年変わる統計数値」を覚えるドリル。フラッシュカード・3択クイズ・順位当てで反復練習。</p>
+
+  <div class="notice">
+    ⚠ 数値は登録時点のものです。統計は毎年更新されるため、最新の国試対策書・厚生労働省の統計で確認し、「一覧・編集」タブから修正してください。<br>
+    データ更新日: <span class="date" id="updated-at">—</span>
+  </div>
+
+  <div class="tabs">
+    <button data-tab="fc" class="active">フラッシュカード</button>
+    <button data-tab="quiz">3択クイズ</button>
+    <button data-tab="rank">順位当て</button>
+    <button data-tab="list">一覧・編集</button>
+  </div>
+
+  <!-- ==== flashcard ==== -->
+  <section id="tab-fc" class="tab-panel active">
+    <div class="panel">
+      <div class="fc-top">
+        <label>カテゴリ: <select id="fc-cat"></select></label>
+      </div>
+      <div class="fc-stats" id="fc-stats"></div>
+      <div class="fc-card" id="fc-card"></div>
+    </div>
+  </section>
+
+  <!-- ==== 3-choice quiz ==== -->
+  <section id="tab-quiz" class="tab-panel">
+    <div class="panel" id="quiz-area"></div>
+  </section>
+
+  <!-- ==== ranking quiz ==== -->
+  <section id="tab-rank" class="tab-panel">
+    <div class="panel" id="rank-area"></div>
+  </section>
+
+  <!-- ==== list & edit ==== -->
+  <section id="tab-list" class="tab-panel">
+    <div class="list-head">
+      <div class="info" id="list-info"></div>
+      <button class="btn small danger" id="reset-all">すべて初期値に戻す</button>
+    </div>
+    <div id="list-wrap"></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+
+var LS_KEY = 'pubhealth-stats-v1';
+
+var CATEGORIES = ['人口静態','人口動態','死因','平均寿命・健康寿命','医療施設・従事者','医療費','母子保健','感染症','精神保健','産業保健','高齢者・介護'];
+
+/* ============ 基礎データ(2026年1月時点で知られる最新の確定値・概数) ============ */
+var BASE_ITEMS = [
+  /* --- 人口静態 --- */
+  {id:'pd01', category:'人口静態', name:'総人口', value:'約1億2,380万人', year:'令和6年(2024)10月1日推計', trend:'減少', note:'14年連続の減少。最新の統計で要確認'},
+  {id:'pd02', category:'人口静態', name:'高齢化率(65歳以上人口割合)', value:'約29.3%', year:'令和6年(2024)推計', trend:'増加', note:'過去最高を更新中。最新の統計で要確認'},
+  {id:'pd03', category:'人口静態', name:'75歳以上(後期高齢者)人口の割合', value:'約16.8%', year:'令和6年(2024)推計', trend:'増加', note:'約2,000万人超。最新の統計で要確認'},
+  {id:'pd04', category:'人口静態', name:'年少人口(15歳未満)割合', value:'約11.2%', year:'令和6年(2024)推計', trend:'減少', note:'過去最低を更新中'},
+  {id:'pd05', category:'人口静態', name:'生産年齢人口(15〜64歳)割合', value:'約59.6%', year:'令和6年(2024)推計', trend:'減少', note:'最新の統計で要確認'},
+  {id:'pd06', category:'人口静態', name:'平均世帯人員', value:'約2.2人', year:'令和5年(2023)国民生活基礎調査', trend:'減少', note:'世帯構造では単独世帯が最多(約34%)'},
+  {id:'pd07', category:'人口静態', name:'65歳以上の者のいる世帯の割合', value:'約50%', year:'令和5年(2023)国民生活基礎調査', trend:'増加', note:'全世帯の約半数。最新の統計で要確認'},
+
+  /* --- 人口動態 --- */
+  {id:'vs01', category:'人口動態', name:'出生数', value:'約68.6万人', year:'令和6年(2024)概数', trend:'減少', note:'過去最少を更新。令和5年確定は約72.7万人'},
+  {id:'vs02', category:'人口動態', name:'合計特殊出生率', value:'1.15', year:'令和6年(2024)概数', trend:'減少', note:'過去最低。令和5年確定は1.20'},
+  {id:'vs03', category:'人口動態', name:'死亡数', value:'約160.5万人', year:'令和6年(2024)概数', trend:'増加', note:'戦後最多水準。最新の統計で要確認'},
+  {id:'vs04', category:'人口動態', name:'自然増減数', value:'約▲92万人(自然減)', year:'令和6年(2024)概数', trend:'減少', note:'自然減は18年連続で、減少幅は拡大している'},
+  {id:'vs05', category:'人口動態', name:'粗死亡率', value:'約13(人口千対)', year:'令和6年(2024)概数', trend:'増加', note:'高齢化を反映して上昇傾向。年齢調整死亡率は男女とも低下。最新の統計で要確認'},
+  {id:'vs06', category:'人口動態', name:'婚姻件数', value:'約48.5万組', year:'令和6年(2024)概数', trend:null, note:'令和5年(約47.5万組・戦後最少)から微増。最新の統計で要確認'},
+  {id:'vs07', category:'人口動態', name:'離婚件数', value:'約18.5万組', year:'令和6年(2024)概数', trend:'横ばい', note:'最新の統計で要確認'},
+
+  /* --- 死因 --- */
+  {id:'cd01', category:'死因', name:'死因第1位', value:'悪性新生物〈腫瘍〉 約38.2万人(全死亡の約24%)', year:'令和6年(2024)概数', trend:'横ばい', note:'昭和56年(1981)以降ずっと第1位'},
+  {id:'cd02', category:'死因', name:'死因第2位', value:'心疾患(高血圧性を除く) 約23万人(約14%)', year:'令和6年(2024)概数', trend:'横ばい', note:'最新の統計で要確認'},
+  {id:'cd03', category:'死因', name:'死因第3位', value:'老衰 約21万人(約13%)', year:'令和6年(2024)概数', trend:'増加', note:'令和4年以降第3位で増加が著しい'},
+  {id:'cd04', category:'死因', name:'死因第4位', value:'脳血管疾患 約10.6万人', year:'令和6年(2024)概数', trend:'減少', note:'長期的には減少傾向'},
+  {id:'cd05', category:'死因', name:'死因第5位', value:'肺炎 約7.8万人', year:'令和6年(2024)概数', trend:'横ばい', note:'誤嚥性肺炎(約6.5万人)は別に第6位として計上。最新の統計で要確認'},
+  {id:'cd06', category:'死因', name:'自殺者数', value:'約2万320人', year:'令和6年(2024)確定値(警察庁)', trend:'減少', note:'統計開始(昭和53年)以来最少。男性が約7割'},
+  {id:'cd07', category:'死因', name:'自殺死亡率', value:'約16(人口10万対)', year:'令和6年(2024)', trend:'減少', note:'G7の中では依然高水準。最新の統計で要確認'},
+  {id:'cd08', category:'死因', name:'10〜39歳の死因第1位', value:'自殺', year:'令和5年(2023)確定', trend:null, note:'10〜39歳の各年齢階級で第1位。15〜34歳で死因1位が自殺なのはG7で日本のみ'},
+
+  /* --- 平均寿命・健康寿命 --- */
+  {id:'le01', category:'平均寿命・健康寿命', name:'平均寿命(男)', value:'81.09年', year:'令和6年(2024)簡易生命表', trend:'横ばい', note:'前年(令和5年)と同じ81.09年。最新の統計で要確認'},
+  {id:'le02', category:'平均寿命・健康寿命', name:'平均寿命(女)', value:'87.13年', year:'令和6年(2024)簡易生命表', trend:'横ばい', note:'世界トップクラス。前年(令和5年)の87.14年より0.01年短縮。最新の統計で要確認'},
+  {id:'le03', category:'平均寿命・健康寿命', name:'健康寿命(男)', value:'72.57年', year:'令和4年(2022)', trend:'減少', note:'3年ごとに算出される。前回(令和元年)の72.68年よりわずかに短縮'},
+  {id:'le04', category:'平均寿命・健康寿命', name:'健康寿命(女)', value:'75.45年', year:'令和4年(2022)', trend:'増加', note:'前回(令和元年)の75.38年よりわずかに延伸'},
+  {id:'le05', category:'平均寿命・健康寿命', name:'平均寿命と健康寿命の差', value:'男 約8.5年・女 約11.7年', year:'令和4年(2022)', trend:null, note:'「不健康な期間」。この短縮が健康日本21(第三次)の目標'},
+
+  /* --- 医療施設・従事者 --- */
+  {id:'mf01', category:'医療施設・従事者', name:'病院数', value:'約8,100施設', year:'令和5年(2023)医療施設調査', trend:'減少', note:'最新の統計で要確認'},
+  {id:'mf02', category:'医療施設・従事者', name:'一般診療所数', value:'約10.5万施設', year:'令和5年(2023)医療施設調査', trend:'増加', note:'無床診療所は増加、有床診療所は減少'},
+  {id:'mf03', category:'医療施設・従事者', name:'病床総数', value:'約149万床', year:'令和5年(2023)医療施設調査', trend:'減少', note:'うち一般病床 約88万床。最新の統計で要確認'},
+  {id:'mf04', category:'医療施設・従事者', name:'医師数', value:'約34.3万人', year:'令和4年(2022)医師・歯科医師・薬剤師統計', trend:'増加', note:'隔年調査。令和6年統計は最新の統計で要確認'},
+  {id:'mf05', category:'医療施設・従事者', name:'人口10万対医師数', value:'約275人', year:'令和4年(2022)', trend:'増加', note:'都道府県差が大きい(西高東低)'},
+  {id:'mf06', category:'医療施設・従事者', name:'歯科医師数', value:'約10.5万人', year:'令和4年(2022)', trend:'横ばい', note:'最新の統計で要確認'},
+  {id:'mf07', category:'医療施設・従事者', name:'薬剤師数', value:'約32.3万人', year:'令和4年(2022)', trend:'増加', note:'最新の統計で要確認'},
+  {id:'mf08', category:'医療施設・従事者', name:'就業看護師数', value:'約132万人', year:'令和4年(2022)衛生行政報告例', trend:'増加', note:'准看護師は約25万人で減少傾向'},
+  {id:'mf09', category:'医療施設・従事者', name:'平均在院日数(一般病床)', value:'約16日', year:'令和5年(2023)病院報告', trend:'減少', note:'全病床平均は約27日、精神病床は約270日と長い。最新の統計で要確認'},
+
+  /* --- 医療費 --- */
+  {id:'mc01', category:'医療費', name:'国民医療費', value:'約48兆円', year:'令和5年度(2023)確定', trend:'増加', note:'確定値は約48.1兆円で初めて48兆円を超えた。最新の統計で要確認'},
+  {id:'mc02', category:'医療費', name:'人口一人当たり国民医療費', value:'約38.7万円', year:'令和5年度(2023)', trend:'増加', note:'65歳以上は約77万円、65歳未満は約21万円。最新の統計で要確認'},
+  {id:'mc03', category:'医療費', name:'国民医療費の対GDP比', value:'約8.3%', year:'令和4年度(2022)', trend:'横ばい', note:'対国民所得比は約11.5%。最新の統計で要確認'},
+  {id:'mc04', category:'医療費', name:'国民医療費に占める65歳以上の割合', value:'約61%', year:'令和4年度(2022)', trend:'増加', note:'最新の統計で要確認'},
+  {id:'mc05', category:'医療費', name:'後期高齢者(75歳以上)一人当たり医療費', value:'約95万円', year:'令和4年度(2022)', trend:'増加', note:'現役世代の約4倍。最新の統計で要確認'},
+  {id:'mc06', category:'医療費', name:'国民医療費の財源構成', value:'保険料 約50%・公費 約38%・患者負担 約12%', year:'令和4年度(2022)', trend:null, noQuiz:true, note:'保険料が約5割、公費が約4割'},
+
+  /* --- 母子保健 --- */
+  {id:'mh01', category:'母子保健', name:'乳児死亡率', value:'1.8(出生千対)', year:'令和5年(2023)確定', trend:'横ばい', note:'世界有数の低率。令和6年概数は最新の統計で要確認'},
+  {id:'mh02', category:'母子保健', name:'新生児死亡率', value:'0.8(出生千対)', year:'令和5年(2023)確定', trend:'横ばい', note:'生後4週(28日)未満の死亡'},
+  {id:'mh03', category:'母子保健', name:'周産期死亡率', value:'3.3(出産千対)', year:'令和5年(2023)確定', trend:'横ばい', note:'妊娠満22週以後の死産+早期新生児死亡。分母は出産(出生+妊娠満22週以後の死産)'},
+  {id:'mh04', category:'母子保健', name:'妊産婦死亡率', value:'約3(出産10万対)', year:'令和5年(2023)', trend:null, note:'年間30人前後で年により変動が大きい。最新の統計で要確認'},
+  {id:'mh05', category:'母子保健', name:'死産率', value:'約19(出産千対)', year:'令和5年(2023)確定', trend:'減少', note:'妊娠満12週以後。自然死産と人工死産がほぼ半々'},
+  {id:'mh06', category:'母子保健', name:'人工妊娠中絶件数', value:'約12.7万件', year:'令和5年度(2023)衛生行政報告例', trend:'減少', note:'長期的には一貫して減少傾向(ピーク時は100万件超)だが直近年度は微増。実施率(15〜49歳女子人口千対)は約5。最新の統計で要確認'},
+  {id:'mh07', category:'母子保健', name:'低出生体重児(2,500g未満)の割合', value:'約9.5%', year:'令和5年(2023)', trend:'横ばい', note:'1980年代以降増加し、近年は高止まり。最新の統計で要確認'},
+  {id:'mh08', category:'母子保健', name:'第1子出生時の母の平均年齢', value:'約31.0歳', year:'令和5年(2023)', trend:'横ばい', note:'晩産化を反映して上昇後、横ばい'},
+
+  /* --- 感染症 --- */
+  {id:'id01', category:'感染症', name:'結核罹患率', value:'約8(人口10万対)', year:'令和5年(2023)', trend:'減少', note:'令和3年(2021)に10を下回り「低まん延国」に。最新の統計で要確認'},
+  {id:'id02', category:'感染症', name:'結核新登録患者数', value:'約1万人', year:'令和5年(2023)', trend:'減少', note:'高齢者と外国生まれの患者の割合が高い。最新の統計で要確認'},
+  {id:'id03', category:'感染症', name:'梅毒報告数', value:'約1.5万件', year:'令和5年(2023)', trend:'増加', note:'過去最多水準。異性間性的接触が主体。最新の統計で要確認'},
+  {id:'id04', category:'感染症', name:'新規HIV感染者+AIDS患者報告数', value:'合計 約960件', year:'令和5年(2023)', trend:'横ばい', note:'HIV感染者 約670件+AIDS患者 約290件。「いきなりAIDS」が約3割'},
+  {id:'id05', category:'感染症', name:'新型コロナウイルス感染症の感染症法上の位置づけ', value:'5類感染症', year:'令和5年(2023)5月8日〜', trend:null, noQuiz:true, note:'2類相当の新型インフルエンザ等感染症から移行し、定点把握に'},
+
+  /* --- 精神保健 --- */
+  {id:'mp01', category:'精神保健', name:'精神疾患を有する総患者数', value:'約615万人', year:'令和2年(2020)患者調査', trend:'増加', note:'外来が9割以上。3年ごとの調査で、令和5年患者調査は最新の統計で要確認'},
+  {id:'mp02', category:'精神保健', name:'精神病床数', value:'約31.8万床', year:'令和5年(2023)医療施設調査', trend:'減少', note:'全病床の約2割を占める。最新の統計で要確認'},
+  {id:'mp03', category:'精神保健', name:'精神科入院形態の内訳', value:'任意入院と医療保護入院がそれぞれ約5割', year:'令和5年(2023)630調査', trend:null, noQuiz:true, note:'近年は医療保護入院が任意入院を上回る。措置入院は1%未満。最新の統計で要確認'},
+  {id:'mp04', category:'精神保健', name:'平均在院日数(精神病床)', value:'約270日', year:'令和5年(2023)病院報告', trend:'減少', note:'他病床より突出して長いが漸減傾向。最新の統計で要確認'},
+
+  /* --- 産業保健 --- */
+  {id:'oh01', category:'産業保健', name:'労働災害による死亡者数', value:'約750人', year:'令和5年(2023)', trend:'減少', note:'死傷者数(休業4日以上)は約13.5万人で増加傾向。最新の統計で要確認'},
+  {id:'oh02', category:'産業保健', name:'業務上疾病で最も多いもの', value:'負傷に起因する疾病(災害性腰痛)', year:'令和5年(2023)', trend:'横ばい', note:'新型コロナり患を除く集計。腰痛が例年最多'},
+  {id:'oh03', category:'産業保健', name:'一般健康診断の有所見率', value:'約58%', year:'令和5年(2023)', trend:'増加', note:'項目別では血中脂質の有所見が最多。最新の統計で要確認'},
+  {id:'oh04', category:'産業保健', name:'仕事で強い不安・ストレスを感じる労働者の割合', value:'約82%', year:'令和5年(2023)労働安全衛生調査', trend:'増加', note:'年により変動が大きい。最新の統計で要確認'},
+  {id:'oh05', category:'産業保健', name:'精神障害の労災認定(支給決定)件数', value:'約1,050件', year:'令和6年度(2024)', trend:'増加', note:'令和6年度に初めて1,000件を超え過去最多を更新。最新の統計で要確認'},
+
+  /* --- 高齢者・介護 --- */
+  {id:'ec01', category:'高齢者・介護', name:'要介護(要支援)認定者数', value:'約708万人', year:'令和5年度末(2024年3月末)', trend:'増加', note:'第1号被保険者の約19%。最新の統計で要確認'},
+  {id:'ec02', category:'高齢者・介護', name:'要介護の主な原因 第1位', value:'認知症(約17%)', year:'令和4年(2022)国民生活基礎調査', trend:null, note:'2位 脳血管疾患、3位 骨折・転倒'},
+  {id:'ec03', category:'高齢者・介護', name:'認知症高齢者数(推計)', value:'約443万人', year:'令和4年(2022)時点の新推計', trend:'増加', note:'MCI(軽度認知障害)は約559万人。2040年には約584万人と推計'},
+  {id:'ec04', category:'高齢者・介護', name:'介護保険給付費', value:'約11兆円', year:'令和4年度(2022)', trend:'増加', note:'最新の統計で要確認'},
+  {id:'ec05', category:'高齢者・介護', name:'65歳以上の就業率', value:'約25%', year:'令和5年(2023)', trend:'増加', note:'就業者総数の約7人に1人が高齢者'},
+  {id:'ec06', category:'高齢者・介護', name:'65歳以上の者のいる世帯の世帯構造', value:'夫婦のみ世帯と単独世帯がそれぞれ約3割', year:'令和5年(2023)国民生活基礎調査', trend:'増加', noQuiz:true, note:'単独世帯の増加が顕著。最新の統計で要確認'}
+];
+
+/* ============ 順位系データ ============ */
+var BASE_RANKINGS = [
+  {id:'rk01', type:'ranking', category:'死因', name:'死因順位(全体・上位5位)', items:['悪性新生物〈腫瘍〉','心疾患','老衰','脳血管疾患','肺炎'], year:'令和6年(2024)概数', note:'第6位は誤嚥性肺炎。最新の統計で要確認'},
+  {id:'rk02', type:'ranking', category:'死因', name:'部位別がん死亡数(男性・上位3位)', items:['肺','大腸','胃'], year:'令和5年(2023)', note:'罹患数では前立腺が1位。最新の統計で要確認'},
+  {id:'rk03', type:'ranking', category:'死因', name:'部位別がん死亡数(女性・上位3位)', items:['大腸','肺','膵'], year:'令和5年(2023)', note:'乳がんは罹患数1位だが死亡数では上位3位に入らない。最新の統計で要確認'},
+  {id:'rk04', type:'ranking', category:'高齢者・介護', name:'要介護の主な原因(上位3位)', items:['認知症','脳血管疾患','骨折・転倒'], year:'令和4年(2022)国民生活基礎調査', note:'要支援に限ると関節疾患が上位に入る'},
+  {id:'rk05', type:'ranking', category:'精神保健', name:'自殺の原因・動機(多い順・上位3位)', items:['健康問題','経済・生活問題','家庭問題'], year:'令和5年(2023)', note:'複数計上。健康問題が一貫して最多。最新の統計で要確認'},
+  {id:'rk06', type:'ranking', category:'医療費', name:'国民医療費の財源構成(多い順)', items:['保険料','公費','患者負担'], year:'令和4年度(2022)', note:'保険料が約5割、公費が約4割'}
+];
+
+/* ============ ユーティリティ ============ */
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function todayStr() {
+  var d = new Date();
+  var p = function(n){ return (n < 10 ? '0' : '') + n; };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+/* ============ 状態(localStorage) ============ */
+function loadState() {
+  var def = { overrides: {}, srs: {}, updatedAt: null };
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return def;
+    var p = JSON.parse(raw);
+    if (!p || typeof p !== 'object') return def;
+    return {
+      overrides: (p.overrides && typeof p.overrides === 'object') ? p.overrides : {},
+      srs: (p.srs && typeof p.srs === 'object') ? p.srs : {},
+      updatedAt: (typeof p.updatedAt === 'string') ? p.updatedAt : null
+    };
+  } catch (e) { return def; }
+}
+function saveState() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {}
+}
+var state = loadState();
+
+/* override を元データにマージ */
+function mergedItem(base) {
+  var o = state.overrides[base.id];
+  var m = {};
+  for (var k in base) { if (Object.prototype.hasOwnProperty.call(base, k)) m[k] = base[k]; }
+  m.edited = false;
+  if (!o || typeof o !== 'object') return m;
+  if (base.type === 'ranking') {
+    if (Object.prototype.toString.call(o.items) === '[object Array]' && o.items.length >= 2) m.items = o.items;
+  } else {
+    if (typeof o.value === 'string' && o.value) m.value = o.value;
+    if ('trend' in o) m.trend = o.trend || null;
+  }
+  if (typeof o.year === 'string') m.year = o.year;
+  if (typeof o.note === 'string') m.note = o.note;
+  m.edited = true;
+  return m;
+}
+function allItems() { return BASE_ITEMS.map(mergedItem); }
+function allRankings() { return BASE_RANKINGS.map(mergedItem); }
+
+function trendChip(t) {
+  if (!t) return '';
+  var cls = t === '増加' ? 'up' : (t === '減少' ? 'down' : 'flat');
+  var arrow = t === '増加' ? '↑' : (t === '減少' ? '↓' : '→');
+  return '<span class="chip trend ' + cls + '">' + arrow + ' ' + esc(t) + '</span>';
+}
+function updateHeaderDate() {
+  var el = document.getElementById('updated-at');
+  el.textContent = state.updatedAt ? state.updatedAt : '未編集(初期データのまま)';
+}
+
+/* ============ タブ ============ */
+var tabButtons = document.querySelectorAll('.tabs button');
+for (var ti = 0; ti < tabButtons.length; ti++) {
+  (function(btn){
+    btn.addEventListener('click', function(){ switchTab(btn.getAttribute('data-tab')); });
+  })(tabButtons[ti]);
+}
+function switchTab(name) {
+  for (var i = 0; i < tabButtons.length; i++) {
+    tabButtons[i].classList.toggle('active', tabButtons[i].getAttribute('data-tab') === name);
+  }
+  var panels = document.querySelectorAll('.tab-panel');
+  for (var j = 0; j < panels.length; j++) {
+    panels[j].classList.toggle('active', panels[j].id === 'tab-' + name);
+  }
+  if (name === 'list') renderList();
+}
+
+/* ============ 1. フラッシュカード ============ */
+var fcState = { current: null, revealed: false };
+
+function fcPool() {
+  var cat = document.getElementById('fc-cat').value;
+  return allItems().filter(function(it){ return cat === 'all' || it.category === cat; });
+}
+function weightOf(id) {
+  var s = state.srs[id];
+  if (!s || !s.last) return 6;      /* 未評価は優先度高め */
+  if (s.last === 'bad') return 8;   /* 苦手を最優先 */
+  if (s.last === 'mid') return 4;
+  return 1;                          /* できた項目は控えめに */
+}
+function pickFlashcard() {
+  var pool = fcPool();
+  if (pool.length === 0) { fcState.current = null; renderFlashcard(); return; }
+  if (pool.length > 1 && fcState.current) {
+    pool = pool.filter(function(it){ return it.id !== fcState.current; });
+  }
+  var total = 0;
+  var ws = pool.map(function(it){ var w = weightOf(it.id); total += w; return w; });
+  var r = Math.random() * total;
+  var idx = pool.length - 1;
+  for (var i = 0; i < pool.length; i++) { r -= ws[i]; if (r <= 0) { idx = i; break; } }
+  fcState.current = pool[idx].id;
+  fcState.revealed = false;
+  renderFlashcard();
+}
+function findMergedItem(id) {
+  for (var i = 0; i < BASE_ITEMS.length; i++) {
+    if (BASE_ITEMS[i].id === id) return mergedItem(BASE_ITEMS[i]);
+  }
+  return null;
+}
+function renderFlashcard() {
+  var card = document.getElementById('fc-card');
+  updateFcStats();
+  if (!fcState.current) {
+    card.innerHTML = '<p style="color:var(--text-dim)">このカテゴリには項目がありません。</p>';
+    return;
+  }
+  var it = findMergedItem(fcState.current);
+  if (!it) { card.innerHTML = ''; return; }
+  var html = '<div>'
+    + '<span class="chip cat">' + esc(it.category) + '</span>'
+    + '<span class="chip year">' + esc(it.year) + '</span>'
+    + (it.edited ? '<span class="chip edited">変更済</span>' : '')
+    + '</div>'
+    + '<div class="fc-name">' + esc(it.name) + '</div>';
+  if (!fcState.revealed) {
+    html += '<button class="btn primary big" data-action="reveal">答えを見る</button>';
+  } else {
+    html += '<div class="fc-value">' + esc(it.value) + '</div>'
+      + '<div>' + trendChip(it.trend) + '</div>'
+      + (it.note ? '<div class="fc-note">' + esc(it.note) + '</div>' : '<div style="height:14px"></div>')
+      + '<div class="rate-row">'
+      + '<button class="btn rate-bad" data-action="rate-bad">できなかった</button>'
+      + '<button class="btn rate-mid" data-action="rate-mid">あいまい</button>'
+      + '<button class="btn rate-good" data-action="rate-good">できた</button>'
+      + '</div>';
+  }
+  card.innerHTML = html;
+}
+function updateFcStats() {
+  var pool = fcPool();
+  var bad = 0, unrated = 0;
+  for (var i = 0; i < pool.length; i++) {
+    var s = state.srs[pool[i].id];
+    if (!s || !s.last) unrated++;
+    else if (s.last === 'bad') bad++;
+  }
+  document.getElementById('fc-stats').innerHTML =
+    '出題対象 <b>' + pool.length + '</b> 件 / 苦手 <b class="bad">' + bad + '</b> 件 / 未評価 <b>' + unrated + '</b> 件'
+    + '<br>苦手・未評価の項目ほど優先して出題されます。';
+}
+function rateCard(r) {
+  var id = fcState.current;
+  if (!id) return;
+  var s = state.srs[id];
+  if (!s || typeof s !== 'object') s = {};
+  s.last = r;
+  s.count = (typeof s.count === 'number' ? s.count : 0) + 1;
+  state.srs[id] = s;
+  saveState();
+  pickFlashcard();
+}
+document.getElementById('fc-card').addEventListener('click', function(e){
+  var b = e.target.closest ? e.target.closest('[data-action]') : null;
+  if (!b) return;
+  var a = b.getAttribute('data-action');
+  if (a === 'reveal') { fcState.revealed = true; renderFlashcard(); }
+  else if (a === 'rate-bad') rateCard('bad');
+  else if (a === 'rate-mid') rateCard('mid');
+  else if (a === 'rate-good') rateCard('good');
+});
+document.getElementById('fc-cat').addEventListener('change', function(){
+  fcState.current = null;
+  pickFlashcard();
+});
+
+/* ============ 2. 3択クイズ ============ */
+var QUIZ_LEN = 10;
+var quiz = null;
+
+function quizPool() {
+  return allItems().filter(function(it){ return !it.noQuiz && /\d/.test(it.value); });
+}
+function addCommas(s) {
+  var parts = s.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}
+/* 文字列中の全数値に同じ係数をかけてダミー値を作る */
+function transformValue(value, factor) {
+  return value.replace(/\d+(?:,\d{3})*(?:\.\d+)?/g, function(m){
+    var hasComma = m.indexOf(',') >= 0;
+    var num = parseFloat(m.replace(/,/g, ''));
+    var decMatch = m.match(/\.(\d+)$/);
+    var dec = decMatch ? decMatch[1].length : 0;
+    var v = num * factor;
+    var s = (dec > 0) ? v.toFixed(dec) : String(Math.round(v));
+    if (hasComma || (dec === 0 && Math.round(v) >= 10000 && m.length >= 5)) s = addCommas(s);
+    return s;
+  });
+}
+function makeDistractors(correct) {
+  var near = [1.1, 0.9, 1.3, 0.7, 1.5, 0.8];
+  var far = [10, 0.1, 2, 0.5, 3, 4];
+  var outs = [];
+  function tryF(f) {
+    var t = transformValue(correct, f);
+    if (t !== correct && outs.indexOf(t) < 0) { outs.push(t); return true; }
+    return false;
+  }
+  var n = shuffle(near), f2 = shuffle(far), i;
+  for (i = 0; i < n.length && outs.length < 1; i++) tryF(n[i]);     /* 近傍値 */
+  for (i = 0; i < f2.length && outs.length < 2; i++) tryF(f2[i]);  /* 桁違い・大幅ずれ */
+  var all = shuffle(near.concat(far));
+  for (i = 0; i < all.length && outs.length < 2; i++) tryF(all[i]);
+  while (outs.length < 2) outs.push(correct + '(参考)');  /* 保険(通常到達しない) */
+  return outs.slice(0, 2);
+}
+function renderQuizStart() {
+  var pool = quizPool();
+  document.getElementById('quiz-area').innerHTML =
+    '<div class="q-start">'
+    + '<p>数値項目からランダムに ' + Math.min(QUIZ_LEN, pool.length) + ' 問出題。<br>正しい数値を3択から選んでください(ダミーは自動生成)。</p>'
+    + '<button class="btn primary big" data-action="start">クイズを始める</button>'
+    + '</div>';
+}
+function startQuiz() {
+  var pool = shuffle(quizPool()).slice(0, QUIZ_LEN);
+  if (pool.length === 0) { renderQuizStart(); return; }
+  quiz = { items: pool, idx: 0, score: 0, answered: false, picked: -1, choices: null };
+  renderQuizQuestion();
+}
+function renderQuizQuestion() {
+  var q = quiz.items[quiz.idx];
+  if (!quiz.choices) {
+    var ds = makeDistractors(q.value);
+    var cs = [{ t: q.value, ok: true }];
+    for (var i = 0; i < ds.length; i++) cs.push({ t: ds[i], ok: false });
+    quiz.choices = shuffle(cs);
+  }
+  var html = '<div class="q-head"><span>第' + (quiz.idx + 1) + '問 / ' + quiz.items.length + '問</span>'
+    + '<span class="q-score">正解 ' + quiz.score + '</span></div>'
+    + '<div><span class="chip cat">' + esc(q.category) + '</span><span class="chip year">' + esc(q.year) + '</span></div>'
+    + '<div class="q-name">' + esc(q.name) + '</div><div class="choices">';
+  for (var c = 0; c < quiz.choices.length; c++) {
+    var ch = quiz.choices[c];
+    var cls = 'choice';
+    if (quiz.answered) {
+      if (ch.ok) cls += ' correct';
+      else if (c === quiz.picked) cls += ' wrong';
+    }
+    html += '<button class="' + cls + '" data-i="' + c + '"' + (quiz.answered ? ' disabled' : '') + '>' + esc(ch.t) + '</button>';
+  }
+  html += '</div>';
+  if (quiz.answered) {
+    var ok = quiz.choices[quiz.picked] && quiz.choices[quiz.picked].ok;
+    html += '<div class="q-feedback">'
+      + '<div class="verdict ' + (ok ? 'ok' : 'ng') + '">' + (ok ? '正解!' : '不正解…') + '</div>'
+      + '<div>正しい値: <b>' + esc(q.value) + '</b> ' + trendChip(q.trend) + '</div>'
+      + (q.note ? '<div class="note">' + esc(q.note) + '</div>' : '')
+      + '<div style="margin-top:12px"><button class="btn primary" data-action="next">'
+      + (quiz.idx + 1 >= quiz.items.length ? '結果を見る' : '次の問題へ') + '</button></div>'
+      + '</div>';
+  }
+  document.getElementById('quiz-area').innerHTML = html;
+}
+function answerQuiz(i) {
+  if (!quiz || quiz.answered) return;
+  quiz.answered = true;
+  quiz.picked = i;
+  if (quiz.choices[i] && quiz.choices[i].ok) quiz.score++;
+  renderQuizQuestion();
+}
+function nextQuiz() {
+  quiz.idx++;
+  quiz.answered = false;
+  quiz.picked = -1;
+  quiz.choices = null;
+  if (quiz.idx >= quiz.items.length) renderQuizResult();
+  else renderQuizQuestion();
+}
+function renderQuizResult() {
+  var n = quiz.items.length;
+  var msg = quiz.score >= n * 0.9 ? 'すばらしい! 数値がしっかり頭に入っています。'
+    : quiz.score >= n * 0.7 ? 'いい調子。間違えた項目をフラッシュカードで復習しましょう。'
+    : '繰り返しが大事。フラッシュカードで苦手をつぶしましょう。';
+  document.getElementById('quiz-area').innerHTML =
+    '<div class="q-result"><div>スコア</div>'
+    + '<div class="score">' + quiz.score + ' / ' + n + '</div>'
+    + '<div class="msg">' + esc(msg) + '</div>'
+    + '<button class="btn primary big" data-action="start">もう一度</button></div>';
+  quiz = null;
+}
+document.getElementById('quiz-area').addEventListener('click', function(e){
+  var c = e.target.closest ? e.target.closest('.choice') : null;
+  if (c && quiz && !quiz.answered) { answerQuiz(parseInt(c.getAttribute('data-i'), 10)); return; }
+  var b = e.target.closest ? e.target.closest('[data-action]') : null;
+  if (!b) return;
+  var a = b.getAttribute('data-action');
+  if (a === 'start') startQuiz();
+  else if (a === 'next' && quiz) nextQuiz();
+});
+
+/* ============ 3. 順位当て ============ */
+var rquiz = null;
+
+function makeRankChoices(items) {
+  var correct = items.join(' → ');
+  var seen = {};
+  seen[correct] = true;
+  var outs = [];
+  var guard = 0;
+  while (outs.length < 2 && guard < 60) {
+    guard++;
+    var s = shuffle(items).join(' → ');
+    if (!seen[s]) { seen[s] = true; outs.push(s); }
+  }
+  var cs = [{ t: correct, ok: true }];
+  for (var i = 0; i < outs.length; i++) cs.push({ t: outs[i], ok: false });
+  return shuffle(cs);
+}
+function renderRankStart() {
+  document.getElementById('rank-area').innerHTML =
+    '<div class="q-start">'
+    + '<p>死因順位・部位別がん死亡数などの「順位系」項目 全' + BASE_RANKINGS.length + '問。<br>正しい順に並んでいる選択肢を選んでください。</p>'
+    + '<button class="btn primary big" data-action="start">順位当てを始める</button>'
+    + '</div>';
+}
+function startRank() {
+  var pool = shuffle(allRankings());
+  if (pool.length === 0) { renderRankStart(); return; }
+  rquiz = { items: pool, idx: 0, score: 0, answered: false, picked: -1, choices: null };
+  renderRankQuestion();
+}
+function renderRankQuestion() {
+  var q = rquiz.items[rquiz.idx];
+  if (!rquiz.choices) rquiz.choices = makeRankChoices(q.items);
+  var html = '<div class="q-head"><span>第' + (rquiz.idx + 1) + '問 / ' + rquiz.items.length + '問</span>'
+    + '<span class="q-score">正解 ' + rquiz.score + '</span></div>'
+    + '<div><span class="chip cat">' + esc(q.category) + '</span><span class="chip year">' + esc(q.year) + '</span>'
+    + (q.edited ? '<span class="chip edited">変更済</span>' : '') + '</div>'
+    + '<div class="q-name">' + esc(q.name) + '<br><span style="font-size:0.8rem;color:var(--text-dim);font-weight:400">正しい順(1位から)はどれ?</span></div>'
+    + '<div class="choices">';
+  for (var c = 0; c < rquiz.choices.length; c++) {
+    var ch = rquiz.choices[c];
+    var cls = 'choice';
+    if (rquiz.answered) {
+      if (ch.ok) cls += ' correct';
+      else if (c === rquiz.picked) cls += ' wrong';
+    }
+    html += '<button class="' + cls + '" data-i="' + c + '"' + (rquiz.answered ? ' disabled' : '') + '>' + esc(ch.t) + '</button>';
+  }
+  html += '</div>';
+  if (rquiz.answered) {
+    var ok = rquiz.choices[rquiz.picked] && rquiz.choices[rquiz.picked].ok;
+    html += '<div class="q-feedback">'
+      + '<div class="verdict ' + (ok ? 'ok' : 'ng') + '">' + (ok ? '正解!' : '不正解…') + '</div>'
+      + '<div>正しい順: <b>' + esc(q.items.join(' → ')) + '</b></div>'
+      + (q.note ? '<div class="note">' + esc(q.note) + '</div>' : '')
+      + '<div style="margin-top:12px"><button class="btn primary" data-action="next">'
+      + (rquiz.idx + 1 >= rquiz.items.length ? '結果を見る' : '次の問題へ') + '</button></div>'
+      + '</div>';
+  }
+  document.getElementById('rank-area').innerHTML = html;
+}
+function answerRank(i) {
+  if (!rquiz || rquiz.answered) return;
+  rquiz.answered = true;
+  rquiz.picked = i;
+  if (rquiz.choices[i] && rquiz.choices[i].ok) rquiz.score++;
+  renderRankQuestion();
+}
+function nextRank() {
+  rquiz.idx++;
+  rquiz.answered = false;
+  rquiz.picked = -1;
+  rquiz.choices = null;
+  if (rquiz.idx >= rquiz.items.length) renderRankResult();
+  else renderRankQuestion();
+}
+function renderRankResult() {
+  var n = rquiz.items.length;
+  var msg = rquiz.score === n ? '全問正解! 順位は完璧です。'
+    : rquiz.score >= n * 0.7 ? 'あと少し。間違えた順位を一覧で確認しましょう。'
+    : '順位は頻出。一覧・編集タブで見直しましょう。';
+  document.getElementById('rank-area').innerHTML =
+    '<div class="q-result"><div>スコア</div>'
+    + '<div class="score">' + rquiz.score + ' / ' + n + '</div>'
+    + '<div class="msg">' + esc(msg) + '</div>'
+    + '<button class="btn primary big" data-action="start">もう一度</button></div>';
+  rquiz = null;
+}
+document.getElementById('rank-area').addEventListener('click', function(e){
+  var c = e.target.closest ? e.target.closest('.choice') : null;
+  if (c && rquiz && !rquiz.answered) { answerRank(parseInt(c.getAttribute('data-i'), 10)); return; }
+  var b = e.target.closest ? e.target.closest('[data-action]') : null;
+  if (!b) return;
+  var a = b.getAttribute('data-action');
+  if (a === 'start') startRank();
+  else if (a === 'next' && rquiz) nextRank();
+});
+
+/* ============ 4. 一覧・編集 ============ */
+var editingId = null;
+
+function findBase(id) {
+  var i;
+  for (i = 0; i < BASE_ITEMS.length; i++) if (BASE_ITEMS[i].id === id) return BASE_ITEMS[i];
+  for (i = 0; i < BASE_RANKINGS.length; i++) if (BASE_RANKINGS[i].id === id) return BASE_RANKINGS[i];
+  return null;
+}
+function renderList() {
+  var wrap = document.getElementById('list-wrap');
+  var items = allItems();
+  var rankings = allRankings();
+  var editedCount = 0;
+  var all = items.concat(rankings);
+  for (var e2 = 0; e2 < all.length; e2++) if (all[e2].edited) editedCount++;
+  document.getElementById('list-info').textContent =
+    '全 ' + all.length + ' 項目(うち順位系 ' + rankings.length + ')/ 変更済 ' + editedCount + ' 件';
+
+  var html = '';
+  for (var ci = 0; ci < CATEGORIES.length; ci++) {
+    var cat = CATEGORIES[ci];
+    var group = [];
+    var gi;
+    for (gi = 0; gi < items.length; gi++) if (items[gi].category === cat) group.push(items[gi]);
+    for (gi = 0; gi < rankings.length; gi++) if (rankings[gi].category === cat) group.push(rankings[gi]);
+    if (group.length === 0) continue;
+    html += '<h2 class="cat-title">' + esc(cat) + ' <span class="cat-count">' + group.length + '件</span></h2>';
+    for (gi = 0; gi < group.length; gi++) {
+      html += (editingId === group[gi].id) ? renderEditForm(group[gi]) : renderRow(group[gi]);
+    }
+  }
+  wrap.innerHTML = html;
+}
+function renderRow(it) {
+  var isRank = it.type === 'ranking';
+  var valText = isRank ? it.items.join(' → ') : it.value;
+  return '<div class="item-row">'
+    + '<div class="name">' + esc(it.name)
+    + (isRank ? ' <span class="chip rank-mark">順位</span>' : '')
+    + (it.edited ? ' <span class="chip edited">変更済</span>' : '')
+    + '</div>'
+    + '<div class="value">' + esc(valText) + '</div>'
+    + '<div class="meta"><span class="chip year">' + esc(it.year) + '</span>' + (isRank ? '' : trendChip(it.trend)) + '</div>'
+    + (it.note ? '<div class="note">' + esc(it.note) + '</div>' : '')
+    + '<div class="item-btns">'
+    + '<button class="btn small" data-action="edit" data-id="' + esc(it.id) + '">編集</button>'
+    + (it.edited ? '<button class="btn small danger" data-action="reset" data-id="' + esc(it.id) + '">初期値に戻す</button>' : '')
+    + '</div></div>';
+}
+function renderEditForm(it) {
+  var isRank = it.type === 'ranking';
+  var html = '<div class="item-row edit-form">'
+    + '<div class="name">' + esc(it.name) + ' <span class="chip cat">編集中</span></div>';
+  if (isRank) {
+    html += '<label>順位(上位から「、」区切りで入力)'
+      + '<input type="text" id="ed-value" value="' + esc(it.items.join('、')) + '"></label>';
+  } else {
+    html += '<label>数値(表示文字列)'
+      + '<input type="text" id="ed-value" value="' + esc(it.value) + '"></label>';
+  }
+  html += '<label>出典年度(例: 令和6年(2024)概数)'
+    + '<input type="text" id="ed-year" value="' + esc(it.year) + '"></label>';
+  if (!isRank) {
+    html += '<label>傾向<select id="ed-trend">'
+      + '<option value=""' + (!it.trend ? ' selected' : '') + '>なし</option>'
+      + '<option value="増加"' + (it.trend === '増加' ? ' selected' : '') + '>増加</option>'
+      + '<option value="減少"' + (it.trend === '減少' ? ' selected' : '') + '>減少</option>'
+      + '<option value="横ばい"' + (it.trend === '横ばい' ? ' selected' : '') + '>横ばい</option>'
+      + '</select></label>';
+  }
+  html += '<label>メモ<input type="text" id="ed-note" value="' + esc(it.note || '') + '"></label>'
+    + '<div class="edit-btns">'
+    + '<button class="btn primary" data-action="save" data-id="' + esc(it.id) + '">保存</button>'
+    + '<button class="btn ghost" data-action="cancel">キャンセル</button>'
+    + '</div></div>';
+  return html;
+}
+function saveEdit(id) {
+  var base = findBase(id);
+  if (!base) return;
+  var valEl = document.getElementById('ed-value');
+  var yearEl = document.getElementById('ed-year');
+  var noteEl = document.getElementById('ed-note');
+  if (!valEl || !yearEl || !noteEl) return;
+  var ov;
+  if (base.type === 'ranking') {
+    var items = String(valEl.value).split(/[、,，]/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+    if (items.length < 2) { alert('順位は「、」区切りで2件以上入力してください。'); return; }
+    ov = { items: items, year: yearEl.value.trim(), note: noteEl.value.trim() };
+  } else {
+    var v = valEl.value.trim();
+    if (!v) { alert('数値(表示文字列)を入力してください。'); return; }
+    var trEl = document.getElementById('ed-trend');
+    ov = { value: v, year: yearEl.value.trim(), trend: (trEl && trEl.value) ? trEl.value : null, note: noteEl.value.trim() };
+  }
+  state.overrides[id] = ov;
+  state.updatedAt = todayStr();
+  saveState();
+  editingId = null;
+  renderList();
+  updateHeaderDate();
+  updateFcStats();
+}
+function resetItem(id) {
+  if (!state.overrides[id]) return;
+  if (!confirm('この項目を初期値に戻しますか?')) return;
+  delete state.overrides[id];
+  state.updatedAt = todayStr();
+  saveState();
+  editingId = null;
+  renderList();
+  updateHeaderDate();
+}
+document.getElementById('list-wrap').addEventListener('click', function(e){
+  var b = e.target.closest ? e.target.closest('[data-action]') : null;
+  if (!b) return;
+  var a = b.getAttribute('data-action');
+  var id = b.getAttribute('data-id');
+  if (a === 'edit') { editingId = id; renderList(); }
+  else if (a === 'cancel') { editingId = null; renderList(); }
+  else if (a === 'save') saveEdit(id);
+  else if (a === 'reset') resetItem(id);
+});
+document.getElementById('reset-all').addEventListener('click', function(){
+  var n = 0;
+  for (var k in state.overrides) { if (Object.prototype.hasOwnProperty.call(state.overrides, k)) n++; }
+  if (n === 0) { alert('変更された項目はありません。'); return; }
+  if (!confirm('変更済の ' + n + ' 項目をすべて初期値に戻しますか?')) return;
+  state.overrides = {};
+  state.updatedAt = todayStr();
+  saveState();
+  editingId = null;
+  renderList();
+  updateHeaderDate();
+});
+
+/* ============ 初期化 ============ */
+(function init(){
+  var sel = document.getElementById('fc-cat');
+  var html = '<option value="all">すべて</option>';
+  for (var i = 0; i < CATEGORIES.length; i++) {
+    html += '<option value="' + esc(CATEGORIES[i]) + '">' + esc(CATEGORIES[i]) + '</option>';
+  }
+  sel.innerHTML = html;
+  updateHeaderDate();
+  pickFlashcard();
+  renderQuizStart();
+  renderRankStart();
+})();
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) { navigator.serviceWorker.register('../sw.js').catch(() => {}); }
+</script>
+</body>
+</html>
