@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国試 間違いノート — 定着度復習ツール</title>
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --good: #6fd598;
+    --warn: #ffd27c;
+    --bad: #ff8a8a;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+    --border: #2f3350;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 12px 64px;
+  }
+  .page { width: 100%; max-width: 780px; }
+  h1 { font-size: 1.6rem; margin: 0 0 6px; letter-spacing: 0.02em; }
+  .sub { color: var(--text-dim); font-size: 0.9rem; margin: 0 0 20px; line-height: 1.6; }
+  a.back { color: var(--text-dim); font-size: 0.8rem; text-decoration: none; }
+  a.back:hover { color: var(--accent); }
+
+  /* ---- dashboard strip ---- */
+  .dash {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .dash .box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .dash .num { font-size: 1.5rem; font-weight: 700; }
+  .dash .num.due { color: var(--accent-2); }
+  .dash .label { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+
+  /* ---- tabs ---- */
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tabs button {
+    background: var(--panel);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tabs button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #10121b;
+    font-weight: 700;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .hidden { display: none !important; }
+
+  /* ---- review ---- */
+  .review-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+  .chip {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+  }
+  .chip.subject { color: var(--accent); border-color: var(--accent); }
+  .stars { color: var(--warn); letter-spacing: 2px; }
+  .stars .off { color: #3a3f5c; }
+  .qa-block { margin-bottom: 16px; }
+  .qa-label { font-size: 0.72rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 6px; }
+  .qa-text {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .answer-box {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .answer-box .note {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+    color: var(--warn);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: transform 0.1s ease, border-color 0.1s ease;
+  }
+  .btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #10121b; font-weight: 700; }
+  .btn.wide { width: 100%; padding: 14px; font-size: 1rem; }
+  .rate-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .rate-row .btn { font-weight: 700; padding: 14px 8px; }
+  .rate-row .rate-bad { border-color: var(--bad); color: var(--bad); }
+  .rate-row .rate-mid { border-color: var(--warn); color: var(--warn); }
+  .rate-row .rate-good { border-color: var(--good); color: var(--good); }
+  .rate-row .btn:hover { transform: translateY(-2px); }
+  .rate-sub { display: block; font-size: 0.68rem; font-weight: 400; color: var(--text-dim); margin-top: 4px; }
+  .key-hint { text-align: center; font-size: 0.72rem; color: var(--text-dim); margin-top: 12px; }
+  .progress-line { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 14px; }
+  .empty-state { text-align: center; padding: 30px 10px; color: var(--text-dim); line-height: 1.9; }
+  .empty-state .big { font-size: 2.2rem; }
+
+  /* ---- form ---- */
+  .form-grid { display: grid; gap: 14px; }
+  .field label { display: block; font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px; }
+  .field input, .field textarea, .field select {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 10px 12px;
+  }
+  .field textarea { min-height: 74px; resize: vertical; line-height: 1.6; }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 560px) { .form-row2 { grid-template-columns: 1fr; } }
+  .form-note { font-size: 0.75rem; color: var(--text-dim); line-height: 1.6; }
+  .editing-banner {
+    background: rgba(255, 158, 207, 0.12);
+    border: 1px solid var(--accent-2);
+    color: var(--accent-2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .editing-banner button {
+    background: none; border: none; color: var(--accent-2);
+    cursor: pointer; font-family: inherit; text-decoration: underline; font-size: 0.8rem;
+  }
+
+  /* ---- list ---- */
+  .list-controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 560px) { .list-controls { grid-template-columns: 1fr; } }
+  .list-controls input, .list-controls select {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.88rem;
+    padding: 9px 12px;
+  }
+  .card-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--panel-2);
+    cursor: pointer;
+  }
+  .card-item:hover { border-color: var(--accent); }
+  .card-item .top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .card-item .due-badge { margin-left: auto; }
+  .due-badge.overdue { color: var(--bad); }
+  .due-badge.today { color: var(--accent-2); }
+  .card-item .q { font-size: 0.92rem; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .card-item .detail { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 0.88rem; line-height: 1.7; }
+  .card-item .detail .a { white-space: pre-wrap; word-break: break-word; }
+  .card-item .detail .n { color: var(--warn); white-space: pre-wrap; margin-top: 6px; }
+  .card-item .actions { margin-top: 10px; display: flex; gap: 8px; }
+  .card-item .actions button {
+    font-family: inherit; font-size: 0.75rem; cursor: pointer;
+    background: none; border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: 8px; padding: 5px 12px;
+  }
+  .card-item .actions button:hover { color: var(--text); border-color: var(--accent); }
+  .card-item .actions button.del:hover { color: var(--bad); border-color: var(--bad); }
+  .list-count { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 12px; }
+
+  /* ---- stats / data ---- */
+  h3.section { font-size: 0.95rem; margin: 0 0 12px; }
+  .level-bars { display: grid; gap: 6px; margin-bottom: 24px; }
+  .level-bar-row { display: grid; grid-template-columns: 110px 1fr 34px; gap: 10px; align-items: center; font-size: 0.78rem; }
+  .level-bar-row .name { color: var(--text-dim); }
+  .bar-track { background: var(--panel-2); border-radius: 6px; height: 14px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; background: var(--accent); min-width: 0; }
+  table.subjects { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 24px; }
+  table.subjects th, table.subjects td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table.subjects th { color: var(--text-dim); font-size: 0.72rem; font-weight: 400; }
+  table.subjects td.weak { color: var(--bad); }
+  .data-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn.danger { border-color: var(--bad); color: var(--bad); }
+  .btn.danger:hover { border-color: var(--bad); }
+
+  /* ---- toast ---- */
+  #toast {
+    position: fixed;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #10121b;
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 10px 22px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 50;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="../index.html">← ツール一覧にもどる</a>
+  <h1>🩺 国試 間違いノート</h1>
+  <p class="sub">
+    間違えた問題・あやふやな知識を自分の言葉で登録すると、定着度に応じた間隔(当日→1日→3日→7日→14日→30日)で自動的に復習に出てきます。データはこのブラウザのlocalStorageに保存されます。
+  </p>
+
+  <div class="dash">
+    <div class="box"><div class="num due" id="dash-due">0</div><div class="label">今日の復習</div></div>
+    <div class="box"><div class="num" id="dash-total">0</div><div class="label">総カード数</div></div>
+    <div class="box"><div class="num" id="dash-mastered">0</div><div class="label">マスター済み (Lv5)</div></div>
+    <div class="box"><div class="num" id="dash-weak">—</div><div class="label">要注意の科目</div></div>
+  </div>
+
+  <div class="tabs">
+    <button data-tab="review" class="active">復習する</button>
+    <button data-tab="add">登録する</button>
+    <button data-tab="list">カード一覧</button>
+    <button data-tab="data">記録とデータ</button>
+  </div>
+
+  <!-- ================= 復習 ================= -->
+  <section id="tab-review" class="panel">
+    <div id="review-active" class="hidden">
+      <div class="progress-line" id="review-progress"></div>
+      <div class="review-meta" id="review-meta"></div>
+      <div class="qa-block">
+        <div class="qa-label">問題</div>
+        <div class="qa-text" id="review-q"></div>
+      </div>
+      <div id="review-answer-wrap" class="hidden">
+        <div class="answer-box">
+          <div class="qa-label">答え</div>
+          <div class="qa-text" id="review-a"></div>
+          <div class="note hidden" id="review-note"></div>
+        </div>
+        <div class="rate-row">
+          <button class="btn rate-bad" id="rate-bad">× まだ<span class="rate-sub">レベル0に戻す・今日もう一回</span></button>
+          <button class="btn rate-mid" id="rate-mid">△ あやしい<span class="rate-sub">レベル据え置き・明日また</span></button>
+          <button class="btn rate-good" id="rate-good">○ 覚えた<span class="rate-sub">レベルUP・間隔をのばす</span></button>
+        </div>
+        <div class="key-hint">キー操作: 1 = × / 2 = △ / 3 = ○</div>
+      </div>
+      <button class="btn primary wide" id="reveal-btn">答えを表示 (Space)</button>
+    </div>
+    <div id="review-empty" class="empty-state hidden">
+      <div class="big">🎉</div>
+      <div id="review-empty-msg">今日の復習はすべて完了!</div>
+      <div style="margin-top:16px">
+        <button class="btn" id="extra-btn">先取りでもっと復習する</button>
+      </div>
+    </div>
+    <div id="review-none" class="empty-state hidden">
+      <div class="big">📝</div>
+      <div>まだカードがありません。<br>「登録する」タブから、間違えた問題を追加してみましょう。</div>
+    </div>
+  </section>
+
+  <!-- ================= 登録 ================= -->
+  <section id="tab-add" class="panel hidden">
+    <div id="editing-banner" class="editing-banner hidden">
+      <span>カードを編集中です</span>
+      <button id="cancel-edit">編集をやめる</button>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label>問題・問い(自分への出題文) *</label>
+        <textarea id="f-q" placeholder="例: 急性膵炎の重症度判定に使わない項目は? / Basedow病の第一選択薬と妊婦での使い分けは?"></textarea>
+      </div>
+      <div class="field">
+        <label>答え *</label>
+        <textarea id="f-a" placeholder="例: CRPは予後因子に含まれるがCa値は「低下」が重症因子。上昇ではない。"></textarea>
+      </div>
+      <div class="field">
+        <label>敗因メモ・覚え方(任意)</label>
+        <textarea id="f-note" placeholder="例: 選択肢の「Ca上昇」に引っかかった。膵炎→脂肪壊死→Caが「取られて低下」とイメージで覚える。"></textarea>
+      </div>
+      <div class="form-row2">
+        <div class="field">
+          <label>科目・分野</label>
+          <input id="f-subject" list="subject-presets" placeholder="例: 消化器">
+          <datalist id="subject-presets"></datalist>
+        </div>
+        <div class="field">
+          <label>出典(回数・問題番号・問題集など)</label>
+          <input id="f-source" placeholder="例: 117A32 / QB消化器 p.45">
+        </div>
+      </div>
+      <div class="field">
+        <label>タグ(カンマ区切り・任意)</label>
+        <input id="f-tags" placeholder="例: 画像問題, 計算, 禁忌肢">
+      </div>
+      <button class="btn primary wide" id="save-btn">登録する (Ctrl+Enter)</button>
+      <div class="form-note">
+        連続で登録しやすいように、保存後も「科目・出典・タグ」は残ります。登録したカードはレベル0(今日の復習対象)から始まります。
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 一覧 ================= -->
+  <section id="tab-list" class="panel hidden">
+    <div class="list-controls">
+      <input id="search-box" type="search" placeholder="検索(問題・答え・メモ・出典・タグ)">
+      <select id="filter-subject"><option value="">すべての科目</option></select>
+      <select id="filter-level">
+        <option value="">すべての定着度</option>
+        <option value="0">Lv0 のみ</option>
+        <option value="low">Lv0〜1 (弱点)</option>
+        <option value="mid">Lv2〜3</option>
+        <option value="high">Lv4〜5</option>
+      </select>
+    </div>
+    <div class="list-count" id="list-count"></div>
+    <div id="card-list"></div>
+  </section>
+
+  <!-- ================= データ ================= -->
+  <section id="tab-data" class="panel hidden">
+    <h3 class="section">定着度の分布</h3>
+    <div class="level-bars" id="level-bars"></div>
+
+    <h3 class="section">科目別のようす</h3>
+    <table class="subjects">
+      <thead><tr><th>科目</th><th>枚数</th><th>平均レベル</th><th>復習待ち</th></tr></thead>
+      <tbody id="subject-table"></tbody>
+    </table>
+
+    <h3 class="section">バックアップ</h3>
+    <div class="data-actions">
+      <button class="btn" id="export-btn">JSONでエクスポート</button>
+      <button class="btn" id="import-btn">JSONをインポート</button>
+      <input type="file" id="import-file" accept="application/json,.json" class="hidden">
+      <button class="btn danger" id="wipe-btn">全データを削除</button>
+    </div>
+    <p class="form-note" style="margin-top:12px">
+      データはこのブラウザにしか保存されません。別のPC/スマホで使うときや機種変更前は、エクスポートしたJSONを移してインポートしてください。インポートは既存データに追加され、同じカードは新しい内容で上書きされます。
+    </p>
+  </section>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+/* ================= データ層 ================= */
+const STORAGE_KEY = 'kokushi-review-v1';
+const INTERVALS = [0, 1, 3, 7, 14, 30]; // レベル0〜5の復習間隔(日)
+const MAX_LEVEL = INTERVALS.length - 1;
+const SUBJECT_PRESETS = [
+  '消化器', '肝胆膵', '循環器', '呼吸器', '腎・泌尿器', '内分泌・代謝', '血液',
+  '免疫・膠原病', '感染症', '神経', '精神科', '皮膚科', '眼科', '耳鼻咽喉科',
+  '整形外科', '産婦人科', '小児科', '救急・中毒', '麻酔科', '放射線科',
+  '公衆衛生', '必修', 'その他'
+];
+
+let cards = load();
+
+function load() {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return Array.isArray(data && data.cards) ? data.cards : [];
+  } catch (e) { return []; }
+}
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, cards })); } catch (e) {}
+}
+function uid() {
+  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+}
+
+/* ---- 日付(すべてローカルタイムのYYYY-MM-DD文字列で扱う) ---- */
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + n);
+  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+}
+function daysUntil(dateStr) {
+  const [y1, m1, d1] = todayStr().split('-').map(Number);
+  const [y2, m2, d2] = dateStr.split('-').map(Number);
+  return Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 86400000);
+}
+
+/* ================= 復習ロジック ================= */
+let session = { queue: [], doneCount: 0, wrongCount: 0, extra: false };
+let revealed = false;
+
+function dueCards() {
+  const t = todayStr();
+  return cards.filter(c => c.due <= t);
+}
+function buildSession() {
+  const t = todayStr();
+  session = { queue: [], doneCount: 0, wrongCount: 0, extra: false };
+  session.queue = dueCards()
+    .sort((a, b) => (a.level - b.level) || (a.due < b.due ? -1 : 1))
+    .map(c => c.id);
+}
+function currentCard() {
+  while (session.queue.length) {
+    const c = cards.find(x => x.id === session.queue[0]);
+    if (c) return c;
+    session.queue.shift(); // 一覧タブで削除されたカードを飛ばす
+  }
+  return null;
+}
+function rate(kind) {
+  const c = currentCard();
+  if (!c) return;
+  session.queue.shift();
+  session.doneCount++;
+  c.reviews = (c.reviews || 0) + 1;
+  c.lastReviewed = todayStr();
+  if (kind === 'bad') {
+    c.level = 0;
+    c.due = todayStr();
+    c.lapses = (c.lapses || 0) + 1;
+    session.wrongCount++;
+    session.queue.push(c.id); // 今日のうちにもう一度
+  } else if (kind === 'mid') {
+    c.due = addDays(todayStr(), 1);
+  } else {
+    c.level = Math.min(MAX_LEVEL, c.level + 1);
+    c.due = addDays(todayStr(), INTERVALS[c.level]);
+  }
+  persist();
+  revealed = false;
+  renderAll();
+}
+function startExtraSession() {
+  // 期限前のカードを、期限が近い順に最大10枚だけ先取り
+  const t = todayStr();
+  const upcoming = cards
+    .filter(c => c.due > t)
+    .sort((a, b) => (a.due < b.due ? -1 : 1))
+    .slice(0, 10)
+    .map(c => c.id);
+  if (!upcoming.length) return;
+  session.queue = upcoming;
+  session.extra = true;
+  revealed = false;
+  renderAll();
+}
+
+/* ================= 描画 ================= */
+const $ = id => document.getElementById(id);
+const esc = s => String(s || '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+function starsHtml(level) {
+  let html = '';
+  for (let i = 1; i <= MAX_LEVEL; i++) html += i <= level ? '★' : '<span class="off">★</span>';
+  return '<span class="stars">' + html + '</span>';
+}
+
+function renderDash() {
+  $('dash-due').textContent = dueCards().length;
+  $('dash-total').textContent = cards.length;
+  $('dash-mastered').textContent = cards.filter(c => c.level >= MAX_LEVEL).length;
+  // 要注意 = 平均レベルが最も低い科目(3枚以上あるもの)
+  const bySubject = groupBySubject();
+  let weak = null;
+  for (const [name, list] of Object.entries(bySubject)) {
+    if (list.length < 3) continue;
+    const avg = list.reduce((s, c) => s + c.level, 0) / list.length;
+    if (!weak || avg < weak.avg) weak = { name, avg };
+  }
+  $('dash-weak').textContent = weak ? weak.name : '—';
+  $('dash-weak').style.fontSize = weak ? '1.05rem' : '';
+}
+
+function renderReview() {
+  const active = $('review-active'), empty = $('review-empty'), none = $('review-none');
+  active.classList.add('hidden'); empty.classList.add('hidden'); none.classList.add('hidden');
+
+  if (!cards.length) { none.classList.remove('hidden'); return; }
+  const c = currentCard();
+  if (!c) {
+    empty.classList.remove('hidden');
+    $('review-empty-msg').textContent = session.doneCount
+      ? `今日の復習おわり! ${session.doneCount}回こたえて、${session.wrongCount}回やり直しました。`
+      : '今日の復習はありません。';
+    $('extra-btn').classList.toggle('hidden', !cards.some(x => x.due > todayStr()));
+    return;
+  }
+  active.classList.remove('hidden');
+  const remain = session.queue.length;
+  $('review-progress').textContent = (session.extra ? '先取り復習 — ' : '') + `残り ${remain} 枚` + (session.doneCount ? ` / 今日 ${session.doneCount} 回答済み` : '');
+  $('review-meta').innerHTML =
+    (c.subject ? `<span class="chip subject">${esc(c.subject)}</span>` : '') +
+    (c.source ? `<span class="chip">${esc(c.source)}</span>` : '') +
+    (c.tags && c.tags.length ? c.tags.map(t => `<span class="chip">#${esc(t)}</span>`).join('') : '') +
+    `<span>${starsHtml(c.level)}</span>` +
+    `<span>復習${c.reviews || 0}回 / つまずき${c.lapses || 0}回</span>`;
+  $('review-q').textContent = c.q;
+  $('review-a').textContent = c.a;
+  const noteEl = $('review-note');
+  noteEl.classList.toggle('hidden', !c.note);
+  noteEl.textContent = c.note || '';
+  $('review-answer-wrap').classList.toggle('hidden', !revealed);
+  $('reveal-btn').classList.toggle('hidden', revealed);
+}
+
+/* ---- 登録フォーム ---- */
+let editingId = null;
+
+function saveForm() {
+  const q = $('f-q').value.trim();
+  const a = $('f-a').value.trim();
+  if (!q || !a) { toast('「問題」と「答え」は必須です'); return; }
+  const subject = $('f-subject').value.trim();
+  const source = $('f-source').value.trim();
+  const note = $('f-note').value.trim();
+  const tags = $('f-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+  if (editingId) {
+    const c = cards.find(x => x.id === editingId);
+    if (c) Object.assign(c, { q, a, note, subject, source, tags });
+    stopEditing();
+    toast('カードを更新しました');
+  } else {
+    cards.push({
+      id: uid(), q, a, note, subject, source, tags,
+      level: 0, due: todayStr(), created: todayStr(),
+      reviews: 0, lapses: 0, lastReviewed: null
+    });
+    buildSession(); // 新カードを今日の復習に反映
+    $('f-q').value = ''; $('f-a').value = ''; $('f-note').value = '';
+    $('f-q').focus();
+    toast('登録しました(今日の復習に追加)');
+  }
+  persist();
+  renderAll();
+}
+function startEditing(id) {
+  const c = cards.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  $('f-q').value = c.q; $('f-a').value = c.a; $('f-note').value = c.note || '';
+  $('f-subject').value = c.subject || ''; $('f-source').value = c.source || '';
+  $('f-tags').value = (c.tags || []).join(', ');
+  $('editing-banner').classList.remove('hidden');
+  $('save-btn').textContent = '変更を保存する (Ctrl+Enter)';
+  switchTab('add');
+  $('f-q').focus();
+}
+function stopEditing() {
+  editingId = null;
+  $('editing-banner').classList.add('hidden');
+  $('save-btn').textContent = '登録する (Ctrl+Enter)';
+  $('f-q').value = ''; $('f-a').value = ''; $('f-note').value = '';
+}
+
+/* ---- 一覧 ---- */
+const expandedIds = new Set();
+
+function groupBySubject() {
+  const map = {};
+  for (const c of cards) {
+    const key = c.subject || '(科目なし)';
+    (map[key] = map[key] || []).push(c);
+  }
+  return map;
+}
+function renderList() {
+  const kw = $('search-box').value.trim().toLowerCase();
+  const subj = $('filter-subject').value;
+  const lv = $('filter-level').value;
+
+  // 科目フィルタの選択肢を実データから作る(選択状態は維持)
+  const subjects = Object.keys(groupBySubject()).sort();
+  const sel = $('filter-subject');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">すべての科目</option>' + subjects.map(s => `<option${s === prev ? ' selected' : ''}>${esc(s)}</option>`).join('');
+
+  let list = cards.slice();
+  if (subj) list = list.filter(c => (c.subject || '(科目なし)') === subj);
+  if (lv === '0') list = list.filter(c => c.level === 0);
+  else if (lv === 'low') list = list.filter(c => c.level <= 1);
+  else if (lv === 'mid') list = list.filter(c => c.level >= 2 && c.level <= 3);
+  else if (lv === 'high') list = list.filter(c => c.level >= 4);
+  if (kw) {
+    list = list.filter(c =>
+      [c.q, c.a, c.note, c.source, (c.tags || []).join(' ')].join(' ').toLowerCase().includes(kw));
+  }
+  list.sort((a, b) => (a.due < b.due ? -1 : a.due > b.due ? 1 : 0));
+
+  $('list-count').textContent = `${list.length} 枚 / 全 ${cards.length} 枚`;
+  $('card-list').innerHTML = list.map(c => {
+    const diff = daysUntil(c.due);
+    const dueCls = diff < 0 ? 'overdue' : diff === 0 ? 'today' : '';
+    const dueTxt = diff < 0 ? `${-diff}日超過` : diff === 0 ? '今日' : `${diff}日後`;
+    const open = expandedIds.has(c.id);
+    return `
+    <div class="card-item" data-id="${c.id}">
+      <div class="top">
+        ${c.subject ? `<span class="chip subject">${esc(c.subject)}</span>` : ''}
+        ${c.source ? `<span class="chip">${esc(c.source)}</span>` : ''}
+        ${starsHtml(c.level)}
+        <span class="due-badge ${dueCls}">次回: ${dueTxt}</span>
+      </div>
+      <div class="q">${esc(c.q)}</div>
+      ${open ? `
+      <div class="detail">
+        <div class="qa-label">答え</div>
+        <div class="a">${esc(c.a)}</div>
+        ${c.note ? `<div class="n">${esc(c.note)}</div>` : ''}
+        <div class="actions">
+          <button data-act="edit">編集</button>
+          <button data-act="del" class="del">削除</button>
+        </div>
+      </div>` : ''}
+    </div>`;
+  }).join('') || '<div class="empty-state">該当するカードがありません</div>';
+}
+
+/* ---- 統計 ---- */
+function renderStats() {
+  const counts = Array.from({ length: MAX_LEVEL + 1 }, () => 0);
+  for (const c of cards) counts[Math.min(c.level, MAX_LEVEL)]++;
+  const max = Math.max(1, ...counts);
+  const names = ['Lv0 (毎日)', 'Lv1 (1日後)', 'Lv2 (3日後)', 'Lv3 (7日後)', 'Lv4 (14日後)', 'Lv5 (30日後)'];
+  $('level-bars').innerHTML = counts.map((n, i) => `
+    <div class="level-bar-row">
+      <div class="name">${names[i]}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n / max) * 100}%"></div></div>
+      <div>${n}</div>
+    </div>`).join('');
+
+  const t = todayStr();
+  const rows = Object.entries(groupBySubject())
+    .map(([name, list]) => ({
+      name,
+      count: list.length,
+      avg: list.reduce((s, c) => s + c.level, 0) / list.length,
+      due: list.filter(c => c.due <= t).length
+    }))
+    .sort((a, b) => a.avg - b.avg);
+  $('subject-table').innerHTML = rows.map(r => `
+    <tr>
+      <td${r.avg < 2 && r.count >= 3 ? ' class="weak"' : ''}>${esc(r.name)}</td>
+      <td>${r.count}</td>
+      <td>${r.avg.toFixed(1)}</td>
+      <td>${r.due}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="color:var(--text-dim)">まだデータがありません</td></tr>';
+}
+
+function renderAll() {
+  renderDash();
+  renderReview();
+  renderList();
+  renderStats();
+}
+
+/* ================= エクスポート / インポート ================= */
+function exportJson() {
+  const blob = new Blob([JSON.stringify({ version: 1, exported: new Date().toISOString(), cards }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kokushi-review-backup-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('エクスポートしました');
+}
+function importJson(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const incoming = Array.isArray(data) ? data : data.cards;
+      if (!Array.isArray(incoming)) throw new Error('形式が違います');
+      let added = 0, updated = 0;
+      for (const raw of incoming) {
+        if (!raw || !raw.q || !raw.a) continue;
+        const card = {
+          id: raw.id || uid(),
+          q: String(raw.q), a: String(raw.a), note: String(raw.note || ''),
+          subject: String(raw.subject || ''), source: String(raw.source || ''),
+          tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
+          level: Math.min(MAX_LEVEL, Math.max(0, Number(raw.level) || 0)),
+          due: /^\d{4}-\d{2}-\d{2}$/.test(raw.due) ? raw.due : todayStr(),
+          created: /^\d{4}-\d{2}-\d{2}$/.test(raw.created) ? raw.created : todayStr(),
+          reviews: Number(raw.reviews) || 0,
+          lapses: Number(raw.lapses) || 0,
+          lastReviewed: raw.lastReviewed || null
+        };
+        const idx = cards.findIndex(x => x.id === card.id);
+        if (idx >= 0) { cards[idx] = card; updated++; } else { cards.push(card); added++; }
+      }
+      persist();
+      buildSession();
+      renderAll();
+      toast(`インポート完了: 追加${added}枚 / 上書き${updated}枚`);
+    } catch (e) {
+      toast('インポート失敗: JSONを確認してください');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ================= UI配線 ================= */
+let toastTimer = null;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+let activeTab = 'review';
+function switchTab(name) {
+  activeTab = name;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  for (const t of ['review', 'add', 'list', 'data']) {
+    $('tab-' + t).classList.toggle('hidden', t !== name);
+  }
+  if (name === 'review' && !currentCard() && !session.extra) buildSession();
+  renderAll();
+}
+
+document.querySelector('.tabs').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-tab]');
+  if (btn) switchTab(btn.dataset.tab);
+});
+
+$('reveal-btn').addEventListener('click', () => { revealed = true; renderReview(); });
+$('rate-bad').addEventListener('click', () => rate('bad'));
+$('rate-mid').addEventListener('click', () => rate('mid'));
+$('rate-good').addEventListener('click', () => rate('good'));
+$('extra-btn').addEventListener('click', startExtraSession);
+
+$('save-btn').addEventListener('click', saveForm);
+$('cancel-edit').addEventListener('click', () => { stopEditing(); renderAll(); });
+
+$('search-box').addEventListener('input', renderList);
+$('filter-subject').addEventListener('change', renderList);
+$('filter-level').addEventListener('change', renderList);
+
+$('card-list').addEventListener('click', e => {
+  const item = e.target.closest('.card-item');
+  if (!item) return;
+  const id = item.dataset.id;
+  const act = e.target.closest('button[data-act]');
+  if (act) {
+    e.stopPropagation();
+    if (act.dataset.act === 'edit') startEditing(id);
+    else if (act.dataset.act === 'del') {
+      const c = cards.find(x => x.id === id);
+      if (c && confirm('このカードを削除しますか?\n\n' + c.q.slice(0, 60))) {
+        cards = cards.filter(x => x.id !== id);
+        expandedIds.delete(id);
+        persist();
+        renderAll();
+        toast('削除しました');
+      }
+    }
+    return;
+  }
+  expandedIds.has(id) ? expandedIds.delete(id) : expandedIds.add(id);
+  renderList();
+});
+
+$('export-btn').addEventListener('click', exportJson);
+$('import-btn').addEventListener('click', () => $('import-file').click());
+$('import-file').addEventListener('change', e => {
+  if (e.target.files[0]) importJson(e.target.files[0]);
+  e.target.value = '';
+});
+$('wipe-btn').addEventListener('click', () => {
+  if (!cards.length) return;
+  if (confirm(`全 ${cards.length} 枚のカードを削除します。よろしいですか?`) &&
+      confirm('本当に削除しますか? この操作は元に戻せません。先にエクスポートを推奨します。')) {
+    cards = [];
+    persist();
+    buildSession();
+    renderAll();
+    toast('全データを削除しました');
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea, select')) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && activeTab === 'add') saveForm();
+    return;
+  }
+  if (activeTab !== 'review' || !currentCard()) return;
+  if (!revealed && (e.key === ' ' || e.key === 'Enter')) {
+    e.preventDefault();
+    revealed = true;
+    renderReview();
+  } else if (revealed) {
+    if (e.key === '1') rate('bad');
+    else if (e.key === '2') rate('mid');
+    else if (e.key === '3') rate('good');
+  }
+});
+
+/* ================= 初期化 ================= */
+$('subject-presets').innerHTML = SUBJECT_PRESETS.map(s => `<option value="${s}">`).join('');
+buildSession();
+renderAll();
+</script>
+</body>
+</html>
