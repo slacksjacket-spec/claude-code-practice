@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>医学英語 語源トレーニング</title>
+<meta name="theme-color" content="#14161f">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
 <style>
   :root {
     --bg: #14161f;
@@ -189,7 +193,7 @@
 <div class="page">
   <div class="top">
     <h1>🩺 医学英語 語源トレーニング</h1>
-    <a class="back" href="../index.html">← ツールキットに戻る</a>
+    <a class="back" href="../medical.html">← メディカルツール一覧</a>
   </div>
   <p class="sub">
     医学英語を1語ずつ丸暗記するのではなく、<strong>接頭辞・語根・接尾辞</strong>という部品に分解して、
@@ -902,6 +906,12 @@ el("st-reset").addEventListener("click", () => {
   renderDict();
   renderPhList();
 });
+
+// PWA: 医学系ツール共通のService Worker(ルートスコープ)
+if ('serviceWorker' in navigator &&
+    (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('../sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>

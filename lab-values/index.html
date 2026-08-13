@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#14161f">
+<title>検査値ドリル</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --good: #6fd598;
+    --warn: #ffd27c;
+    --bad: #ff8a8a;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+    --border: #2f3350;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 72px;
+  }
+  .page { width: 100%; max-width: 780px; }
+
+  .back { font-size: 0.85rem; color: var(--text-dim); text-decoration: none; }
+  .back:hover { color: var(--accent); }
+  h1 { font-size: 1.55rem; margin: 14px 0 4px; }
+  .sub { color: var(--text-dim); font-size: 0.88rem; margin: 0 0 16px; line-height: 1.7; }
+
+  .statline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .pill {
+    display: inline-block; padding: 6px 14px; border-radius: 999px;
+    background: var(--panel); border: 1px solid var(--border);
+    font-size: 0.8rem; color: var(--text-dim);
+  }
+  .pill b { color: var(--text); font-size: 0.92rem; }
+  .pill.weak b { color: var(--warn); }
+  .spacer { flex: 1; }
+
+  button { font-family: inherit; cursor: pointer; }
+  .btn {
+    padding: 12px 22px; border-radius: 12px; border: 1px solid var(--accent);
+    background: var(--accent); color: #10131c; font-weight: 700; font-size: 0.92rem;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn.ghost:hover { background: rgba(124,157,255,0.12); }
+  .btn.danger { border-color: var(--bad); background: transparent; color: var(--bad); font-weight: 500; }
+  .btn.danger:hover { background: rgba(255,138,138,0.1); filter: none; }
+  .btn.small { padding: 7px 14px; font-size: 0.78rem; border-radius: 10px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+  .tab {
+    flex: 1 1 130px; padding: 12px 6px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text-dim); font-size: 0.88rem;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .tab.active { color: var(--text); border-color: var(--accent); background: var(--panel-2); }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .hidden { display: none !important; }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip {
+    padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text-dim); font-size: 0.8rem;
+  }
+  .chip.active { border-color: var(--accent); color: var(--text); background: var(--panel-2); }
+
+  /* ---- フラッシュカード ---- */
+  .flashcard {
+    min-height: 250px; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; text-align: center; cursor: pointer; user-select: none;
+    -webkit-tap-highlight-color: transparent; padding: 26px 18px;
+  }
+  .fc-cat { font-size: 0.74rem; color: var(--text-dim); border: 1px solid var(--border); border-radius: 999px; padding: 3px 12px; margin-bottom: 14px; }
+  .fc-name { font-size: 1.5rem; font-weight: 700; line-height: 1.5; }
+  .fc-en { font-size: 0.95rem; color: var(--accent); font-family: Consolas, monospace; margin-top: 6px; }
+  .fc-hint { font-size: 0.78rem; color: var(--text-dim); margin-top: 22px; }
+  .fc-value { font-size: 1.45rem; font-weight: 700; color: var(--good); margin-top: 18px; line-height: 1.6; }
+  .fc-note { font-size: 0.82rem; color: var(--text-dim); margin-top: 10px; line-height: 1.7; max-width: 480px; }
+  .grade-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .grade {
+    padding: 14px 6px; border-radius: 12px; font-size: 0.9rem; font-weight: 700;
+    border: 1px solid var(--border); background: var(--panel);
+  }
+  .grade.g-good { color: var(--good); border-color: var(--good); }
+  .grade.g-good:hover { background: rgba(111,213,152,0.1); }
+  .grade.g-mid { color: var(--warn); border-color: var(--warn); }
+  .grade.g-mid:hover { background: rgba(255,210,124,0.1); }
+  .grade.g-bad { color: var(--bad); border-color: var(--bad); }
+  .grade.g-bad:hover { background: rgba(255,138,138,0.1); }
+  .fc-count { text-align: center; font-size: 0.78rem; color: var(--text-dim); margin-top: 10px; }
+  .fc-skip { display: block; margin: 8px auto 0; background: none; border: none; color: var(--text-dim); font-size: 0.78rem; text-decoration: underline; }
+  .fc-skip:hover { color: var(--accent); }
+
+  /* ---- クイズ共通 ---- */
+  .qhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .qhead .prog { font-size: 0.82rem; color: var(--text-dim); }
+  .qhead .score { font-size: 0.82rem; color: var(--text-dim); }
+  .q-name { font-size: 1.35rem; font-weight: 700; text-align: center; margin: 14px 0 2px; line-height: 1.5; }
+  .q-en { text-align: center; font-size: 0.9rem; color: var(--accent); font-family: Consolas, monospace; margin-bottom: 18px; }
+  .opts { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .opt {
+    padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text); font-size: 0.95rem; text-align: left;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { border-color: var(--good); color: var(--good); background: rgba(111,213,152,0.08); }
+  .opt.wrong { border-color: var(--bad); color: var(--bad); background: rgba(255,138,138,0.08); }
+  .opt.dim { opacity: 0.45; }
+  .q-note { font-size: 0.82rem; color: var(--text-dim); line-height: 1.7; margin: 14px 2px 0; }
+  .q-actions { margin-top: 16px; text-align: center; }
+  .result-num { font-size: 2.4rem; font-weight: 700; text-align: center; margin: 10px 0 2px; }
+  .result-num small { font-size: 1.1rem; color: var(--text-dim); font-weight: 500; }
+  .result-msg { text-align: center; color: var(--text-dim); font-size: 0.9rem; margin-bottom: 18px; }
+  .start-desc { font-size: 0.88rem; color: var(--text-dim); line-height: 1.8; margin: 0 0 16px; }
+
+  /* ---- 高低判定 ---- */
+  .judge-name { text-align: center; font-size: 1.1rem; font-weight: 700; margin-top: 8px; }
+  .judge-val { text-align: center; font-size: 2.5rem; font-weight: 700; margin: 8px 0 4px; font-family: Consolas, monospace; }
+  .judge-val small { font-size: 1rem; color: var(--text-dim); font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif; }
+  .judge-val.flash-ok { color: var(--good); }
+  .judge-val.flash-ng { color: var(--bad); }
+  .judge-row { display: grid; grid-template-columns: 1fr 1.35fr 1fr; gap: 8px; margin-top: 16px; }
+  .jbtn {
+    padding: 15px 4px; border-radius: 12px; font-size: 0.92rem; font-weight: 700;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+  }
+  .jbtn:hover { border-color: var(--accent); }
+  .jbtn:disabled { cursor: default; }
+  .jbtn.correct { border-color: var(--good); color: var(--good); background: rgba(111,213,152,0.08); }
+  .jbtn.wrong { border-color: var(--bad); color: var(--bad); background: rgba(255,138,138,0.08); }
+  .judge-fb { text-align: center; font-size: 0.86rem; color: var(--text-dim); line-height: 1.7; margin-top: 14px; min-height: 1.4em; }
+  .judge-fb .range { color: var(--good); font-weight: 700; }
+
+  /* ---- 早見表 ---- */
+  .search-row { margin-bottom: 14px; }
+  .search-row input {
+    width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text); font-family: inherit; font-size: 0.92rem;
+  }
+  .search-row input:focus { outline: 1px solid var(--accent); }
+  .cat-title { font-size: 0.95rem; margin: 4px 0 10px; color: var(--accent); }
+  .lv-row { padding: 10px 2px; border-bottom: 1px solid var(--border); }
+  .lv-row:last-child { border-bottom: none; }
+  .lv-main { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .lv-name { font-size: 0.92rem; font-weight: 600; }
+  .lv-en { font-size: 0.78rem; color: var(--accent); font-family: Consolas, monospace; margin-left: 6px; }
+  .lv-disp { font-size: 0.88rem; color: var(--good); font-weight: 600; text-align: right; }
+  .lv-note { font-size: 0.76rem; color: var(--text-dim); margin-top: 3px; line-height: 1.6; }
+  .weak-mark { font-size: 0.7rem; border-radius: 999px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; }
+  .weak-mark.w1 { color: var(--warn); border: 1px solid var(--warn); }
+  .weak-mark.w2 { color: var(--bad); border: 1px solid var(--bad); }
+  .empty { color: var(--text-dim); font-size: 0.88rem; padding: 16px 0; text-align: center; }
+
+  footer { margin-top: 26px; font-size: 0.75rem; color: var(--text-dim); line-height: 1.7; text-align: center; }
+
+  @media (max-width: 560px) {
+    body { padding: 24px 12px 60px; }
+    .tabs { gap: 5px; }
+    .tab { flex: 1 1 44%; }
+    .grade-row { grid-template-columns: 1fr; }
+    .judge-row { grid-template-columns: 1fr; }
+    .lv-main { flex-direction: column; gap: 2px; }
+    .lv-disp { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="../medical.html">← メディカルツール一覧</a>
+  <h1>検査値ドリル</h1>
+  <p class="sub">医師国家試験レベルの臨床検査基準値を、反射的に答えられるようになるまで繰り返すドリル。間違えた項目ほど高頻度で出題されます。</p>
+
+  <div class="statline">
+    <span class="pill">全 <b id="stat-total">0</b> 項目</span>
+    <span class="pill weak">苦手 <b id="stat-weak">0</b> 項目</span>
+    <span class="spacer"></span>
+    <button id="btn-reset" class="btn danger small">成績リセット</button>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-view="flash">フラッシュカード</button>
+    <button class="tab" data-view="quiz">4択クイズ</button>
+    <button class="tab" data-view="judge">高低判定</button>
+    <button class="tab" data-view="table">早見表</button>
+  </div>
+
+  <!-- フラッシュカード -->
+  <section id="view-flash">
+    <div class="chips" id="flash-chips"></div>
+    <div class="card flashcard" id="flash-card"></div>
+    <div class="grade-row hidden" id="flash-grades">
+      <button class="grade g-good" data-grade="good">覚えてた</button>
+      <button class="grade g-mid" data-grade="mid">あやしい</button>
+      <button class="grade g-bad" data-grade="bad">忘れてた</button>
+    </div>
+    <button class="fc-skip" id="flash-skip">この項目をスキップ</button>
+    <div class="fc-count" id="flash-count"></div>
+  </section>
+
+  <!-- 4択クイズ -->
+  <section id="view-quiz" class="hidden">
+    <div class="card" id="quiz-start">
+      <p class="start-desc">項目名に対して正しい基準値を4択から選びます。10問1セット。誤答の選択肢は自動生成されたひっかけです。結果は苦手度に反映されます。</p>
+      <div class="q-actions"><button class="btn" id="quiz-start-btn">スタート</button></div>
+    </div>
+    <div class="card hidden" id="quiz-play">
+      <div class="qhead">
+        <span class="prog" id="quiz-prog"></span>
+        <span class="score" id="quiz-score"></span>
+      </div>
+      <div class="q-name" id="quiz-name"></div>
+      <div class="q-en" id="quiz-en"></div>
+      <div class="opts" id="quiz-opts"></div>
+      <div class="q-note hidden" id="quiz-note"></div>
+      <div class="q-actions hidden" id="quiz-next-wrap">
+        <button class="btn" id="quiz-next">次へ</button>
+      </div>
+    </div>
+    <div class="card hidden" id="quiz-result">
+      <div class="result-num" id="quiz-result-num"></div>
+      <div class="result-msg" id="quiz-result-msg"></div>
+      <div class="q-actions"><button class="btn" id="quiz-retry">もう1セット</button></div>
+    </div>
+  </section>
+
+  <!-- 高低判定 -->
+  <section id="view-judge" class="hidden">
+    <div class="card" id="judge-start">
+      <p class="start-desc">「項目名と検査値」を見て、低い / 基準範囲内 / 高い を即答するテンポ重視のドリル。10問1セット。正解すると自動で次に進みます。</p>
+      <div class="q-actions"><button class="btn" id="judge-start-btn">スタート</button></div>
+    </div>
+    <div class="card hidden" id="judge-play">
+      <div class="qhead">
+        <span class="prog" id="judge-prog"></span>
+        <span class="score" id="judge-score"></span>
+      </div>
+      <div class="judge-name" id="judge-name"></div>
+      <div class="judge-val" id="judge-val"></div>
+      <div class="judge-row">
+        <button class="jbtn" data-zone="low">低い</button>
+        <button class="jbtn" data-zone="in">基準範囲内</button>
+        <button class="jbtn" data-zone="high">高い</button>
+      </div>
+      <div class="judge-fb" id="judge-fb"></div>
+      <div class="q-actions hidden" id="judge-next-wrap">
+        <button class="btn" id="judge-next">次へ</button>
+      </div>
+    </div>
+    <div class="card hidden" id="judge-result">
+      <div class="result-num" id="judge-result-num"></div>
+      <div class="result-msg" id="judge-result-msg"></div>
+      <div class="q-actions"><button class="btn" id="judge-retry">もう1セット</button></div>
+    </div>
+  </section>
+
+  <!-- 早見表 -->
+  <section id="view-table" class="hidden">
+    <div class="search-row">
+      <input type="text" id="table-search" placeholder="項目名・略称で検索(例: Na, ビリルビン)">
+    </div>
+    <div id="table-body"></div>
+  </section>
+
+  <footer>※基準値は施設・測定法で異なります。学習用の代表値です。</footer>
+</div>
+
+<script>
+'use strict';
+
+/* ================= データ =================
+   display: 表示用の基準値文字列(単位込み)
+   low/high: クイズ・判定用の代表値(男女差がある項目は男性値, sd:true)
+   low=0 の項目は「上限のみ」(以下/未満)タイプ */
+var DATA = [
+  // ---- 血算 ----
+  { id:'rbc',  category:'血算', name:'赤血球数', en:'RBC', display:'男430〜570 / 女380〜500 ×10⁴/μL', low:430, high:570, unit:'×10⁴/μL', sd:true, note:'共用基準範囲は男435〜555/女386〜492。' },
+  { id:'hb',   category:'血算', name:'ヘモグロビン', en:'Hb', display:'男13〜17 / 女12〜15 g/dL', low:13, high:17, unit:'g/dL', sd:true, note:'男13未満・女12未満で貧血の目安(WHO基準)。' },
+  { id:'ht',   category:'血算', name:'ヘマトクリット', en:'Ht', display:'男40〜50 / 女35〜45 %', low:40, high:50, unit:'%', sd:true, note:'おおよそHbの3倍。' },
+  { id:'wbc',  category:'血算', name:'白血球数', en:'WBC', display:'3300〜8600 /μL', low:3300, high:8600, unit:'/μL', note:'共用基準範囲。3500〜9000などとする施設もある。' },
+  { id:'plt',  category:'血算', name:'血小板数', en:'Plt', display:'15〜35 ×10⁴/μL', low:15, high:35, unit:'×10⁴/μL', note:'共用基準範囲は15.8〜34.8。5万未満で出血傾向、2万未満で自然出血リスク。' },
+  { id:'ret',  category:'血算', name:'網赤血球', en:'Ret', display:'0.5〜2.0 %', low:0.5, high:2.0, unit:'%', note:'施設差あり。溶血・出血・貧血回復期に増加。' },
+  { id:'mcv',  category:'血算', name:'平均赤血球容積', en:'MCV', display:'80〜100 fL', low:80, high:100, unit:'fL', note:'共用基準範囲は83.6〜98.2。80未満:小球性、101以上:大球性。' },
+  { id:'mchc', category:'血算', name:'平均赤血球ヘモグロビン濃度', en:'MCHC', display:'31〜35 %', low:31, high:35, unit:'%', note:'共用基準範囲は31.7〜35.3。低下で低色素性。' },
+  { id:'fe',   category:'血算', name:'血清鉄', en:'Fe', display:'男60〜200 / 女40〜180 μg/dL', low:60, high:200, unit:'μg/dL', sd:true, note:'施設差が大きい。鉄欠乏性貧血で低下、TIBCは上昇。' },
+  { id:'tibc', category:'血算', name:'総鉄結合能', en:'TIBC', display:'250〜380 μg/dL', low:250, high:380, unit:'μg/dL', note:'施設差あり。鉄欠乏で上昇、炎症・慢性疾患に伴う貧血で低下傾向。' },
+
+  // ---- 電解質・腎 ----
+  { id:'na',  category:'電解質・腎', name:'ナトリウム', en:'Na', display:'135〜145 mEq/L', low:135, high:145, unit:'mEq/L', note:'共用基準範囲は138〜145。' },
+  { id:'k',   category:'電解質・腎', name:'カリウム', en:'K', display:'3.5〜5.0 mEq/L', low:3.5, high:5.0, unit:'mEq/L', note:'共用基準範囲は3.6〜4.8。5.5超で高K血症、心電図変化に注意。' },
+  { id:'cl',  category:'電解質・腎', name:'クロール', en:'Cl', display:'98〜108 mEq/L', low:98, high:108, unit:'mEq/L', note:'共用基準範囲は101〜108。' },
+  { id:'ca',  category:'電解質・腎', name:'カルシウム', en:'Ca', display:'8.8〜10.1 mg/dL', low:8.8, high:10.1, unit:'mg/dL', note:'8.5〜10.5と載る教科書もある。低Alb時は補正Ca=実測Ca+(4−Alb)。' },
+  { id:'ip',  category:'電解質・腎', name:'無機リン', en:'IP', display:'2.5〜4.5 mg/dL', low:2.5, high:4.5, unit:'mg/dL', note:'共用基準範囲は2.7〜4.6。CKDで上昇、副甲状腺機能亢進症で低下。' },
+  { id:'mg',  category:'電解質・腎', name:'マグネシウム', en:'Mg', display:'1.8〜2.4 mg/dL', low:1.8, high:2.4, unit:'mg/dL', note:'1.8〜2.6とする施設もある。' },
+  { id:'bun', category:'電解質・腎', name:'尿素窒素', en:'BUN', display:'8〜20 mg/dL', low:8, high:20, unit:'mg/dL', note:'腎機能低下・脱水・消化管出血で上昇。BUN/Cr比>20で腎前性を示唆。' },
+  { id:'cre', category:'電解質・腎', name:'クレアチニン', en:'Cr', display:'男0.65〜1.07 / 女0.46〜0.79 mg/dL', low:0.65, high:1.07, unit:'mg/dL', sd:true, note:'共用基準範囲。筋肉量に依存する。' },
+  { id:'ua',  category:'電解質・腎', name:'尿酸', en:'UA', display:'男3.7〜7.8 / 女2.6〜5.5 mg/dL', low:3.7, high:7.8, unit:'mg/dL', sd:true, note:'共用基準範囲。治療上は性別を問わず7.0超で高尿酸血症。' },
+  { id:'osm', category:'電解質・腎', name:'血漿浸透圧', en:'Posm', display:'275〜295 mOsm/kg', low:275, high:295, unit:'mOsm/kg', note:'概算式: 2×Na+血糖/18+BUN/2.8。' },
+
+  // ---- 肝・膵 ----
+  { id:'ast',  category:'肝・膵', name:'AST(GOT)', en:'AST', display:'10〜40 U/L', low:10, high:40, unit:'U/L', note:'共用基準範囲は13〜30。肝・心筋・骨格筋・赤血球に分布。' },
+  { id:'alt',  category:'肝・膵', name:'ALT(GPT)', en:'ALT', display:'5〜40 U/L', low:5, high:40, unit:'U/L', note:'共用基準範囲は男10〜42/女7〜23。肝特異性が高い。' },
+  { id:'ld',   category:'肝・膵', name:'乳酸脱水素酵素', en:'LD(LDH)', display:'124〜222 U/L', low:124, high:222, unit:'U/L', note:'共用基準範囲(IFCC法)。およそ120〜240と覚えてもよい。溶血・腫瘍・心筋梗塞などで上昇。' },
+  { id:'alp',  category:'肝・膵', name:'アルカリホスファターゼ', en:'ALP', display:'38〜113 U/L', low:38, high:113, unit:'U/L', note:'2020年からIFCC法(共用基準範囲)。旧JSCC法では約115〜359。胆道閉塞・骨疾患・妊娠で上昇。' },
+  { id:'ggt',  category:'肝・膵', name:'γ-GT(γ-GTP)', en:'γ-GT', display:'男13〜64 / 女9〜32 U/L', low:13, high:64, unit:'U/L', sd:true, note:'共用基準範囲。飲酒・胆汁うっ滞・薬剤で上昇。' },
+  { id:'tbil', category:'肝・膵', name:'総ビリルビン', en:'T-Bil', display:'0.4〜1.5 mg/dL', low:0.4, high:1.5, unit:'mg/dL', note:'共用基準範囲。2〜3 mg/dL以上で黄疸が肉眼的に明らかになる。' },
+  { id:'dbil', category:'肝・膵', name:'直接ビリルビン', en:'D-Bil', display:'0.4以下 mg/dL', low:0, high:0.4, unit:'mg/dL', note:'0.3以下とする施設もある。閉塞性黄疸・肝細胞性黄疸で上昇。' },
+  { id:'tp',   category:'肝・膵', name:'総蛋白', en:'TP', display:'6.5〜8.0 g/dL', low:6.5, high:8.0, unit:'g/dL', note:'共用基準範囲は6.6〜8.1。' },
+  { id:'alb',  category:'肝・膵', name:'アルブミン', en:'Alb', display:'4.0〜5.0 g/dL', low:4.0, high:5.0, unit:'g/dL', note:'共用基準範囲は4.1〜5.1。ネフローゼの診断基準は3.0以下。' },
+  { id:'ck',   category:'肝・膵', name:'クレアチンキナーゼ', en:'CK', display:'男59〜248 / 女41〜153 U/L', low:59, high:248, unit:'U/L', sd:true, note:'共用基準範囲。骨格筋・心筋・脳由来。運動・筋注・横紋筋融解で上昇。' },
+  { id:'amy',  category:'肝・膵', name:'アミラーゼ', en:'AMY', display:'44〜132 U/L', low:44, high:132, unit:'U/L', note:'共用基準範囲。施設差あり。膵炎・耳下腺炎で上昇(膵型・唾液腺型)。' },
+
+  // ---- 脂質・糖 ----
+  { id:'glu',   category:'脂質・糖', name:'空腹時血糖', en:'FPG', display:'70〜109 mg/dL', low:70, high:109, unit:'mg/dL', note:'126以上で糖尿病型。100〜109は正常高値。随時200以上も糖尿病型。' },
+  { id:'hba1c', category:'脂質・糖', name:'HbA1c(NGSP)', en:'HbA1c', display:'4.6〜6.2 %', low:4.6, high:6.2, unit:'%', note:'6.5以上で糖尿病型。過去1〜2か月の平均血糖を反映。' },
+  { id:'ga',    category:'脂質・糖', name:'グリコアルブミン', en:'GA', display:'11〜16 %', low:11, high:16, unit:'%', note:'過去約2週間の血糖を反映。施設差あり。' },
+  { id:'tc',    category:'脂質・糖', name:'総コレステロール', en:'TC', display:'130〜220 mg/dL', low:130, high:220, unit:'mg/dL', note:'共用基準範囲は142〜248。' },
+  { id:'ldl',   category:'脂質・糖', name:'LDLコレステロール', en:'LDL-C', display:'65〜139 mg/dL', low:65, high:139, unit:'mg/dL', note:'140以上で高LDL-C血症(脂質異常症診断基準)。共用基準範囲は65〜163。' },
+  { id:'hdl',   category:'脂質・糖', name:'HDLコレステロール', en:'HDL-C', display:'男38〜90 / 女48〜103 mg/dL', low:38, high:90, unit:'mg/dL', sd:true, note:'共用基準範囲。40未満で低HDL-C血症(診断基準)。' },
+  { id:'tg',    category:'脂質・糖', name:'中性脂肪(空腹時)', en:'TG', display:'50〜149 mg/dL', low:50, high:149, unit:'mg/dL', note:'空腹時150以上で高TG血症(診断基準)。食事の影響が大きい。' },
+
+  // ---- 凝固 ----
+  { id:'pt',   category:'凝固', name:'プロトロンビン時間', en:'PT', display:'10〜13 秒', low:10, high:13, unit:'秒', note:'試薬・施設により差が大きい。外因系(VII因子など)の指標。ワルファリンで延長。' },
+  { id:'inr',  category:'凝固', name:'PT-INR', en:'PT-INR', display:'0.9〜1.1', low:0.9, high:1.1, unit:'', note:'未治療時。ワルファリン治療域はおおむね2.0〜3.0(高齢者1.6〜2.6)。' },
+  { id:'aptt', category:'凝固', name:'活性化部分トロンボプラスチン時間', en:'APTT', display:'25〜40 秒', low:25, high:40, unit:'秒', note:'施設差あり。内因系の指標。血友病・ヘパリンで延長。' },
+  { id:'fib',  category:'凝固', name:'フィブリノゲン', en:'Fib', display:'200〜400 mg/dL', low:200, high:400, unit:'mg/dL', note:'DICで低下、炎症・妊娠で上昇。' },
+  { id:'dd',   category:'凝固', name:'Dダイマー', en:'D-dimer', display:'1.0以下 μg/mL', low:0, high:1.0, unit:'μg/mL', note:'施設・試薬でカットオフが異なる。DVT/PE・DICで上昇。' },
+  { id:'fdp',  category:'凝固', name:'FDP', en:'FDP', display:'5以下 μg/mL', low:0, high:5, unit:'μg/mL', note:'施設差あり。DIC・線溶亢進で上昇。' },
+  { id:'at',   category:'凝固', name:'アンチトロンビン活性', en:'AT', display:'80〜120 %', low:80, high:120, unit:'%', note:'施設差あり(79〜121など)。DIC・肝不全で低下。70%以下でヘパリン効果減弱。' },
+
+  // ---- 血液ガス ----
+  { id:'ph',    category:'血液ガス', name:'pH(動脈血)', en:'pH', display:'7.35〜7.45', low:7.35, high:7.45, unit:'', note:'7.35未満:アシデミア、7.45超:アルカレミア。' },
+  { id:'paco2', category:'血液ガス', name:'動脈血二酸化炭素分圧', en:'PaCO₂', display:'35〜45 Torr', low:35, high:45, unit:'Torr', note:'呼吸性因子。上昇で呼吸性アシドーシス。' },
+  { id:'pao2',  category:'血液ガス', name:'動脈血酸素分圧', en:'PaO₂', display:'80〜100 Torr', low:80, high:100, unit:'Torr', note:'室内気。加齢でやや低下。60以下は呼吸不全。' },
+  { id:'hco3',  category:'血液ガス', name:'重炭酸イオン', en:'HCO₃⁻', display:'22〜26 mEq/L', low:22, high:26, unit:'mEq/L', note:'代謝性因子。24±2で覚える。' },
+  { id:'be',    category:'血液ガス', name:'塩基過剰', en:'BE', display:'−2〜+2 mEq/L', low:-2, high:2, unit:'mEq/L', note:'0±2。負に大きければ代謝性アシドーシス。' },
+  { id:'sao2',  category:'血液ガス', name:'動脈血酸素飽和度', en:'SaO₂', display:'96〜99 %', low:96, high:99, unit:'%', ceil:100, note:'SpO₂もほぼ同等。95%以上を目安とすることが多い。' },
+  { id:'aado2', category:'血液ガス', name:'肺胞気動脈血酸素分圧較差', en:'A-aDO₂', display:'10以下 Torr', low:0, high:10, unit:'Torr', note:'室内気・若年者。加齢とともに開大(目安: 年齢×0.3)。' },
+  { id:'lac',   category:'血液ガス', name:'乳酸', en:'Lac', display:'0.5〜2.0 mmol/L', low:0.5, high:2.0, unit:'mmol/L', note:'約4.5〜18 mg/dL。ショック・組織低灌流で上昇。' },
+  { id:'ag',    category:'血液ガス', name:'アニオンギャップ', en:'AG', display:'10〜14 mEq/L', low:10, high:14, unit:'mEq/L', note:'AG=Na−(Cl+HCO₃⁻)。12±2。開大性アシドーシスの鑑別に。' },
+
+  // ---- 尿・髄液 ----
+  { id:'uvol',    category:'尿・髄液', name:'尿量', en:'UV', display:'1000〜1500 mL/日', low:1000, high:1500, unit:'mL/日', note:'400未満:乏尿、100未満:無尿、2500〜3000超:多尿。' },
+  { id:'usg',     category:'尿・髄液', name:'尿比重', en:'SG', display:'1.005〜1.030', low:1.005, high:1.030, unit:'', floor:1.0, note:'随時尿。1.010前後は等張尿。尿崩症で低下、脱水で上昇。' },
+  { id:'uprot',   category:'尿・髄液', name:'尿蛋白定量', en:'U-TP', display:'150未満 mg/日', low:0, high:150, unit:'mg/日', note:'0.15 g/日以上で蛋白尿。3.5 g/日以上はネフローゼレベル。' },
+  { id:'ualb',    category:'尿・髄液', name:'尿アルブミン/Cr比', en:'UACR', display:'30未満 mg/gCr', low:0, high:30, unit:'mg/gCr', note:'30〜299で微量アルブミン尿(糖尿病性腎症早期)。' },
+  { id:'ccr',     category:'尿・髄液', name:'クレアチニンクリアランス', en:'Ccr', display:'80〜120 mL/分', low:80, high:120, unit:'mL/分', note:'体格・施設により差。GFRの推定指標。' },
+  { id:'csfp',    category:'尿・髄液', name:'髄液初圧', en:'CSF圧', display:'70〜180 mmH₂O', low:70, high:180, unit:'mmH₂O', note:'側臥位で測定。' },
+  { id:'csfcell', category:'尿・髄液', name:'髄液細胞数', en:'CSF cell', display:'5以下 /μL', low:0, high:5, unit:'/μL', note:'単核球主体。多形核球優位の増加は細菌性髄膜炎を示唆。' },
+  { id:'csfprot', category:'尿・髄液', name:'髄液蛋白', en:'CSF-TP', display:'15〜45 mg/dL', low:15, high:45, unit:'mg/dL', note:'ギラン・バレー症候群で蛋白細胞解離。' },
+  { id:'csfglc',  category:'尿・髄液', name:'髄液糖', en:'CSF-Glu', display:'50〜75 mg/dL', low:50, high:75, unit:'mg/dL', note:'血糖の約1/2〜2/3。細菌性・結核性髄膜炎で低下、ウイルス性では正常。' },
+
+  // ---- 内分泌 ----
+  { id:'tsh',      category:'内分泌', name:'甲状腺刺激ホルモン', en:'TSH', display:'0.5〜5.0 μU/mL', low:0.5, high:5.0, unit:'μU/mL', note:'施設差あり(0.4〜4.0前後とする施設も)。バセドウ病で低下、橋本病(機能低下)で上昇。' },
+  { id:'ft4',      category:'内分泌', name:'遊離サイロキシン', en:'FT₄', display:'0.9〜1.7 ng/dL', low:0.9, high:1.7, unit:'ng/dL', note:'施設差あり。' },
+  { id:'ft3',      category:'内分泌', name:'遊離トリヨードサイロニン', en:'FT₃', display:'2.3〜4.0 pg/mL', low:2.3, high:4.0, unit:'pg/mL', note:'施設差あり。低T3症候群では単独で低下。' },
+  { id:'pth',      category:'内分泌', name:'intact PTH', en:'PTH', display:'10〜65 pg/mL', low:10, high:65, unit:'pg/mL', note:'施設差あり。血清Caと組み合わせて解釈する。' },
+  { id:'bnp',      category:'内分泌', name:'脳性ナトリウム利尿ペプチド', en:'BNP', display:'18.4以下 pg/mL', low:0, high:18.4, unit:'pg/mL', note:'100以上で心不全を疑う目安。' },
+  { id:'ntprobnp', category:'内分泌', name:'NT-proBNP', en:'NT-proBNP', display:'125以下 pg/mL', low:0, high:125, unit:'pg/mL', note:'400以上で心不全を疑う目安。腎機能の影響を受けやすい。' },
+
+  // ---- 炎症・免疫 ----
+  { id:'crp',   category:'炎症・免疫', name:'C反応性蛋白', en:'CRP', display:'0.3以下 mg/dL', low:0, high:0.3, unit:'mg/dL', note:'共用基準範囲は0.14以下。細菌感染・組織障害で上昇、発症から半日〜1日遅れて上昇。' },
+  { id:'pct',   category:'炎症・免疫', name:'プロカルシトニン', en:'PCT', display:'0.05未満 ng/mL', low:0, high:0.05, unit:'ng/mL', note:'0.5以上で細菌感染症・敗血症を疑う。' },
+  { id:'esr',   category:'炎症・免疫', name:'赤沈(1時間値)', en:'ESR', display:'男2〜10 / 女3〜15 mm', low:2, high:10, unit:'mm', sd:true, note:'加齢・貧血・妊娠でも亢進。DICではフィブリノゲン低下により赤沈は遅延(低下)する。' },
+  { id:'igg',   category:'炎症・免疫', name:'免疫グロブリンG', en:'IgG', display:'861〜1747 mg/dL', low:861, high:1747, unit:'mg/dL', note:'共用基準範囲。約870〜1700と覚えてよい。多発性骨髄腫でM蛋白として増加することがある。' },
+  { id:'iga',   category:'炎症・免疫', name:'免疫グロブリンA', en:'IgA', display:'93〜393 mg/dL', low:93, high:393, unit:'mg/dL', note:'共用基準範囲。IgA腎症では上昇例あり(診断には腎生検)。' },
+  { id:'igm',   category:'炎症・免疫', name:'免疫グロブリンM', en:'IgM', display:'男33〜183 / 女50〜269 mg/dL', low:33, high:183, unit:'mg/dL', sd:true, note:'共用基準範囲。原発性胆汁性胆管炎・マクログロブリン血症で上昇。' },
+  { id:'ige',   category:'炎症・免疫', name:'非特異的IgE', en:'IgE', display:'170以下 IU/mL', low:0, high:170, unit:'IU/mL', note:'施設差あり。アレルギー疾患・寄生虫感染・ABPAで上昇。' },
+  { id:'c3',    category:'炎症・免疫', name:'補体C3', en:'C3', display:'73〜138 mg/dL', low:73, high:138, unit:'mg/dL', note:'共用基準範囲。SLE活動期・溶連菌感染後糸球体腎炎で低下。' },
+  { id:'c4',    category:'炎症・免疫', name:'補体C4', en:'C4', display:'11〜31 mg/dL', low:11, high:31, unit:'mg/dL', note:'共用基準範囲。SLE・クリオグロブリン血症で低下。' },
+  { id:'ch50',  category:'炎症・免疫', name:'補体価', en:'CH50', display:'30〜45 U/mL', low:30, high:45, unit:'U/mL', note:'測定法により差が大きい。SLE活動期・膜性増殖性糸球体腎炎で低下。' },
+  { id:'rf',    category:'炎症・免疫', name:'リウマトイド因子', en:'RF', display:'15以下 IU/mL', low:0, high:15, unit:'IU/mL', note:'施設差あり。健常者や他疾患でも陽性となりうる(特異度は高くない)。' },
+  { id:'sil2r', category:'炎症・免疫', name:'可溶性IL-2受容体', en:'sIL-2R', display:'121〜613 U/mL', low:121, high:613, unit:'U/mL', note:'悪性リンパ腫・ATLで上昇。施設差あり。' },
+  { id:'kl6',   category:'炎症・免疫', name:'KL-6', en:'KL-6', display:'500未満 U/mL', low:0, high:500, unit:'U/mL', note:'間質性肺炎のマーカー。活動性の指標にもなる。' }
+];
+
+var STORAGE_KEY = 'lab-values-v1';
+var CATS = [];
+(function(){
+  for (var i = 0; i < DATA.length; i++) {
+    if (CATS.indexOf(DATA[i].category) === -1) CATS.push(DATA[i].category);
+  }
+})();
+var BY_ID = {};
+DATA.forEach(function(d){ BY_ID[d.id] = d; });
+
+/* ================= 保存(苦手度) ================= */
+var stats = loadStats();
+
+function loadStats() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    var parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && parsed.stats && typeof parsed.stats === 'object') {
+      return parsed.stats;
+    }
+    return {};
+  } catch (e) { return {}; }
+}
+function saveStats() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 1, stats: stats })); } catch (e) {}
+}
+function getW(id) {
+  var s = stats[id];
+  if (s && typeof s.w === 'number' && isFinite(s.w)) return Math.min(10, Math.max(0.2, s.w));
+  return 1.5; // 未学習項目はやや優先
+}
+/* mult/add で重みを更新。ok: true=正解カウント, false=誤答カウント, null=カウントなし */
+function adjustW(id, mult, add, ok) {
+  var s = stats[id];
+  if (!s || typeof s !== 'object') s = stats[id] = { w: 1.5, ok: 0, ng: 0 };
+  s.w = Math.min(10, Math.max(0.2, getW(id) * mult + add));
+  if (ok === true) s.ok = (s.ok || 0) + 1;
+  if (ok === false) s.ng = (s.ng || 0) + 1;
+  saveStats();
+  updateHeader();
+}
+function weakCount() {
+  var n = 0;
+  for (var i = 0; i < DATA.length; i++) if (getW(DATA[i].id) >= 2.5) n++;
+  return n;
+}
+
+/* ================= 共通ユーティリティ ================= */
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+function rand(lo, hi) { return lo + Math.random() * (hi - lo); }
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+/* 浮動小数のノイズを消して読みやすい数値文字列に */
+function numStr(v) {
+  if (typeof v !== 'number' || !isFinite(v)) return '?';
+  if (Math.abs(v) >= 100) return String(Math.round(v));
+  return String(Number(v.toFixed(3)));
+}
+/* 範囲文字列(クイズ選択肢用・全選択肢で書式を揃える) */
+function rangeStr(lo, hi, unit) {
+  var u = unit ? ' ' + unit : '';
+  if (lo === 0) return numStr(hi) + '以下' + u;
+  return numStr(lo) + '〜' + numStr(hi) + u;
+}
+function spanOf(item) { return item.low === 0 ? item.high : item.high - item.low; }
+function decimalsFor(item) {
+  var r = spanOf(item);
+  if (r >= 15) return 0;
+  if (r >= 0.9) return 1;
+  if (r >= 0.09) return 2;
+  return 3;
+}
+/* 苦手度に応じた重み付きランダム抽選 */
+function weightedPick(pool, excludeId) {
+  var cand = pool;
+  if (excludeId && pool.length > 1) {
+    cand = pool.filter(function(it){ return it.id !== excludeId; });
+  }
+  var total = 0;
+  cand.forEach(function(it){ total += getW(it.id); });
+  var r = Math.random() * total;
+  for (var i = 0; i < cand.length; i++) {
+    r -= getW(cand[i].id);
+    if (r <= 0) return cand[i];
+  }
+  return cand[cand.length - 1];
+}
+/* 重み付き・重複なしでn項目選ぶ */
+function pickSet(n) {
+  var pool = DATA.slice();
+  var out = [];
+  while (out.length < n && pool.length > 0) {
+    var it = weightedPick(pool, null);
+    out.push(it);
+    pool.splice(pool.indexOf(it), 1);
+  }
+  return out;
+}
+function quizLabel(item) { return item.sd ? item.name + '(男性)' : item.name; }
+
+/* ================= ヘッダ ================= */
+function updateHeader() {
+  document.getElementById('stat-total').textContent = DATA.length;
+  document.getElementById('stat-weak').textContent = weakCount();
+}
+document.getElementById('btn-reset').addEventListener('click', function() {
+  if (confirm('成績(苦手度)をすべてリセットしますか?')) {
+    stats = {};
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    updateHeader();
+    renderTable();
+  }
+});
+
+/* ================= タブ ================= */
+var VIEWS = ['flash', 'quiz', 'judge', 'table'];
+document.getElementById('tabs').addEventListener('click', function(e) {
+  var btn = e.target.closest('.tab');
+  if (!btn) return;
+  var view = btn.getAttribute('data-view');
+  document.querySelectorAll('#tabs .tab').forEach(function(t) {
+    t.classList.toggle('active', t === btn);
+  });
+  VIEWS.forEach(function(v) {
+    document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
+  });
+  judgeToken++; // 高低判定の自動送りタイマーを無効化
+  if (view === 'table') renderTable();
+  // 正解の自動送り待ち中にタブを離れて戻ってきた場合、止まらないように進める
+  if (view === 'judge' && judgeAnswered &&
+      !document.getElementById('judge-play').classList.contains('hidden') &&
+      document.getElementById('judge-next-wrap').classList.contains('hidden')) {
+    judgeAdvance();
+  }
+});
+
+/* ================= フラッシュカード ================= */
+var flashCat = null; // null = 全カテゴリ
+var flashItem = null;
+var flashRevealed = false;
+var flashDone = 0;
+
+function flashPool() {
+  return flashCat ? DATA.filter(function(d){ return d.category === flashCat; }) : DATA;
+}
+function renderFlashChips() {
+  var host = document.getElementById('flash-chips');
+  var html = '<button class="chip' + (flashCat === null ? ' active' : '') + '" data-cat="">全カテゴリ</button>';
+  CATS.forEach(function(c) {
+    html += '<button class="chip' + (flashCat === c ? ' active' : '') + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>';
+  });
+  host.innerHTML = html;
+}
+document.getElementById('flash-chips').addEventListener('click', function(e) {
+  var btn = e.target.closest('.chip');
+  if (!btn) return;
+  var c = btn.getAttribute('data-cat');
+  flashCat = c === '' ? null : c;
+  renderFlashChips();
+  flashNext();
+});
+function flashNext() {
+  flashItem = weightedPick(flashPool(), flashItem ? flashItem.id : null);
+  flashRevealed = false;
+  renderFlash();
+}
+function renderFlash() {
+  var card = document.getElementById('flash-card');
+  var it = flashItem;
+  if (!it) { card.innerHTML = '<div class="empty">項目がありません</div>'; return; }
+  var html = '<span class="fc-cat">' + esc(it.category) + '</span>' +
+    '<div class="fc-name">' + esc(it.name) + '</div>' +
+    '<div class="fc-en">' + esc(it.en) + '</div>';
+  if (flashRevealed) {
+    html += '<div class="fc-value">' + esc(it.display) + '</div>';
+    if (it.note) html += '<div class="fc-note">' + esc(it.note) + '</div>';
+  } else {
+    html += '<div class="fc-hint">タップして基準値を表示</div>';
+  }
+  card.innerHTML = html;
+  document.getElementById('flash-grades').classList.toggle('hidden', !flashRevealed);
+  document.getElementById('flash-count').textContent = 'このセッションで ' + flashDone + ' 枚 学習';
+}
+document.getElementById('flash-card').addEventListener('click', function() {
+  if (!flashRevealed) { flashRevealed = true; renderFlash(); }
+});
+document.getElementById('flash-grades').addEventListener('click', function(e) {
+  var btn = e.target.closest('.grade');
+  if (!btn || !flashItem) return;
+  var g = btn.getAttribute('data-grade');
+  if (g === 'good') adjustW(flashItem.id, 0.55, 0, true);
+  else if (g === 'mid') adjustW(flashItem.id, 1.25, 0.4, null);
+  else adjustW(flashItem.id, 1.7, 0.9, false);
+  flashDone++;
+  flashNext();
+});
+document.getElementById('flash-skip').addEventListener('click', function() { flashNext(); });
+
+/* ================= 4択クイズ ================= */
+var QUIZ_N = 10;
+var quizSet = [];
+var quizIdx = 0;
+var quizScore = 0;
+var quizAnswered = false;
+
+/* 誤答選択肢の候補となる範囲 {low, high} を生成 */
+function wrongRangeCandidates(item) {
+  var out = [];
+  var r = spanOf(item);
+  function push(lo, hi) {
+    if (typeof lo !== 'number' || typeof hi !== 'number') return;
+    if (!isFinite(lo) || !isFinite(hi) || hi <= lo) return;
+    if (item.low >= 0 && lo < 0) return; // 元が非負の項目は負の範囲を出さない
+    if (typeof item.ceil === 'number' && hi > item.ceil) return; // 物理的上限を超える範囲は出さない
+    out.push({ low: lo, high: hi });
+  }
+  if (item.low === 0) {
+    // 上限のみタイプ: 上限を×10/÷10/×3/÷3など
+    [10, 0.1, 3, 1 / 3, 5, 0.5].forEach(function(m) { push(0, item.high * m); });
+  } else {
+    var mid = (item.low + item.high) / 2;
+    push(item.low + r, item.high + r);           // 範囲を上へずらす
+    push(item.low - r, item.high - r);           // 範囲を下へずらす
+    push(item.low + r * 0.5, item.high + r * 0.5);
+    push(item.low - r * 0.5, item.high - r * 0.5);
+    push(mid - r, mid + r);                      // 2倍に広げる
+    push(mid - r * 0.25, mid + r * 0.25);        // 半分に狭める
+    if (item.high >= 10 || item.high <= 1) {     // 桁のひっかけ(pH等では出さない)
+      push(item.low * 10, item.high * 10);
+      push(item.low / 10, item.high / 10);
+    }
+  }
+  // 隣接項目の値の流用: 同じ単位・同じタイプの他項目
+  DATA.forEach(function(n) {
+    if (n.id === item.id) return;
+    if (n.unit !== item.unit) return;
+    if ((n.low === 0) !== (item.low === 0)) return;
+    push(n.low, n.high);
+  });
+  return out;
+}
+function buildOptions(item) {
+  var correct = rangeStr(item.low, item.high, item.unit);
+  var used = { };
+  used[correct] = true;
+  var wrongs = [];
+  var cands = shuffle(wrongRangeCandidates(item));
+  for (var i = 0; i < cands.length && wrongs.length < 3; i++) {
+    var s = rangeStr(cands[i].low, cands[i].high, item.unit);
+    if (!used[s]) { used[s] = true; wrongs.push(s); }
+  }
+  // 万一足りなければ単純な倍率ずらしで補完
+  var k = 2;
+  while (wrongs.length < 3 && k < 40) {
+    var lo = item.low === 0 ? 0 : item.low * k;
+    var s2 = rangeStr(lo, item.high * k, item.unit);
+    if (!used[s2]) { used[s2] = true; wrongs.push(s2); }
+    k++;
+  }
+  return shuffle([{ text: correct, ok: true }].concat(wrongs.map(function(w) {
+    return { text: w, ok: false };
+  })));
+}
+function quizStart() {
+  quizSet = pickSet(QUIZ_N);
+  quizIdx = 0;
+  quizScore = 0;
+  document.getElementById('quiz-start').classList.add('hidden');
+  document.getElementById('quiz-result').classList.add('hidden');
+  document.getElementById('quiz-play').classList.remove('hidden');
+  quizRenderQ();
+}
+function quizRenderQ() {
+  quizAnswered = false;
+  var it = quizSet[quizIdx];
+  document.getElementById('quiz-prog').textContent = '第' + (quizIdx + 1) + '問 / ' + quizSet.length;
+  document.getElementById('quiz-score').textContent = '正解 ' + quizScore;
+  document.getElementById('quiz-name').textContent = quizLabel(it) + ' の基準値は?';
+  document.getElementById('quiz-en').textContent = it.en;
+  var opts = buildOptions(it);
+  var host = document.getElementById('quiz-opts');
+  host.innerHTML = '';
+  opts.forEach(function(o) {
+    var b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = o.text;
+    b.addEventListener('click', function() { quizAnswer(b, o.ok, opts, host); });
+    host.appendChild(b);
+  });
+  document.getElementById('quiz-note').classList.add('hidden');
+  document.getElementById('quiz-next-wrap').classList.add('hidden');
+}
+function quizAnswer(btn, ok, opts, host) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  var it = quizSet[quizIdx];
+  var buttons = host.querySelectorAll('.opt');
+  buttons.forEach(function(b, i) {
+    b.disabled = true;
+    if (opts[i].ok) b.classList.add('correct');
+    else if (b === btn) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  if (ok) { quizScore++; adjustW(it.id, 0.7, 0, true); }
+  else { adjustW(it.id, 1.6, 0.7, false); }
+  document.getElementById('quiz-score').textContent = '正解 ' + quizScore;
+  var noteEl = document.getElementById('quiz-note');
+  noteEl.textContent = '基準値: ' + it.display + (it.note ? ' / ' + it.note : '');
+  noteEl.classList.remove('hidden');
+  var nextBtn = document.getElementById('quiz-next');
+  nextBtn.textContent = quizIdx === quizSet.length - 1 ? '結果を見る' : '次へ';
+  document.getElementById('quiz-next-wrap').classList.remove('hidden');
+}
+document.getElementById('quiz-next').addEventListener('click', function() {
+  if (quizIdx < quizSet.length - 1) { quizIdx++; quizRenderQ(); }
+  else quizShowResult();
+});
+function quizShowResult() {
+  document.getElementById('quiz-play').classList.add('hidden');
+  var el = document.getElementById('quiz-result');
+  el.classList.remove('hidden');
+  document.getElementById('quiz-result-num').innerHTML =
+    esc(String(quizScore)) + ' <small>/ ' + quizSet.length + ' 問</small>';
+  var msg;
+  if (quizScore >= 9) msg = '素晴らしい。次のセットへ。';
+  else if (quizScore >= 7) msg = 'あと一歩。間違えた項目は出題頻度が上がります。';
+  else msg = '苦手項目として記録しました。フラッシュカードで復習を。';
+  document.getElementById('quiz-result-msg').textContent = msg;
+}
+document.getElementById('quiz-start-btn').addEventListener('click', quizStart);
+document.getElementById('quiz-retry').addEventListener('click', quizStart);
+
+/* ================= 高低判定 ================= */
+var JUDGE_N = 10;
+var judgeSet = [];
+var judgeIdx = 0;
+var judgeScore = 0;
+var judgeAnswered = false;
+var judgeCur = null; // { item, valueStr, zone }
+var judgeToken = 0;  // タブ切替などで自動送りを無効化するためのトークン
+
+/* 境界に掛からないよう余白をとって検査値を生成 */
+function genJudgeValue(item) {
+  var r = spanOf(item);
+  var d = decimalsFor(item);
+  var m = 0.15 * r; // 境界からの最低マージン
+  var zones = item.low === 0 ? ['in', 'high'] : ['low', 'in', 'high'];
+  var zone = zones[Math.floor(Math.random() * zones.length)];
+  var v;
+  if (zone === 'in') {
+    v = item.low === 0 ? rand(item.high * 0.15, item.high - m) : rand(item.low + m, item.high - m);
+  } else if (zone === 'high') {
+    if (item.low === 0) {
+      v = rand(item.high * 1.2, item.high * 3);
+    } else {
+      var hi3 = item.high + r;
+      if (typeof item.ceil === 'number') hi3 = Math.min(hi3, item.ceil); // 物理的上限(SaO₂の100%など)
+      var lo3 = Math.min(item.high + m, hi3 - 0.001);
+      v = rand(lo3, hi3);
+    }
+  } else {
+    var hi2 = item.low - m;
+    var lo2 = item.low - r;
+    if (item.low > 0) lo2 = Math.max(lo2, item.low * 0.1);
+    if (typeof item.floor === 'number') lo2 = Math.max(lo2, item.floor);
+    if (lo2 >= hi2) lo2 = hi2 - Math.max(m, Math.abs(hi2) * 0.05 + 0.001);
+    v = rand(lo2, hi2);
+  }
+  var str = v.toFixed(d);
+  var num = Number(str);
+  // 丸めで境界を跨いだ場合の保険
+  if (zone === 'in' && (num <= item.low || num >= item.high)) {
+    num = (item.low + item.high) / 2; str = num.toFixed(d);
+  }
+  if (zone === 'high' && num <= item.high) {
+    num = item.high + Math.max(m * 2, r * 0.3);
+    if (typeof item.ceil === 'number') num = Math.min(num, item.ceil);
+    str = num.toFixed(d);
+  }
+  if (zone === 'low' && num >= item.low) {
+    num = item.low - Math.max(m * 2, r * 0.3); str = num.toFixed(d);
+  }
+  return { zone: zone, str: str };
+}
+function judgeStart() {
+  judgeSet = pickSet(JUDGE_N);
+  judgeIdx = 0;
+  judgeScore = 0;
+  judgeToken++;
+  document.getElementById('judge-start').classList.add('hidden');
+  document.getElementById('judge-result').classList.add('hidden');
+  document.getElementById('judge-play').classList.remove('hidden');
+  judgeRenderQ();
+}
+function judgeRenderQ() {
+  judgeAnswered = false;
+  var it = judgeSet[judgeIdx];
+  var g = genJudgeValue(it);
+  judgeCur = { item: it, valueStr: g.str, zone: g.zone };
+  document.getElementById('judge-prog').textContent = '第' + (judgeIdx + 1) + '問 / ' + judgeSet.length;
+  document.getElementById('judge-score').textContent = '正解 ' + judgeScore;
+  document.getElementById('judge-name').textContent = quizLabel(it) + (it.en !== it.name ? ' (' + it.en + ')' : '');
+  var valEl = document.getElementById('judge-val');
+  valEl.className = 'judge-val';
+  valEl.innerHTML = esc(g.str) + (it.unit ? ' <small>' + esc(it.unit) + '</small>' : '');
+  document.querySelectorAll('#view-judge .jbtn').forEach(function(b) {
+    b.disabled = false;
+    b.className = 'jbtn';
+  });
+  document.getElementById('judge-fb').innerHTML = '';
+  document.getElementById('judge-next-wrap').classList.add('hidden');
+}
+document.querySelectorAll('#view-judge .jbtn').forEach(function(b) {
+  b.addEventListener('click', function() { judgeAnswer(b.getAttribute('data-zone')); });
+});
+function judgeAnswer(zone) {
+  if (judgeAnswered || !judgeCur) return;
+  judgeAnswered = true;
+  var it = judgeCur.item;
+  var ok = zone === judgeCur.zone;
+  var valEl = document.getElementById('judge-val');
+  document.querySelectorAll('#view-judge .jbtn').forEach(function(b) {
+    b.disabled = true;
+    var z = b.getAttribute('data-zone');
+    if (z === judgeCur.zone) b.classList.add('correct');
+    else if (z === zone) b.classList.add('wrong');
+  });
+  if (ok) {
+    judgeScore++;
+    adjustW(it.id, 0.85, 0, true);
+    document.getElementById('judge-score').textContent = '正解 ' + judgeScore;
+    valEl.classList.add('flash-ok');
+    var token = ++judgeToken;
+    setTimeout(function() {
+      if (token !== judgeToken) return;
+      judgeAdvance();
+    }, 650);
+  } else {
+    adjustW(it.id, 1.4, 0.5, false);
+    valEl.classList.add('flash-ng');
+    var zoneJa = { low: '低い', in: '基準範囲内', high: '高い' }[judgeCur.zone];
+    document.getElementById('judge-fb').innerHTML =
+      '正解は「' + esc(zoneJa) + '」/ 基準値: <span class="range">' + esc(it.display) + '</span>';
+    document.getElementById('judge-next-wrap').classList.remove('hidden');
+  }
+}
+function judgeAdvance() {
+  if (judgeIdx < judgeSet.length - 1) { judgeIdx++; judgeRenderQ(); }
+  else judgeShowResult();
+}
+document.getElementById('judge-next').addEventListener('click', function() {
+  judgeToken++;
+  judgeAdvance();
+});
+function judgeShowResult() {
+  document.getElementById('judge-play').classList.add('hidden');
+  var el = document.getElementById('judge-result');
+  el.classList.remove('hidden');
+  var pct = Math.round(judgeScore / judgeSet.length * 100);
+  document.getElementById('judge-result-num').innerHTML =
+    esc(String(pct)) + '<small>%</small> <small>(' + judgeScore + '/' + judgeSet.length + ')</small>';
+  var msg;
+  if (pct >= 90) msg = '反射レベル。この調子。';
+  else if (pct >= 70) msg = 'もう少しでスラスラに。続けて。';
+  else msg = '基準値そのものをフラッシュカードで固めましょう。';
+  document.getElementById('judge-result-msg').textContent = msg;
+}
+document.getElementById('judge-start-btn').addEventListener('click', judgeStart);
+document.getElementById('judge-retry').addEventListener('click', judgeStart);
+
+/* ================= 早見表 ================= */
+document.getElementById('table-search').addEventListener('input', renderTable);
+function weakMarkHtml(id) {
+  var w = getW(id);
+  if (w >= 5) return '<span class="weak-mark w2">とても苦手</span>';
+  if (w >= 2.5) return '<span class="weak-mark w1">苦手</span>';
+  return '';
+}
+function renderTable() {
+  var qEl = document.getElementById('table-search');
+  var q = (qEl.value || '').trim().toLowerCase();
+  var host = document.getElementById('table-body');
+  var html = '';
+  var totalShown = 0;
+  CATS.forEach(function(cat) {
+    var items = DATA.filter(function(d) {
+      if (d.category !== cat) return false;
+      if (!q) return true;
+      return d.name.toLowerCase().indexOf(q) !== -1 ||
+             d.en.toLowerCase().indexOf(q) !== -1 ||
+             d.category.toLowerCase().indexOf(q) !== -1;
+    });
+    if (items.length === 0) return;
+    totalShown += items.length;
+    html += '<div class="card"><h2 class="cat-title">' + esc(cat) + '</h2>';
+    items.forEach(function(d) {
+      html += '<div class="lv-row">' +
+        '<div class="lv-main">' +
+          '<span class="lv-name">' + esc(d.name) +
+            '<span class="lv-en">' + esc(d.en) + '</span>' + weakMarkHtml(d.id) +
+          '</span>' +
+          '<span class="lv-disp">' + esc(d.display) + '</span>' +
+        '</div>' +
+        (d.note ? '<div class="lv-note">' + esc(d.note) + '</div>' : '') +
+        '</div>';
+    });
+    html += '</div>';
+  });
+  if (totalShown === 0) html = '<div class="card"><div class="empty">該当する項目がありません</div></div>';
+  host.innerHTML = html;
+}
+
+/* ================= 初期化 ================= */
+updateHeader();
+renderFlashChips();
+flashNext();
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) { navigator.serviceWorker.register('../sw.js').catch(() => {}); }
+</script>
+</body>
+</html>

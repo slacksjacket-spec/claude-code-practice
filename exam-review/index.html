@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>国試 間違いノート — 定着度復習ツール</title>
 <meta name="theme-color" content="#14161f">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -157,6 +157,40 @@
   .empty-state { text-align: center; padding: 30px 10px; color: var(--text-dim); line-height: 1.9; }
   .empty-state .big { font-size: 2.2rem; }
 
+  /* ---- cloze ---- */
+  .cloze-blank { color: var(--accent-2); font-weight: 700; }
+  .cloze-fill { color: var(--accent); font-weight: 700; }
+
+  /* ---- images ---- */
+  .img-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .img-strip:empty { display: none; }
+  .img-strip img {
+    max-height: 120px; max-width: 47%;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: #0f1119; cursor: zoom-in; object-fit: contain;
+  }
+  .img-strip.big img { max-height: 240px; max-width: 100%; }
+  .img-thumbs { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .img-thumbs:empty { display: none; }
+  .thumb { position: relative; }
+  .thumb img {
+    width: 76px; height: 76px; object-fit: cover; display: block;
+    border: 1px solid var(--border); border-radius: 10px; cursor: zoom-in;
+  }
+  .thumb button {
+    position: absolute; top: -8px; right: -8px;
+    width: 22px; height: 22px; border-radius: 50%; padding: 0;
+    border: 1px solid var(--border); background: var(--bg); color: var(--bad);
+    cursor: pointer; font-size: 0.8rem; line-height: 1; font-family: inherit;
+  }
+  #img-modal {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(8, 10, 18, 0.88);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; cursor: zoom-out;
+  }
+  #img-modal img { max-width: 100%; max-height: 100%; border-radius: 10px; }
+
   /* ---- form ---- */
   .form-grid { display: grid; gap: 14px; }
   .field label { display: block; font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px; }
@@ -170,6 +204,7 @@
     font-size: 0.95rem;
     padding: 10px 12px;
   }
+  .field input[type="file"] { padding: 8px 10px; font-size: 0.8rem; color: var(--text-dim); }
   .field textarea { min-height: 74px; resize: vertical; line-height: 1.6; }
   .field input:focus, .field textarea:focus, .field select:focus {
     outline: none;
@@ -197,7 +232,7 @@
   }
 
   /* ---- list ---- */
-  .list-controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 16px; }
+  .list-controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 12px; }
   @media (max-width: 560px) { .list-controls { grid-template-columns: 1fr; } }
   .list-controls input, .list-controls select {
     background: var(--panel-2);
@@ -208,6 +243,8 @@
     font-size: 0.88rem;
     padding: 9px 12px;
   }
+  .prompt-row { margin-bottom: 14px; }
+  .prompt-row .btn { font-size: 0.85rem; padding: 10px 16px; }
   .card-item {
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -233,7 +270,7 @@
   .card-item .detail { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 0.88rem; line-height: 1.7; }
   .card-item .detail .a { white-space: pre-wrap; word-break: break-word; }
   .card-item .detail .n { color: var(--warn); white-space: pre-wrap; margin-top: 6px; }
-  .card-item .actions { margin-top: 10px; display: flex; gap: 8px; }
+  .card-item .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
   .card-item .actions button {
     font-family: inherit; font-size: 0.75rem; cursor: pointer;
     background: none; border: 1px solid var(--border); color: var(--text-dim);
@@ -245,6 +282,19 @@
 
   /* ---- stats / data ---- */
   h3.section { font-size: 0.95rem; margin: 0 0 12px; }
+  .streak-line { font-size: 0.9rem; margin-bottom: 10px; }
+  .streak-line b { color: var(--warn); font-size: 1.1rem; }
+  .heatmap-wrap { overflow-x: auto; padding-bottom: 4px; }
+  .heatmap { display: flex; gap: 3px; width: max-content; }
+  .hm-col { display: flex; flex-direction: column; gap: 3px; }
+  .hm-cell { width: 14px; height: 14px; border-radius: 3px; background: var(--panel-2); }
+  .hm-cell.future { visibility: hidden; }
+  .hm-col.hm-labels .hm-cell {
+    background: none; width: 16px; font-size: 0.55rem; color: var(--text-dim);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hm-legend { display: flex; align-items: center; gap: 4px; font-size: 0.68rem; color: var(--text-dim); margin: 8px 0 24px; }
+  .hm-legend .hm-cell { width: 11px; height: 11px; }
   .level-bars { display: grid; gap: 6px; margin-bottom: 24px; }
   .level-bar-row { display: grid; grid-template-columns: 110px 1fr 34px; gap: 10px; align-items: center; font-size: 0.78rem; }
   .level-bar-row .name { color: var(--text-dim); }
@@ -280,7 +330,7 @@
 </head>
 <body>
 <div class="page">
-  <a class="back" href="../index.html">← ツール一覧にもどる</a>
+  <a class="back" href="../medical.html">← メディカルツール一覧</a>
   <h1>🩺 国試 間違いノート</h1>
   <p class="sub">
     間違えた問題・あやふやな知識を自分の言葉で登録すると、定着度に応じた間隔(当日→1日→3日→7日→14日→30日)で自動的に復習に出てきます。データはこのブラウザのlocalStorageに保存されます。
@@ -308,11 +358,13 @@
       <div class="qa-block">
         <div class="qa-label">問題</div>
         <div class="qa-text" id="review-q"></div>
+        <div class="img-strip big" id="review-q-imgs"></div>
       </div>
       <div id="review-answer-wrap" class="hidden">
         <div class="answer-box">
           <div class="qa-label">答え</div>
           <div class="qa-text" id="review-a"></div>
+          <div class="img-strip big" id="review-a-imgs"></div>
           <div class="note hidden" id="review-note"></div>
         </div>
         <div class="rate-row">
@@ -347,10 +399,23 @@
       <div class="field">
         <label>問題・問い(自分への出題文) *</label>
         <textarea id="f-q" placeholder="例: 急性膵炎の重症度判定に使わない項目は? / Basedow病の第一選択薬と妊婦での使い分けは?"></textarea>
+        <div class="form-note" style="margin-top:6px">答えの語句を { } で囲むと穴埋めカードになります(例: 急性膵炎ではCaは{低下}する)。復習時は 〔？〕 と表示されます。</div>
       </div>
       <div class="field">
         <label>答え *</label>
         <textarea id="f-a" placeholder="例: CRPは予後因子に含まれるがCa値は「低下」が重症因子。上昇ではない。"></textarea>
+      </div>
+      <div class="form-row2">
+        <div class="field" id="imgfield-q">
+          <label>問題の画像(任意・Ctrl+Vでも貼り付け可)</label>
+          <input type="file" id="f-img-q" accept="image/*" multiple>
+          <div class="img-thumbs" id="thumbs-q"></div>
+        </div>
+        <div class="field" id="imgfield-a">
+          <label>答えの画像(任意・Ctrl+Vでも貼り付け可)</label>
+          <input type="file" id="f-img-a" accept="image/*" multiple>
+          <div class="img-thumbs" id="thumbs-a"></div>
+        </div>
       </div>
       <div class="field">
         <label>敗因メモ・覚え方(任意)</label>
@@ -373,7 +438,7 @@
       </div>
       <button class="btn primary wide" id="save-btn">登録する (Ctrl+Enter)</button>
       <div class="form-note">
-        連続で登録しやすいように、保存後も「科目・出典・タグ」は残ります。登録したカードはレベル0(今日の復習対象)から始まります。
+        連続で登録しやすいように、保存後も「科目・出典・タグ」は残ります。登録したカードはレベル0(今日の復習対象)から始まります。画像は長辺1280pxに縮小して端末内(IndexedDB)に保存されます。
       </div>
     </div>
   </section>
@@ -391,12 +456,28 @@
         <option value="high">Lv4〜5</option>
       </select>
     </div>
+    <div class="prompt-row">
+      <button class="btn" id="copy-prompts-btn">📋 類題プロンプトをコピー(表示中・最大20枚)</button>
+    </div>
     <div class="list-count" id="list-count"></div>
     <div id="card-list"></div>
   </section>
 
   <!-- ================= データ ================= -->
   <section id="tab-data" class="panel hidden">
+    <h3 class="section">学習ヒートマップ(直近15週)</h3>
+    <div class="streak-line" id="streak-line"></div>
+    <div class="heatmap-wrap"><div class="heatmap" id="heatmap"></div></div>
+    <div class="hm-legend">
+      少
+      <span class="hm-cell"></span>
+      <span class="hm-cell" style="background:rgba(124,157,255,0.25)"></span>
+      <span class="hm-cell" style="background:rgba(124,157,255,0.5)"></span>
+      <span class="hm-cell" style="background:rgba(124,157,255,0.75)"></span>
+      <span class="hm-cell" style="background:rgba(124,157,255,1)"></span>
+      多
+    </div>
+
     <h3 class="section">定着度の分布</h3>
     <div class="level-bars" id="level-bars"></div>
 
@@ -414,11 +495,12 @@
       <button class="btn danger" id="wipe-btn">全データを削除</button>
     </div>
     <p class="form-note" style="margin-top:12px">
-      データはこのブラウザにしか保存されません。別のPC/スマホで使うときや機種変更前は、エクスポートしたJSONを移してインポートしてください。インポートは既存データに追加され、同じカードは新しい内容で上書きされます。
+      データはこのブラウザにしか保存されません。別のPC/スマホで使うときや機種変更前は、エクスポートしたJSONを移してインポートしてください。インポートは既存データに追加され、同じカードは新しい内容で上書きされます。エクスポートには画像と学習記録も含まれます。
     </p>
   </section>
 </div>
 
+<div id="img-modal" class="hidden"><img id="img-modal-img" alt="拡大画像"></div>
 <div id="toast"></div>
 
 <script>
@@ -435,16 +517,19 @@ const SUBJECT_PRESETS = [
   '公衆衛生', '必修', 'その他'
 ];
 
-let cards = load();
+let cards = [];
+let reviewLog = {}; // {'YYYY-MM-DD': {n: 回答数, wrong: ×の数}}
+loadStore();
 
-function load() {
+function loadStore() {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return Array.isArray(data && data.cards) ? data.cards : [];
-  } catch (e) { return []; }
+    cards = Array.isArray(data && data.cards) ? data.cards : [];
+    reviewLog = (data && data.log && typeof data.log === 'object' && !Array.isArray(data.log)) ? data.log : {};
+  } catch (e) { cards = []; reviewLog = {}; }
 }
 function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, cards })); } catch (e) {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 2, cards, log: reviewLog })); } catch (e) {}
 }
 function uid() {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
@@ -464,6 +549,208 @@ function daysUntil(dateStr) {
   const [y1, m1, d1] = todayStr().split('-').map(Number);
   const [y2, m2, d2] = dateStr.split('-').map(Number);
   return Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 86400000);
+}
+
+/* ================= 画像 (IndexedDB) ================= */
+const IDB_NAME = 'kokushi-review-images';
+const IDB_STORE = 'images';
+let idbSupported = (typeof indexedDB !== 'undefined');
+let dbPromise = null;
+
+function openImageDb() {
+  if (!idbSupported) return Promise.reject(new Error('IndexedDB unavailable'));
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    try {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => {
+        try { req.result.createObjectStore(IDB_STORE); } catch (e) {}
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error('open failed'));
+    } catch (e) { reject(e); }
+  });
+  return dbPromise;
+}
+function idbPut(id, blob) {
+  return openImageDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(blob, id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  }));
+}
+function idbGet(id) {
+  return openImageDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(id);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  }));
+}
+function idbDelete(id) {
+  return openImageDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+function idbClear() {
+  return openImageDb().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+
+function hideImageFields() {
+  const q = $('imgfield-q'), a = $('imgfield-a');
+  if (q) q.classList.add('hidden');
+  if (a) a.classList.add('hidden');
+}
+
+/* カードの imageIds を後方互換に読む */
+function cardImages(c) {
+  const ii = c && c.imageIds;
+  return {
+    q: (ii && Array.isArray(ii.q)) ? ii.q : [],
+    a: (ii && Array.isArray(ii.a)) ? ii.a : []
+  };
+}
+
+/* 長辺1280pxに縮小してJPEG化 */
+function shrinkImage(fileOrBlob) {
+  return new Promise((resolve, reject) => {
+    let url;
+    try { url = URL.createObjectURL(fileOrBlob); } catch (e) { reject(e); return; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        URL.revokeObjectURL(url);
+        const long = Math.max(img.naturalWidth, img.naturalHeight);
+        const scale = long > 1280 ? 1280 / long : 1;
+        const w = Math.max(1, Math.round(img.naturalWidth * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/jpeg', 0.85);
+      } catch (e) { reject(e); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image load failed')); };
+    img.src = url;
+  });
+}
+
+/* 画像ID → objectURL のキャッシュ */
+const imgUrlCache = new Map();
+function imageUrl(id) {
+  if (imgUrlCache.has(id)) return Promise.resolve(imgUrlCache.get(id));
+  return idbGet(id).then(blob => {
+    if (!blob) return null;
+    const url = URL.createObjectURL(blob);
+    imgUrlCache.set(id, url);
+    return url;
+  }).catch(() => null);
+}
+function removeImage(id) {
+  if (imgUrlCache.has(id)) {
+    try { URL.revokeObjectURL(imgUrlCache.get(id)); } catch (e) {}
+    imgUrlCache.delete(id);
+  }
+  idbDelete(id).catch(() => {});
+}
+function deleteCardImages(c) {
+  const imgs = cardImages(c);
+  imgs.q.concat(imgs.a).forEach(removeImage);
+}
+
+/* コンテナへ画像を非同期描画(古い描画は token で無効化) */
+let imgRenderSeq = 0;
+function renderImagesInto(el, ids) {
+  if (!el) return;
+  const token = String(++imgRenderSeq);
+  el.dataset.token = token;
+  el.innerHTML = '';
+  if (!idbSupported || !ids || !ids.length) return;
+  ids.forEach(id => {
+    imageUrl(id).then(url => {
+      if (!url || el.dataset.token !== token) return;
+      const img = document.createElement('img');
+      img.className = 'att-img';
+      img.alt = '添付画像';
+      img.src = url;
+      el.appendChild(img);
+    });
+  });
+}
+
+function openImgModal(src) {
+  $('img-modal-img').src = src;
+  $('img-modal').classList.remove('hidden');
+}
+function closeImgModal() {
+  $('img-modal').classList.add('hidden');
+  $('img-modal-img').removeAttribute('src');
+}
+
+/* ---- dataURL 変換 ---- */
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+function dataUrlToBlob(dataUrl) {
+  try {
+    const m = /^data:([^,;]+)?(;base64)?,([\s\S]*)$/.exec(String(dataUrl));
+    if (!m) return null;
+    const mime = m[1] || 'image/jpeg';
+    if (m[2]) {
+      const bin = atob(m[3]);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    }
+    return new Blob([decodeURIComponent(m[3])], { type: mime });
+  } catch (e) { return null; }
+}
+
+/* ================= 穴埋め(クローズ) ================= */
+const CLOZE_RE = /\{([^{}]*)\}/g;
+function hasCloze(text) {
+  CLOZE_RE.lastIndex = 0;
+  return CLOZE_RE.test(String(text || ''));
+}
+function clozeHide(text) {
+  return String(text || '').replace(CLOZE_RE, '〔？〕');
+}
+function clozeStrip(text) {
+  return String(text || '').replace(CLOZE_RE, '$1');
+}
+function clozeHtml(text, revealedFill) {
+  let html = '';
+  let last = 0;
+  const src = String(text || '');
+  CLOZE_RE.lastIndex = 0;
+  let m;
+  while ((m = CLOZE_RE.exec(src))) {
+    html += esc(src.slice(last, m.index));
+    html += revealedFill
+      ? '<span class="cloze-fill">' + esc(m[1]) + '</span>'
+      : '<span class="cloze-blank">〔？〕</span>';
+    last = m.index + m[0].length;
+  }
+  html += esc(src.slice(last));
+  return html;
 }
 
 /* ================= 復習ロジック ================= */
@@ -496,6 +783,12 @@ function rate(kind) {
   session.doneCount++;
   c.reviews = (c.reviews || 0) + 1;
   c.lastReviewed = todayStr();
+  // 学習ログ(ヒートマップ用)
+  const t = todayStr();
+  if (!reviewLog[t] || typeof reviewLog[t] !== 'object') reviewLog[t] = { n: 0, wrong: 0 };
+  reviewLog[t].n = (Number(reviewLog[t].n) || 0) + 1;
+  if (kind === 'bad') reviewLog[t].wrong = (Number(reviewLog[t].wrong) || 0) + 1;
+
   if (kind === 'bad') {
     c.level = 0;
     c.due = todayStr();
@@ -576,8 +869,16 @@ function renderReview() {
     (c.tags && c.tags.length ? c.tags.map(t => `<span class="chip">#${esc(t)}</span>`).join('') : '') +
     `<span>${starsHtml(c.level)}</span>` +
     `<span>復習${c.reviews || 0}回 / つまずき${c.lapses || 0}回</span>`;
-  $('review-q').textContent = c.q;
+  // 穴埋めカードは {xxx} を隠す/答え表示時は穴を埋めて強調
+  if (hasCloze(c.q)) {
+    $('review-q').innerHTML = clozeHtml(c.q, revealed);
+  } else {
+    $('review-q').textContent = c.q;
+  }
   $('review-a').textContent = c.a;
+  const imgs = cardImages(c);
+  renderImagesInto($('review-q-imgs'), imgs.q);
+  renderImagesInto($('review-a-imgs'), imgs.a);
   const noteEl = $('review-note');
   noteEl.classList.toggle('hidden', !c.note);
   noteEl.textContent = c.note || '';
@@ -587,6 +888,79 @@ function renderReview() {
 
 /* ---- 登録フォーム ---- */
 let editingId = null;
+/* フォーム中の画像。entry = {id, isNew, blob(新規のみ), url(objectURL)} */
+let formImgs = { q: [], a: [] };
+let formImgsDeleted = []; // 編集中に外した既存画像のID(保存時にIndexedDBから削除)
+
+function resetFormImages() {
+  for (const side of ['q', 'a']) {
+    for (const entry of formImgs[side]) {
+      if (entry.isNew && entry.url) { try { URL.revokeObjectURL(entry.url); } catch (e) {} }
+    }
+  }
+  formImgs = { q: [], a: [] };
+  formImgsDeleted = [];
+  renderFormThumbs();
+}
+function renderFormThumbs() {
+  for (const side of ['q', 'a']) {
+    const box = $('thumbs-' + side);
+    if (!box) continue;
+    box.innerHTML = '';
+    formImgs[side].forEach(entry => {
+      const wrap = document.createElement('div');
+      wrap.className = 'thumb';
+      const img = document.createElement('img');
+      img.className = 'att-img';
+      img.alt = '添付画像';
+      if (entry.url) img.src = entry.url;
+      else imageUrl(entry.id).then(url => { if (url) { entry.url = url; img.src = url; } });
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.textContent = '×';
+      del.title = 'この画像を外す';
+      del.addEventListener('click', ev => {
+        ev.stopPropagation();
+        if (entry.isNew) {
+          if (entry.url) { try { URL.revokeObjectURL(entry.url); } catch (e) {} }
+        } else {
+          formImgsDeleted.push(entry.id);
+        }
+        const arr = formImgs[side];
+        const i = arr.indexOf(entry);
+        if (i >= 0) arr.splice(i, 1);
+        renderFormThumbs();
+      });
+      wrap.appendChild(img);
+      wrap.appendChild(del);
+      box.appendChild(wrap);
+    });
+  }
+}
+function addFormImage(side, file) {
+  if (!idbSupported || !file) return;
+  shrinkImage(file).then(blob => {
+    const entry = { id: uid(), isNew: true, blob, url: URL.createObjectURL(blob) };
+    formImgs[side].push(entry);
+    renderFormThumbs();
+  }).catch(() => toast('画像を読み込めませんでした'));
+}
+function commitFormImages() {
+  // 新規画像をIndexedDBへ保存し、外した既存画像を削除。imageIdsを返す。
+  for (const side of ['q', 'a']) {
+    for (const entry of formImgs[side]) {
+      if (entry.isNew && entry.blob) {
+        idbPut(entry.id, entry.blob).catch(() => {});
+        if (entry.url) imgUrlCache.set(entry.id, entry.url); // プレビューURLをそのまま流用
+        entry.isNew = false;
+        entry.blob = null;
+      }
+    }
+  }
+  for (const id of formImgsDeleted) removeImage(id);
+  formImgsDeleted = [];
+  return { q: formImgs.q.map(e => e.id), a: formImgs.a.map(e => e.id) };
+}
 
 function saveForm() {
   const q = $('f-q').value.trim();
@@ -596,20 +970,22 @@ function saveForm() {
   const source = $('f-source').value.trim();
   const note = $('f-note').value.trim();
   const tags = $('f-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const imageIds = commitFormImages();
 
   if (editingId) {
     const c = cards.find(x => x.id === editingId);
-    if (c) Object.assign(c, { q, a, note, subject, source, tags });
+    if (c) Object.assign(c, { q, a, note, subject, source, tags, imageIds });
     stopEditing();
     toast('カードを更新しました');
   } else {
     cards.push({
-      id: uid(), q, a, note, subject, source, tags,
+      id: uid(), q, a, note, subject, source, tags, imageIds,
       level: 0, due: todayStr(), created: todayStr(),
       reviews: 0, lapses: 0, lastReviewed: null
     });
     buildSession(); // 新カードを今日の復習に反映
     $('f-q').value = ''; $('f-a').value = ''; $('f-note').value = '';
+    resetFormImages();
     $('f-q').focus();
     toast('登録しました(今日の復習に追加)');
   }
@@ -623,6 +999,11 @@ function startEditing(id) {
   $('f-q').value = c.q; $('f-a').value = c.a; $('f-note').value = c.note || '';
   $('f-subject').value = c.subject || ''; $('f-source').value = c.source || '';
   $('f-tags').value = (c.tags || []).join(', ');
+  resetFormImages();
+  const imgs = cardImages(c);
+  formImgs.q = imgs.q.map(iid => ({ id: iid, isNew: false, blob: null, url: null }));
+  formImgs.a = imgs.a.map(iid => ({ id: iid, isNew: false, blob: null, url: null }));
+  renderFormThumbs();
   $('editing-banner').classList.remove('hidden');
   $('save-btn').textContent = '変更を保存する (Ctrl+Enter)';
   switchTab('add');
@@ -633,10 +1014,12 @@ function stopEditing() {
   $('editing-banner').classList.add('hidden');
   $('save-btn').textContent = '登録する (Ctrl+Enter)';
   $('f-q').value = ''; $('f-a').value = ''; $('f-note').value = '';
+  resetFormImages();
 }
 
 /* ---- 一覧 ---- */
 const expandedIds = new Set();
+let lastFiltered = [];
 
 function groupBySubject() {
   const map = {};
@@ -668,6 +1051,7 @@ function renderList() {
       [c.q, c.a, c.note, c.source, (c.tags || []).join(' ')].join(' ').toLowerCase().includes(kw));
   }
   list.sort((a, b) => (a.due < b.due ? -1 : a.due > b.due ? 1 : 0));
+  lastFiltered = list;
 
   $('list-count').textContent = `${list.length} 枚 / 全 ${cards.length} 枚`;
   $('card-list').innerHTML = list.map(c => {
@@ -675,27 +1059,73 @@ function renderList() {
     const dueCls = diff < 0 ? 'overdue' : diff === 0 ? 'today' : '';
     const dueTxt = diff < 0 ? `${-diff}日超過` : diff === 0 ? '今日' : `${diff}日後`;
     const open = expandedIds.has(c.id);
+    const imgs = cardImages(c);
     return `
-    <div class="card-item" data-id="${c.id}">
+    <div class="card-item" data-id="${esc(c.id)}">
       <div class="top">
         ${c.subject ? `<span class="chip subject">${esc(c.subject)}</span>` : ''}
         ${c.source ? `<span class="chip">${esc(c.source)}</span>` : ''}
         ${starsHtml(c.level)}
         <span class="due-badge ${dueCls}">次回: ${dueTxt}</span>
       </div>
-      <div class="q">${esc(c.q)}</div>
+      <div class="q">${esc(clozeHide(c.q))}</div>
       ${open ? `
       <div class="detail">
+        ${idbSupported && imgs.q.length ? `<div class="img-strip" data-ids="${esc(imgs.q.join(','))}"></div>` : ''}
         <div class="qa-label">答え</div>
         <div class="a">${esc(c.a)}</div>
+        ${idbSupported && imgs.a.length ? `<div class="img-strip" data-ids="${esc(imgs.a.join(','))}"></div>` : ''}
         ${c.note ? `<div class="n">${esc(c.note)}</div>` : ''}
         <div class="actions">
           <button data-act="edit">編集</button>
+          <button data-act="prompt">類題プロンプト</button>
           <button data-act="del" class="del">削除</button>
         </div>
       </div>` : ''}
     </div>`;
   }).join('') || '<div class="empty-state">該当するカードがありません</div>';
+
+  // 展開中カードの画像を非同期で流し込む
+  $('card-list').querySelectorAll('.img-strip[data-ids]').forEach(el => {
+    renderImagesInto(el, el.dataset.ids.split(',').filter(Boolean));
+  });
+}
+
+/* ---- 類題プロンプト ---- */
+function buildPrompt(cardList) {
+  let s = '医師国家試験の学習中です。以下は自分が間違えた問題のメモです。\n\n';
+  cardList.forEach((c, i) => {
+    s += `【${i + 1}】${c.subject ? `〈${c.subject}〉` : ''}\n`;
+    s += `問題: ${clozeStrip(c.q)}\n`;
+    s += `答え: ${c.a}\n`;
+    if (c.note) s += `敗因メモ: ${c.note}\n`;
+    s += '\n';
+  });
+  s += 'これらの知識を問う国試形式の五肢択一問題を1テーマにつき5問、解説付きで作って。ひっかけ選択肢には自分の敗因を反映させて。';
+  return s;
+}
+function fallbackCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) { return false; }
+}
+function copyText(text, okMsg) {
+  const done = () => toast(okMsg || 'コピーしました');
+  const fail = () => toast('コピーできませんでした');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(text) ? done() : fail(); });
+  } else {
+    fallbackCopy(text) ? done() : fail();
+  }
 }
 
 /* ---- 統計 ---- */
@@ -727,6 +1157,55 @@ function renderStats() {
       <td>${r.avg.toFixed(1)}</td>
       <td>${r.due}</td>
     </tr>`).join('') || '<tr><td colspan="4" style="color:var(--text-dim)">まだデータがありません</td></tr>';
+
+  renderHeatmap();
+}
+
+/* ---- 学習ヒートマップ ---- */
+function logEntry(dateStr) {
+  const e = reviewLog[dateStr];
+  if (!e || typeof e !== 'object') return null;
+  const n = Number(e.n) || 0;
+  return n > 0 ? { n, wrong: Number(e.wrong) || 0 } : null;
+}
+function calcStreak() {
+  let d = todayStr();
+  let streak = 0;
+  if (!logEntry(d)) d = addDays(d, -1); // 今日まだ解いていなければ昨日から数える
+  while (logEntry(d)) { streak++; d = addDays(d, -1); }
+  return streak;
+}
+function renderHeatmap() {
+  const t = todayStr();
+  const [ty, tm, td] = t.split('-').map(Number);
+  const dow = new Date(ty, tm - 1, td).getDay(); // 0=日
+  const start = addDays(t, -(dow + 7 * 14)); // 15週前の日曜
+  const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+  let html = '<div class="hm-col hm-labels">' + dayNames.map(d => `<div class="hm-cell">${d}</div>`).join('') + '</div>';
+  let cur = start;
+  for (let w = 0; w < 15; w++) {
+    html += '<div class="hm-col">';
+    for (let d = 0; d < 7; d++) {
+      if (cur > t) {
+        html += '<div class="hm-cell future"></div>';
+      } else {
+        const e = logEntry(cur);
+        const n = e ? e.n : 0;
+        const lv = n === 0 ? 0 : n < 4 ? 1 : n < 10 ? 2 : n < 20 ? 3 : 4;
+        const alpha = [0, 0.25, 0.5, 0.75, 1][lv];
+        const style = lv === 0 ? '' : ` style="background:rgba(124,157,255,${alpha})"`;
+        const title = e ? `${cur}: ${e.n}回答(うち× ${e.wrong}回)` : `${cur}: 回答なし`;
+        html += `<div class="hm-cell"${style} title="${title}"></div>`;
+      }
+      cur = addDays(cur, 1);
+    }
+    html += '</div>';
+  }
+  $('heatmap').innerHTML = html;
+  const streak = calcStreak();
+  $('streak-line').innerHTML = streak > 0
+    ? `🔥 連続学習 <b>${streak}</b> 日`
+    : 'まだ連続記録がありません。今日1問こたえると始まります。';
 }
 
 function renderAll() {
@@ -737,27 +1216,46 @@ function renderAll() {
 }
 
 /* ================= エクスポート / インポート ================= */
+function collectImagesAsDataUrls() {
+  if (!idbSupported) return Promise.resolve({});
+  const ids = new Set();
+  for (const c of cards) {
+    const imgs = cardImages(c);
+    imgs.q.concat(imgs.a).forEach(id => ids.add(id));
+  }
+  const out = {};
+  const jobs = Array.from(ids).map(id =>
+    idbGet(id)
+      .then(blob => blob ? blobToDataUrl(blob).then(u => { out[id] = u; }) : null)
+      .catch(() => {})
+  );
+  return Promise.all(jobs).then(() => out).catch(() => out);
+}
 function exportJson() {
-  const blob = new Blob([JSON.stringify({ version: 1, exported: new Date().toISOString(), cards }, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `kokushi-review-backup-${todayStr()}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast('エクスポートしました');
+  collectImagesAsDataUrls().then(images => {
+    const payload = { version: 2, exported: new Date().toISOString(), cards, log: reviewLog };
+    if (images && Object.keys(images).length) payload.images = images;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `kokushi-review-backup-${todayStr()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('エクスポートしました');
+  }).catch(() => toast('エクスポートに失敗しました'));
 }
 function importJson(file) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
-      const incoming = Array.isArray(data) ? data : data.cards;
+      const incoming = Array.isArray(data) ? data : data && data.cards;
       if (!Array.isArray(incoming)) throw new Error('形式が違います');
       let added = 0, updated = 0;
       for (const raw of incoming) {
         if (!raw || !raw.q || !raw.a) continue;
         const card = {
-          id: raw.id || uid(),
+          id: String(raw.id || uid()),
           q: String(raw.q), a: String(raw.a), note: String(raw.note || ''),
           subject: String(raw.subject || ''), source: String(raw.source || ''),
           tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
@@ -768,13 +1266,38 @@ function importJson(file) {
           lapses: Number(raw.lapses) || 0,
           lastReviewed: raw.lastReviewed || null
         };
+        if (raw.imageIds && typeof raw.imageIds === 'object') {
+          const iq = Array.isArray(raw.imageIds.q) ? raw.imageIds.q.map(String) : [];
+          const ia = Array.isArray(raw.imageIds.a) ? raw.imageIds.a.map(String) : [];
+          if (iq.length || ia.length) card.imageIds = { q: iq, a: ia };
+        }
         const idx = cards.findIndex(x => x.id === card.id);
         if (idx >= 0) { cards[idx] = card; updated++; } else { cards.push(card); added++; }
       }
-      persist();
-      buildSession();
-      renderAll();
-      toast(`インポート完了: 追加${added}枚 / 上書き${updated}枚`);
+      // 学習ログのマージ(同じ日は回答数の多いほうを採用)
+      if (data && data.log && typeof data.log === 'object' && !Array.isArray(data.log)) {
+        for (const [k, v] of Object.entries(data.log)) {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !v || typeof v !== 'object') continue;
+          const n = Number(v.n) || 0;
+          if (!n) continue;
+          const cur = logEntry(k);
+          if (!cur || cur.n < n) reviewLog[k] = { n, wrong: Number(v.wrong) || 0 };
+        }
+      }
+      // 画像の復元(古いバックアップに images はない → そのままスキップ)
+      const imgJobs = [];
+      if (idbSupported && data && data.images && typeof data.images === 'object') {
+        for (const [id, dataUrl] of Object.entries(data.images)) {
+          const blob = dataUrlToBlob(dataUrl);
+          if (blob) imgJobs.push(idbPut(String(id), blob).catch(() => {}));
+        }
+      }
+      Promise.all(imgJobs).then(() => {
+        persist();
+        buildSession();
+        renderAll();
+        toast(`インポート完了: 追加${added}枚 / 上書き${updated}枚`);
+      });
     } catch (e) {
       toast('インポート失敗: JSONを確認してください');
     }
@@ -822,6 +1345,7 @@ $('filter-subject').addEventListener('change', renderList);
 $('filter-level').addEventListener('change', renderList);
 
 $('card-list').addEventListener('click', e => {
+  if (e.target.closest('img.att-img')) return; // 画像クリックはモーダル(document側で処理)
   const item = e.target.closest('.card-item');
   if (!item) return;
   const id = item.dataset.id;
@@ -829,9 +1353,14 @@ $('card-list').addEventListener('click', e => {
   if (act) {
     e.stopPropagation();
     if (act.dataset.act === 'edit') startEditing(id);
+    else if (act.dataset.act === 'prompt') {
+      const c = cards.find(x => x.id === id);
+      if (c) copyText(buildPrompt([c]), '類題プロンプトをコピーしました');
+    }
     else if (act.dataset.act === 'del') {
       const c = cards.find(x => x.id === id);
       if (c && confirm('このカードを削除しますか?\n\n' + c.q.slice(0, 60))) {
+        deleteCardImages(c);
         cards = cards.filter(x => x.id !== id);
         expandedIds.delete(id);
         persist();
@@ -845,6 +1374,44 @@ $('card-list').addEventListener('click', e => {
   renderList();
 });
 
+$('copy-prompts-btn').addEventListener('click', () => {
+  const list = lastFiltered.slice(0, 20);
+  if (!list.length) { toast('コピーするカードがありません'); return; }
+  copyText(buildPrompt(list), `類題プロンプトをコピーしました(${list.length}枚分)`);
+});
+
+/* ---- 画像UI配線 ---- */
+$('f-img-q').addEventListener('change', e => {
+  Array.from(e.target.files || []).forEach(f => addFormImage('q', f));
+  e.target.value = '';
+});
+$('f-img-a').addEventListener('change', e => {
+  Array.from(e.target.files || []).forEach(f => addFormImage('a', f));
+  e.target.value = '';
+});
+document.addEventListener('paste', e => {
+  if (activeTab !== 'add' || !idbSupported) return;
+  const items = (e.clipboardData && e.clipboardData.items) || [];
+  const files = [];
+  for (const it of items) {
+    if (it.kind === 'file' && it.type && it.type.indexOf('image/') === 0) {
+      const f = it.getAsFile();
+      if (f) files.push(f);
+    }
+  }
+  if (!files.length) return;
+  e.preventDefault();
+  // フォーカス中の欄で振り分け(答え側にフォーカスがなければ問題側)
+  const ae = document.activeElement;
+  const side = (ae && (ae.id === 'f-a' || ae.id === 'f-img-a' || (ae.closest && ae.closest('#imgfield-a')))) ? 'a' : 'q';
+  files.forEach(f => addFormImage(side, f));
+});
+document.addEventListener('click', e => {
+  const img = e.target.closest('img.att-img');
+  if (img && img.src) openImgModal(img.src);
+});
+$('img-modal').addEventListener('click', closeImgModal);
+
 $('export-btn').addEventListener('click', exportJson);
 $('import-btn').addEventListener('click', () => $('import-file').click());
 $('import-file').addEventListener('change', e => {
@@ -856,6 +1423,10 @@ $('wipe-btn').addEventListener('click', () => {
   if (confirm(`全 ${cards.length} 枚のカードを削除します。よろしいですか?`) &&
       confirm('本当に削除しますか? この操作は元に戻せません。先にエクスポートを推奨します。')) {
     cards = [];
+    reviewLog = {};
+    for (const url of imgUrlCache.values()) { try { URL.revokeObjectURL(url); } catch (e2) {} }
+    imgUrlCache.clear();
+    if (idbSupported) idbClear().catch(() => {});
     persist();
     buildSession();
     renderAll();
@@ -864,6 +1435,10 @@ $('wipe-btn').addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('img-modal').classList.contains('hidden')) {
+    closeImgModal();
+    return;
+  }
   if (e.target.matches('input, textarea, select')) {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && activeTab === 'add') saveForm();
     return;
@@ -882,13 +1457,28 @@ document.addEventListener('keydown', e => {
 
 /* ================= 初期化 ================= */
 $('subject-presets').innerHTML = SUBJECT_PRESETS.map(s => `<option value="${s}">`).join('');
+if (!idbSupported) {
+  hideImageFields();
+} else {
+  // 開けない環境(プライベートモード等)では画像機能だけ静かに無効化
+  openImageDb().catch(() => { idbSupported = false; hideImageFields(); });
+}
 buildSession();
 renderAll();
 
 // PWA: https(GitHub Pages)またはlocalhostで開いたときだけオフラインキャッシュを有効化
+// 旧・アプリ内SW(スコープ /exam-review/)を解除してからルートのSWに一本化する
 if ('serviceWorker' in navigator &&
     (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.getRegistrations()
+    .then(regs => Promise.all(
+      regs
+        .filter(r => r.scope && r.scope.indexOf('/exam-review/') !== -1)
+        .map(r => r.unregister().catch(() => {}))
+    ))
+    .catch(() => {})
+    .then(() => navigator.serviceWorker.register('../sw.js'))
+    .catch(() => {});
 }
 </script>
 </body>

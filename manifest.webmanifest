@@ -1,9 +1,9 @@
 {
-  "name": "国試 間違いノート",
-  "short_name": "国試ノート",
-  "description": "間違えた問題を登録して、定着度に応じた間隔で復習する医師国家試験用ツール",
+  "name": "国試ツールキット",
+  "short_name": "国試ツール",
+  "description": "間違いノート・検査値ドリル・カウントダウンなど、医師国家試験の勉強ツール集",
   "lang": "ja",
-  "start_url": "./index.html",
+  "start_url": "./medical.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#14161f",
