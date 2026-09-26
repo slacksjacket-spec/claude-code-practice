@@ -2,7 +2,7 @@
 
 // 医学系ツール共通のService Worker(サイトルートスコープ)。
 // アプリを更新したらこのバージョンを上げる(古いキャッシュが破棄される)
-const CACHE = 'medical-hub-v1';
+const CACHE = 'medical-hub-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -23,7 +23,11 @@ const ASSETS = [
   './mock-tracker/index.html',
   './medical-english/',
   './medical-english/index.html',
-  './medical-english/morphemes.js'
+  './medical-english/morphemes.js',
+  './road-quiz/',
+  './road-quiz/index.html',
+  './road-quiz/mapdata.js',
+  './road-quiz/routes.js'
 ];
 
 self.addEventListener('install', e => {

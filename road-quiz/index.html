@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#14161f">
+<title>国道マップドリル</title>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<style>
+  :root {
+    --bg: #14161f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --accent: #7c9dff;
+    --accent-2: #ff9ecf;
+    --good: #6fd598;
+    --warn: #ffd27c;
+    --bad: #ff8a8a;
+    --text: #e9ebf5;
+    --text-dim: #9aa0b8;
+    --border: #2f3350;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% -10%, #2a2f4a, var(--bg) 60%);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 12px 72px;
+  }
+  .page { width: 100%; max-width: 780px; }
+
+  .back { font-size: 0.85rem; color: var(--text-dim); text-decoration: none; }
+  .back:hover { color: var(--accent); }
+  h1 { font-size: 1.55rem; margin: 14px 0 4px; }
+  .sub { color: var(--text-dim); font-size: 0.88rem; margin: 0 0 16px; line-height: 1.7; }
+
+  .statline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .pill {
+    display: inline-block; padding: 6px 14px; border-radius: 999px;
+    background: var(--panel); border: 1px solid var(--border);
+    font-size: 0.8rem; color: var(--text-dim);
+  }
+  .pill b { color: var(--text); font-size: 0.92rem; }
+
+  button { font-family: inherit; cursor: pointer; }
+  .btn {
+    padding: 12px 22px; border-radius: 12px; border: 1px solid var(--accent);
+    background: var(--accent); color: #10131c; font-weight: 700; font-size: 0.92rem;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn.ghost:hover { background: rgba(124,157,255,0.12); }
+  .btn.danger { border-color: var(--bad); background: transparent; color: var(--bad); font-weight: 500; }
+  .btn.small { padding: 7px 14px; font-size: 0.78rem; border-radius: 10px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tab {
+    flex: 1 1 100px; padding: 11px 6px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text-dim); font-size: 0.86rem;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .tab.active { color: var(--text); border-color: var(--accent); background: var(--panel-2); }
+
+  .chips { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
+  .chip {
+    flex: 0 0 auto; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text-dim); font-size: 0.8rem; white-space: nowrap;
+  }
+  .chip.active { border-color: var(--accent); color: var(--text); background: var(--panel-2); }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 14px; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .hidden { display: none !important; }
+
+  /* ---- 地図 ---- */
+  .mapwrap { position: relative; }
+  #map {
+    display: block; width: 100%; height: auto; border-radius: 12px;
+    background: #10121d; border: 1px solid var(--border);
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .mapctl { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .mapctl button {
+    width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border);
+    background: rgba(30,33,48,0.9); color: var(--text); font-size: 1.05rem; line-height: 1;
+  }
+  .mapctl button.on { border-color: var(--accent); color: var(--accent); }
+  .maphint { font-size: 0.72rem; color: var(--text-dim); margin-top: 8px; text-align: center; }
+
+  .pref { fill: #232941; stroke: #3c4266; stroke-width: 1; }
+  .inset-frame { fill: none; stroke: #3c4266; stroke-width: 1; stroke-dasharray: 5 5; }
+  .inset-label { fill: #5b6280; font-size: 22px; }
+  .citydot { fill: #8891b8; }
+  .citylab text { fill: #9aa0b8; font-size: 24px; paint-order: stroke; stroke: #10121d; stroke-width: 4px; }
+
+  g.rt path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  g.rt .p-case { stroke: rgba(10,12,20,0.75); stroke-width: 7; display: none; }
+  g.rt .p-land { stroke-width: 3.2; }
+  g.rt .p-sea  { stroke-width: 2.6; stroke-dasharray: 6 6; }
+  g.rt .p-hit  { stroke: rgba(0,0,0,0); stroke-width: 26; }
+  g.rt[data-state="hide"] { display: none; }
+  g.rt[data-state="dim"] .p-land, g.rt[data-state="dim"] .p-sea { stroke: #3d4466; }
+  g.rt[data-state="base"].d1 .p-land, g.rt[data-state="base"].d1 .p-sea { stroke: #7c9dff; }
+  g.rt[data-state="base"].d2 .p-land, g.rt[data-state="base"].d2 .p-sea { stroke: #58c9a5; }
+  g.rt[data-state="base"].d3 .p-land, g.rt[data-state="base"].d3 .p-sea { stroke: #ff9ecf; }
+  g.rt[data-state="neutral"] .p-land, g.rt[data-state="neutral"] .p-sea { stroke: #9aa4cf; }
+  g.rt[data-state="target"] .p-land, g.rt[data-state="target"] .p-sea { stroke: var(--warn); }
+  g.rt[data-state="target"] .p-land { stroke-width: 5; }
+  g.rt[data-state="target"] .p-case { display: block; }
+  g.rt[data-state="good"] .p-land, g.rt[data-state="good"] .p-sea { stroke: var(--good); }
+  g.rt[data-state="good"] .p-land { stroke-width: 5; }
+  g.rt[data-state="good"] .p-case { display: block; }
+  g.rt[data-state="bad"] .p-land, g.rt[data-state="bad"] .p-sea { stroke: var(--bad); }
+  g.rt[data-state="bad"] .p-land { stroke-width: 4.5; }
+
+  .badge path { fill: #2b5fd9; stroke: #fff; stroke-width: 2.5; }
+  .badge text { fill: #fff; font-weight: 700; text-anchor: middle; }
+  .endlab circle { fill: var(--warn); stroke: #10121d; stroke-width: 2; }
+  .endlab text { fill: var(--warn); font-size: 26px; font-weight: 700; paint-order: stroke; stroke: #10121d; stroke-width: 5px; }
+
+  /* ---- 出題パネル ---- */
+  .qhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .qhead .prog { font-size: 0.82rem; color: var(--text-dim); }
+  .qtext { font-size: 1.1rem; font-weight: 700; text-align: center; margin: 8px 0 14px; line-height: 1.6; }
+  .qtext .oni { vertical-align: -9px; margin: 0 4px; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .opt {
+    padding: 12px 6px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text); font-size: 1.0rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt.good { border-color: var(--good); color: var(--good); background: rgba(111,213,152,0.1); }
+  .opt.bad { border-color: var(--bad); color: var(--bad); background: rgba(255,138,138,0.1); }
+  .opt:disabled { cursor: default; }
+  .verdict { text-align: center; font-size: 1.05rem; font-weight: 700; margin: 10px 0 4px; }
+  .verdict.ok { color: var(--good); }
+  .verdict.ng { color: var(--bad); }
+
+  .info { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px; }
+  .info .rname { font-size: 1.08rem; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .info .alias { font-size: 0.8rem; color: var(--accent); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+  .info .ends { font-size: 0.95rem; margin: 8px 0 2px; font-weight: 600; }
+  .info .via { font-size: 0.82rem; color: var(--text-dim); line-height: 1.8; margin: 4px 0; }
+  .info .note { font-size: 0.84rem; color: var(--text-dim); line-height: 1.8; margin: 6px 0 0; }
+  .nextrow { display: flex; justify-content: center; margin-top: 14px; }
+
+  .learnchips { display: flex; gap: 6px; flex-wrap: wrap; max-height: 110px; overflow-y: auto; padding: 2px; }
+  .lchip {
+    padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text); font-size: 0.85rem; font-weight: 700;
+  }
+  .lchip.active { border-color: var(--warn); color: var(--warn); }
+  .hint { font-size: 0.82rem; color: var(--text-dim); text-align: center; margin: 4px 0 10px; line-height: 1.7; }
+
+  footer { color: var(--text-dim); font-size: 0.76rem; margin-top: 24px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="../index.html">← ツール一覧へ</a>
+  <h1>🛣️ 国道マップドリル</h1>
+  <p class="sub">「この道は何号線?」を地図で覚える練習アプリ。主要な国道64路線を収録。間違えた路線ほど優先して出題される。</p>
+
+  <div class="statline">
+    <span class="pill">出題 <b id="stTotal">0</b></span>
+    <span class="pill">正答率 <b id="stAcc">-</b></span>
+    <span class="pill">連続 <b id="stStreak">0</b></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" data-mode="learn">🗺️ 学習</button>
+    <button class="tab" data-mode="quiz">🎯 号線あて</button>
+    <button class="tab" data-mode="tap">👆 地図でタップ</button>
+  </div>
+
+  <div class="chips" id="regionChips"></div>
+
+  <div class="card">
+    <div class="mapwrap">
+      <svg id="map" xmlns="http://www.w3.org/2000/svg">
+        <g id="prefLayer"></g>
+        <g id="insetLayer"></g>
+        <g id="routeLayer"></g>
+        <g id="cityLayer"></g>
+        <g id="endLayer"></g>
+        <g id="badgeLayer"></g>
+      </svg>
+      <div class="mapctl">
+        <button id="zoomIn" aria-label="拡大">＋</button>
+        <button id="zoomOut" aria-label="縮小">－</button>
+        <button id="zoomReset" aria-label="全体表示">⤢</button>
+        <button id="cityToggle" aria-label="都市名表示">🏷</button>
+      </div>
+    </div>
+    <div class="maphint">ドラッグで移動・ピンチ/ホイールで拡大縮小。路線は学習用の模式図です。</div>
+  </div>
+
+  <div class="card" id="panel"></div>
+
+  <footer>
+    記録はこの端末のブラウザにのみ保存されます。
+    <button class="btn danger small" id="resetBtn" style="margin-left:8px;">記録をリセット</button>
+  </footer>
+</div>
+
+<script src="mapdata.js"></script>
+<script src="routes.js"></script>
+<script>
+'use strict';
+
+// ================= 基本ユーティリティ =================
+const $ = id => document.getElementById(id);
+const SVGNS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs) => {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+};
+
+function proj(lon, lat) {
+  if (lat < PROJ.shiftLatMax) { lon += PROJ.dlon; lat += PROJ.dlat; }
+  return [(lon - PROJ.lon0) * PROJ.cos * PROJ.scale, (PROJ.lat0 - lat) * PROJ.scale];
+}
+const projCity = name => {
+  if (!CITY[name]) { console.error('未定義の都市:', name); return [0, 0]; }
+  return proj(CITY[name][0], CITY[name][1]);
+};
+const f1 = n => Math.round(n * 10) / 10;
+const fp = p => `${f1(p[0])} ${f1(p[1])}`;
+
+// Catmull-Rom スプラインでなめらかな折れ線に
+function smoothPath(pts) {
+  if (pts.length < 2) return '';
+  if (pts.length === 2) return `M${fp(pts[0])}L${fp(pts[1])}`;
+  let d = 'M' + fp(pts[0]);
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${fp(c1)} ${fp(c2)} ${fp(p2)}`;
+  }
+  return d;
+}
+
+// ================= 地方定義 =================
+const REGION_PREFS = {
+  '北海道': [1], '東北': [2, 3, 4, 5, 6, 7], '関東': [8, 9, 10, 11, 12, 13, 14],
+  '中部': [15, 16, 17, 18, 19, 20, 21, 22, 23], '近畿': [24, 25, 26, 27, 28, 29, 30],
+  '中国': [31, 32, 33, 34, 35], '四国': [36, 37, 38, 39], '九州沖縄': [40, 41, 42, 43, 44, 45, 46, 47],
+};
+const REGION_NAMES = ['全国', ...Object.keys(REGION_PREFS)];
+
+// ================= 路線ジオメトリの前計算 =================
+const GEO = {}; // n -> {landDs:[], seaDs:[], hitD, badgeAt, endA, endB, circular, viaText}
+for (const r of ROUTES) {
+  const segs = r.segs || [{ c: r.c }];
+  const landDs = [], seaDs = [];
+  let hitD = '';
+  const flat = [];
+  let landPts = [];
+  for (const s of segs) {
+    const pts = s.c.map(projCity);
+    for (const name of s.c) { if (flat[flat.length - 1] !== name) flat.push(name); }
+    if (s.sea) {
+      const d = 'M' + pts.map(fp).join('L');
+      seaDs.push(d); hitD += d;
+    } else {
+      const d = smoothPath(pts);
+      landDs.push(d); hitD += d;
+      landPts = landPts.concat(pts);
+    }
+  }
+  const mids = landPts.length ? landPts : segs[0].c.map(projCity);
+  const circular = flat[0] === flat[flat.length - 1];
+  GEO[r.n] = {
+    landDs, seaDs, hitD,
+    badgeAt: mids[Math.floor(mids.length / 2)],
+    endA: projCity(flat[0]), endB: projCity(flat[flat.length - 1]),
+    circular,
+    viaText: flat.slice(1, -1).join('・'),
+  };
+}
+
+// ================= 記録 =================
+const KEY = 'road-quiz-v1', UIKEY = 'road-quiz-ui-v1';
+let stats = { q: {}, total: { s: 0, c: 0 }, streak: 0, best: 0 };
+try { stats = Object.assign(stats, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+let ui = { mode: 'learn', region: '全国', labels: true };
+try { ui = Object.assign(ui, JSON.parse(localStorage.getItem(UIKEY) || '{}')); } catch (e) {}
+const saveStats = () => localStorage.setItem(KEY, JSON.stringify(stats));
+const saveUI = () => localStorage.setItem(UIKEY, JSON.stringify(ui));
+
+function renderStats() {
+  $('stTotal').textContent = stats.total.s;
+  $('stAcc').textContent = stats.total.s ? Math.round(100 * stats.total.c / stats.total.s) + '%' : '-';
+  $('stStreak').textContent = stats.streak + (stats.best ? ` (最高${stats.best})` : '');
+}
+function record(n, ok) {
+  const q = stats.q[n] = stats.q[n] || { s: 0, c: 0 };
+  q.s++; stats.total.s++;
+  if (ok) { q.c++; stats.total.c++; stats.streak++; stats.best = Math.max(stats.best, stats.streak); }
+  else stats.streak = 0;
+  saveStats(); renderStats();
+}
+
+// ================= 地図描画 =================
+const map = $('map');
+const PAD = 16;
+const VB0 = {
+  x: MAP_BOUNDS.minx - PAD, y: MAP_BOUNDS.miny - PAD,
+  w: MAP_BOUNDS.maxx - MAP_BOUNDS.minx + PAD * 2, h: MAP_BOUNDS.maxy - MAP_BOUNDS.miny + PAD * 2,
+};
+let vb = { ...VB0 };
+function applyVB() {
+  map.setAttribute('viewBox', `${f1(vb.x)} ${f1(vb.y)} ${f1(vb.w)} ${f1(vb.h)}`);
+  updateLabelScale();
+}
+
+// 都道府県
+for (const p of PREF_PATHS) {
+  const path = el('path', { d: p.d, class: 'pref' });
+  path.setAttribute('vector-effect', 'non-scaling-stroke');
+  $('prefLayer').appendChild(path);
+}
+// 沖縄・奄美インセット枠
+{
+  const b = INSET_BOUNDS, pad = 14;
+  $('insetLayer').appendChild(el('rect', {
+    x: b.minx - pad, y: b.miny - pad, width: b.maxx - b.minx + pad * 2, height: b.maxy - b.miny + pad * 2,
+    rx: 8, class: 'inset-frame',
+  }));
+  const t = el('text', { x: b.minx - pad + 6, y: b.miny - pad - 8, class: 'inset-label' });
+  t.textContent = '沖縄・奄美(位置をずらして表示)';
+  $('insetLayer').appendChild(t);
+}
+// 主要都市(方位の手がかり)
+const ANCHOR_CITIES = ['札幌', '仙台', '新潟', '東京', '金沢', '名古屋', '大阪', '広島', '松山', '福岡', '鹿児島', '那覇'];
+for (const name of ANCHOR_CITIES) {
+  const [x, y] = projCity(name);
+  const g = el('g', { class: 'citylab' });
+  g.dataset.x = x; g.dataset.y = y;
+  g.appendChild(el('circle', { cx: 0, cy: 0, r: 4, class: 'citydot' }));
+  const t = el('text', { x: 8, y: -6 });
+  t.textContent = name;
+  g.appendChild(t);
+  $('cityLayer').appendChild(g);
+}
+
+// 路線グループ生成(全路線を一度だけ作り、状態はdata-stateで切替)
+const RT_EL = {};
+const ONI_D = 'M-15,-13 H15 Q19,-13 18,-7 Q15,7 4,16 Q0,19 -4,16 Q-15,7 -18,-7 Q-19,-13 -15,-13 Z';
+for (const r of ROUTES) {
+  const geo = GEO[r.n];
+  const g = el('g', { class: 'rt d' + String(r.n).length, 'data-n': r.n, 'data-state': 'hide' });
+  const add = (d, cls) => {
+    const p = el('path', { d, class: cls });
+    p.setAttribute('vector-effect', 'non-scaling-stroke');
+    g.appendChild(p);
+  };
+  for (const d of geo.landDs) add(d, 'p-case');
+  for (const d of geo.landDs) add(d, 'p-land');
+  for (const d of geo.seaDs) add(d, 'p-sea');
+  const hit = el('path', { d: geo.hitD, class: 'p-hit' });
+  hit.setAttribute('vector-effect', 'non-scaling-stroke');
+  g.appendChild(hit);
+  g.addEventListener('click', () => { if (!wasDrag) onRouteTap(r.n); });
+  $('routeLayer').appendChild(g);
+  RT_EL[r.n] = g;
+
+  // 番号標識(おにぎり)
+  const bg = el('g', { class: 'badge hidden', 'data-n': r.n });
+  bg.dataset.x = geo.badgeAt[0]; bg.dataset.y = geo.badgeAt[1];
+  bg.appendChild(el('path', { d: ONI_D }));
+  const t = el('text', { y: 6, 'font-size': String(r.n).length > 2 ? 15 : 19 });
+  t.textContent = r.n;
+  bg.appendChild(t);
+  bg.addEventListener('click', () => { if (!wasDrag) onRouteTap(r.n); });
+  $('badgeLayer').appendChild(bg);
+}
+
+function setState(n, state) { RT_EL[n].setAttribute('data-state', state); }
+function raise(n) { $('routeLayer').appendChild(RT_EL[n]); }
+function showBadge(n, show) { $('badgeLayer').querySelector(`.badge[data-n="${n}"]`).classList.toggle('hidden', !show); }
+function hideAllBadges() { for (const b of $('badgeLayer').children) b.classList.add('hidden'); }
+
+// 起点・終点マーカー
+function showEnds(r) {
+  const L = $('endLayer'); L.innerHTML = '';
+  if (!r) return;
+  const geo = GEO[r.n];
+  const mk = (pt, label) => {
+    const g = el('g', { class: 'endlab' });
+    g.dataset.x = pt[0]; g.dataset.y = pt[1];
+    g.appendChild(el('circle', { cx: 0, cy: 0, r: 6 }));
+    const t = el('text', { x: 10, y: -8 });
+    t.textContent = label;
+    g.appendChild(t);
+    L.appendChild(g);
+  };
+  if (geo.circular) mk(geo.endA, '起終点 ' + r.a.replace(/\(.*\)/, ''));
+  else { mk(geo.endA, '起点 ' + r.a.replace(/\(.*\)/, '')); mk(geo.endB, '終点 ' + r.b.replace(/\(.*\)/, '')); }
+  updateLabelScale();
+}
+
+// ズームに応じてラベル・標識の見かけサイズを一定に保つ
+function updateLabelScale() {
+  const s = Math.max(0.32, Math.min(1.15, vb.w / VB0.w));
+  const cityShow = ui.labels;
+  for (const g of $('cityLayer').children) {
+    g.style.display = cityShow ? '' : 'none';
+    g.setAttribute('transform', `translate(${g.dataset.x} ${g.dataset.y}) scale(${f1(s * 10) / 10})`);
+  }
+  const bs = Math.max(0.5, Math.min(1.3, s * 1.4));
+  for (const g of $('badgeLayer').children) {
+    g.setAttribute('transform', `translate(${g.dataset.x} ${g.dataset.y}) scale(${f1(bs * 10) / 10})`);
+  }
+  for (const g of $('endLayer').children) {
+    g.setAttribute('transform', `translate(${g.dataset.x} ${g.dataset.y}) scale(${f1(s * 10) / 10})`);
+  }
+}
+
+// ================= パン・ズーム =================
+let wasDrag = false;
+{
+  const ptrs = new Map();
+  let start = null, moved = 0;
+  const rectW = () => map.getBoundingClientRect().width;
+  map.addEventListener('pointerdown', e => {
+    map.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 1) { wasDrag = false; moved = 0; }
+    start = null;
+  });
+  map.addEventListener('pointermove', e => {
+    if (!ptrs.has(e.pointerId)) return;
+    const prev = ptrs.get(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const k = vb.w / rectW();
+    if (ptrs.size === 1) {
+      const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+      moved += Math.abs(dx) + Math.abs(dy);
+      if (moved > 8) wasDrag = true;
+      vb.x -= dx * k; vb.y -= dy * k;
+      applyVB();
+    } else if (ptrs.size === 2) {
+      wasDrag = true;
+      const [a, b] = [...ptrs.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if (start == null) { start = dist; return; }
+      if (dist > 0 && start > 0) zoomAtClient((a.x + b.x) / 2, (a.y + b.y) / 2, dist / start);
+      start = dist;
+    }
+  });
+  const up = e => { ptrs.delete(e.pointerId); start = null; };
+  map.addEventListener('pointerup', up);
+  map.addEventListener('pointercancel', up);
+  map.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoomAtClient(e.clientX, e.clientY, e.deltaY < 0 ? 1.22 : 0.82);
+  }, { passive: false });
+}
+function zoomAtClient(cx, cy, factor) {
+  const rect = map.getBoundingClientRect();
+  const mx = vb.x + (cx - rect.left) / rect.width * vb.w;
+  const my = vb.y + (cy - rect.top) / rect.height * vb.h;
+  const w = Math.max(VB0.w / 24, Math.min(VB0.w * 1.3, vb.w / factor));
+  const s = w / vb.w;
+  vb = { x: mx - (mx - vb.x) * s, y: my - (my - vb.y) * s, w, h: vb.h * s };
+  applyVB();
+}
+function zoomTo(box, animate) {
+  const pad = Math.max(box.w, box.h) * 0.08;
+  const target = fitBox({ x: box.x - pad, y: box.y - pad, w: box.w + pad * 2, h: box.h + pad * 2 });
+  if (!animate) { vb = target; applyVB(); return; }
+  const from = { ...vb }, t0 = performance.now();
+  const step = now => {
+    const t = Math.min(1, (now - t0) / 260), e = 1 - Math.pow(1 - t, 3);
+    vb = {
+      x: from.x + (target.x - from.x) * e, y: from.y + (target.y - from.y) * e,
+      w: from.w + (target.w - from.w) * e, h: from.h + (target.h - from.h) * e,
+    };
+    applyVB();
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+function fitBox(b) {
+  // viewBoxのアスペクト比(VB0基準)に合わせて広げる
+  const ar = VB0.w / VB0.h;
+  let { x, y, w, h } = b;
+  if (w / h > ar) { const nh = w / ar; y -= (nh - h) / 2; h = nh; }
+  else { const nw = h * ar; x -= (nw - w) / 2; w = nw; }
+  return { x, y, w, h };
+}
+$('zoomIn').addEventListener('click', () => {
+  const r = map.getBoundingClientRect();
+  zoomAtClient(r.left + r.width / 2, r.top + r.height / 2, 1.45);
+});
+$('zoomOut').addEventListener('click', () => {
+  const r = map.getBoundingClientRect();
+  zoomAtClient(r.left + r.width / 2, r.top + r.height / 2, 0.68);
+});
+$('zoomReset').addEventListener('click', () => zoomTo({ x: VB0.x, y: VB0.y, w: VB0.w, h: VB0.h }, true));
+$('cityToggle').addEventListener('click', () => {
+  ui.labels = !ui.labels; saveUI(); updateLabelScale(); syncCityBtn();
+});
+function syncCityBtn() { $('cityToggle').classList.toggle('on', ui.labels); }
+
+function regionBox(name) {
+  if (name === '全国') return { x: VB0.x, y: VB0.y, w: VB0.w, h: VB0.h };
+  let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+  for (const p of PREF_PATHS) {
+    if (!REGION_PREFS[name].includes(p.id)) continue;
+    minx = Math.min(minx, p.bb[0]); miny = Math.min(miny, p.bb[1]);
+    maxx = Math.max(maxx, p.bb[2]); maxy = Math.max(maxy, p.bb[3]);
+  }
+  return { x: minx, y: miny, w: maxx - minx, h: maxy - miny };
+}
+
+// ================= 出題ロジック =================
+const poolOf = region => region === '全国' ? ROUTES : ROUTES.filter(r => r.reg.includes(region));
+let lastN = null;
+function weightOf(n) {
+  const q = stats.q[n];
+  if (!q || !q.s) return 2.2;             // 未出題は優先
+  return 1 + 2.5 * (1 - q.c / q.s);       // 正答率が低いほど重い
+}
+function weightedPick(pool, excl) {
+  const cand = pool.filter(r => r.n !== excl);
+  const list = cand.length ? cand : pool;
+  let sum = 0;
+  const ws = list.map(r => { const w = weightOf(r.n); sum += w; return w; });
+  let x = Math.random() * sum;
+  for (let i = 0; i < list.length; i++) { x -= ws[i]; if (x <= 0) return list[i]; }
+  return list[list.length - 1];
+}
+function sample(arr, k) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+  return a.slice(0, k);
+}
+
+const oniHTML = (n, size) => {
+  const fs = String(n).length > 2 ? 14 : 17;
+  return `<svg class="oni" width="${size}" height="${size * 0.95}" viewBox="-21 -17 42 40"><path d="${ONI_D}" fill="#2b5fd9" stroke="#fff" stroke-width="2.5"/><text x="0" y="6" font-size="${fs}" font-weight="700" fill="#fff" text-anchor="middle">${n}</text></svg>`;
+};
+function infoHTML(r) {
+  const ends = GEO[r.n].circular
+    ? `${r.a.replace(/\(.*\)/, '')} 起点の環状路線`
+    : `${r.a} <span style="color:var(--text-dim)">→</span> ${r.b}`;
+  return `<div class="info">
+    <div class="rname">${oniHTML(r.n, 34)} 国道${r.n}号 ${r.alias ? `<span class="alias">${r.alias}</span>` : ''}</div>
+    <div class="ends">${ends}</div>
+    ${GEO[r.n].viaText ? `<div class="via">経由: ${GEO[r.n].viaText}</div>` : ''}
+    <div class="note">${r.note}</div>
+  </div>`;
+}
+
+// ================= モード制御 =================
+const panel = $('panel');
+let mode = ui.mode, region = ui.region;
+let q = null;          // 現在の問題 {r, phase:'ask'|'done', cands}
+let learnSel = null;
+
+function switchMode(m) {
+  mode = m; ui.mode = m; saveUI();
+  for (const t of document.querySelectorAll('.tab')) t.classList.toggle('active', t.dataset.mode === m);
+  q = null; learnSel = null;
+  render();
+}
+function switchRegion(rg) {
+  region = rg; ui.region = rg; saveUI();
+  for (const c of $('regionChips').children) c.classList.toggle('active', c.dataset.r === rg);
+  q = null; learnSel = null;
+  zoomTo(regionBox(rg), true);
+  render();
+}
+
+function render() {
+  hideAllBadges(); showEnds(null);
+  if (mode === 'learn') renderLearn();
+  else if (mode === 'quiz') newQuiz();
+  else newTap();
+}
+
+// ---- 学習モード ----
+function renderLearn() {
+  const pool = poolOf(region);
+  for (const r of ROUTES) setState(r.n, pool.includes(r) ? 'base' : 'hide');
+  for (const r of pool) showBadge(r.n, true);
+  if (learnSel != null) {
+    const r = ROUTES.find(x => x.n === learnSel);
+    setState(r.n, 'target'); raise(r.n); showEnds(r);
+  }
+  updateLabelScale();
+  const chips = poolOf(region).map(r =>
+    `<button class="lchip ${learnSel === r.n ? 'active' : ''}" data-n="${r.n}">${r.n}号</button>`).join('');
+  panel.innerHTML = `
+    <div class="hint">${learnSel == null ? '地図の路線か番号をタップすると解説を表示。色は 1桁=青 / 2桁=緑 / 3桁=ピンク。' : ''}</div>
+    <div class="learnchips">${chips}</div>
+    ${learnSel != null ? infoHTML(ROUTES.find(x => x.n === learnSel)) : ''}`;
+  for (const b of panel.querySelectorAll('.lchip')) {
+    b.addEventListener('click', () => { learnSel = +b.dataset.n; renderLearn(); });
+  }
+}
+
+// ---- 号線あて(4択) ----
+function newQuiz() {
+  const pool = poolOf(region);
+  const r = weightedPick(pool, lastN); lastN = r.n;
+  const dist = sample(pool.filter(x => x.n !== r.n), 3);
+  const opts = sample([r, ...dist], 4);
+  q = { r, phase: 'ask' };
+  for (const x of ROUTES) setState(x.n, pool.includes(x) ? 'dim' : 'hide');
+  setState(r.n, 'target'); raise(r.n); showEnds(r);
+  panel.innerHTML = `
+    <div class="qhead"><span class="prog">出題エリア: ${region}</span><span class="prog">苦手な路線ほど出やすい</span></div>
+    <div class="qtext">黄色でハイライトされた道は<br>何号線?</div>
+    <div class="opts">${opts.map(o => `<button class="opt" data-n="${o.n}">${oniHTML(o.n, 30)} ${o.n}号</button>`).join('')}</div>
+    <div id="after"></div>`;
+  for (const b of panel.querySelectorAll('.opt')) {
+    b.addEventListener('click', () => answerQuiz(+b.dataset.n));
+  }
+}
+function answerQuiz(n) {
+  if (!q || q.phase !== 'ask') return;
+  q.phase = 'done';
+  const ok = n === q.r.n;
+  record(q.r.n, ok);
+  for (const b of panel.querySelectorAll('.opt')) {
+    b.disabled = true;
+    if (+b.dataset.n === q.r.n) b.classList.add('good');
+    else if (+b.dataset.n === n) b.classList.add('bad');
+  }
+  setState(q.r.n, ok ? 'good' : 'bad');
+  showBadge(q.r.n, true); updateLabelScale();
+  $('after').innerHTML = `
+    <div class="verdict ${ok ? 'ok' : 'ng'}">${ok ? '⭕ 正解!' : `❌ 正解は ${q.r.n}号`}</div>
+    ${infoHTML(q.r)}
+    <div class="nextrow"><button class="btn" id="nextBtn">次の問題 →</button></div>`;
+  $('nextBtn').addEventListener('click', newQuiz);
+  $('nextBtn').focus();
+}
+
+// ---- 地図でタップ ----
+function newTap() {
+  const pool = poolOf(region);
+  const r = weightedPick(pool, lastN); lastN = r.n;
+  const others = sample(pool.filter(x => x.n !== r.n), Math.min(6, pool.length - 1));
+  q = { r, phase: 'ask', cands: [r, ...others].map(x => x.n) };
+  for (const x of ROUTES) setState(x.n, q.cands.includes(x.n) ? 'neutral' : 'hide');
+  updateLabelScale();
+  panel.innerHTML = `
+    <div class="qhead"><span class="prog">出題エリア: ${region}</span><span class="prog">表示 ${q.cands.length} 路線</span></div>
+    <div class="qtext">${oniHTML(r.n, 40)} 国道<b>${r.n}号</b> はどれ?<br><span style="font-size:0.85rem;color:var(--text-dim);font-weight:400">地図の道をタップ</span></div>
+    <div id="after"></div>`;
+}
+function onRouteTap(n) {
+  if (mode === 'learn') { learnSel = n; renderLearn(); return; }
+  if (mode !== 'tap' || !q || q.phase !== 'ask' || !q.cands.includes(n)) return;
+  q.phase = 'done';
+  const ok = n === q.r.n;
+  record(q.r.n, ok);
+  if (!ok) setState(n, 'bad');
+  setState(q.r.n, ok ? 'good' : 'target'); raise(q.r.n);
+  showBadge(q.r.n, true); if (!ok) showBadge(n, true);
+  showEnds(q.r); updateLabelScale();
+  const wrongR = ok ? null : ROUTES.find(x => x.n === n);
+  $('after').innerHTML = `
+    <div class="verdict ${ok ? 'ok' : 'ng'}">${ok ? '⭕ 正解!' : `❌ タップしたのは ${n}号。黄色が ${q.r.n}号`}</div>
+    ${infoHTML(q.r)}
+    ${wrongR ? `<div class="hint" style="text-align:left">タップした ${wrongR.n}号: ${wrongR.a} → ${wrongR.b}</div>` : ''}
+    <div class="nextrow"><button class="btn" id="nextBtn">次の問題 →</button></div>`;
+  $('nextBtn').addEventListener('click', newTap);
+}
+
+// ================= 初期化 =================
+{
+  const chips = $('regionChips');
+  for (const name of REGION_NAMES) {
+    const b = document.createElement('button');
+    b.className = 'chip' + (name === region ? ' active' : '');
+    b.dataset.r = name;
+    b.textContent = name;
+    b.addEventListener('click', () => switchRegion(name));
+    chips.appendChild(b);
+  }
+  for (const t of document.querySelectorAll('.tab')) {
+    t.addEventListener('click', () => switchMode(t.dataset.mode));
+    t.classList.toggle('active', t.dataset.mode === mode);
+  }
+  $('resetBtn').addEventListener('click', () => {
+    if (confirm('学習記録をリセットしますか?')) {
+      stats = { q: {}, total: { s: 0, c: 0 }, streak: 0, best: 0 };
+      saveStats(); renderStats(); render();
+    }
+  });
+  applyVB();
+  syncCityBtn();
+  renderStats();
+  if (region !== '全国') zoomTo(regionBox(region), false);
+  render();
+}
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) { navigator.serviceWorker.register('../sw.js').catch(() => {}); }
+</script>
+</body>
+</html>
