@@ -105,8 +105,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 @keyframes no{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 
 /* toast & modal */
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160%);z-index:50;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 18px;font-weight:800;transition:transform .35s cubic-bezier(.3,1.6,.5,1);white-space:nowrap}
-.toast.show{transform:translate(-50%,0)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,calc(100% + 40px + env(safe-area-inset-bottom,0px)));visibility:hidden;z-index:50;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 18px;font-weight:800;transition:transform .35s cubic-bezier(.3,1.6,.5,1),visibility 0s .35s;white-space:nowrap}
+.toast.show{transform:translate(-50%,0);visibility:visible;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+/* 試作からの変更（オーナー了承済み）：隠れているトーストが画面下に少しのぞいていたので、完全に画面外へ下げて非表示にする */
 dialog{border:3px solid var(--line);border-radius:24px;box-shadow:6px 6px 0 var(--line);padding:0;max-width:min(520px,92vw);background:var(--card);color:var(--ink)}
 dialog::backdrop{background:rgba(20,14,40,.55)}
 .cert{padding:22px;text-align:center}

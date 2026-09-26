@@ -126,6 +126,11 @@ for (const hall of halls) {
     const hide = await page.addStyleTag({ content: HIDE_TOPBAR });
     await page.locator("#ex-gacha").screenshot({ path: resolve(dir, "10-gacha-after-spin.png") });
     await hide.evaluate((n) => (n as ChildNode).remove());
+    // コイン0でもう一度回す →「コインが足りない」のトースト
+    await page.click("#spin");
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: resolve(dir, "12-toast.png") });
+    await page.waitForTimeout(2600);
     const peek = page.locator(".peek").first();
     if (await peek.count()) {
       await peek.click();
