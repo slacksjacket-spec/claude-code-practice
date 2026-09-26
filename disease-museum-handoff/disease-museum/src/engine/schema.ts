@@ -170,6 +170,13 @@ export const EmergencySimData = z.object({
     explanation: z.string(),
   })).min(1),
   penaltyMinutes: z.number().int().positive(),
+  // モニターの警告：この範囲の外の値だけ赤く点滅させる（演出用のイメージ値）。意識は「清明」以外で警告
+  normalRanges: z.object({
+    SBP: z.tuple([z.number(), z.number()]),
+    HR: z.tuple([z.number(), z.number()]),
+    SpO2: z.tuple([z.number(), z.number()]),
+    T: z.tuple([z.number(), z.number()]),
+  }),
 }).superRefine((d, ctx) => {
   const names = d.orders.map((o) => o.name);
   d.patients.forEach((p, i) => {
@@ -259,6 +266,9 @@ export const Exhibit = z.discriminatedUnion("type", [
   ExhibitBase.extend({ type: z.literal("VersusQuiz"), data: VersusQuizData }),
   ExhibitBase.extend({ type: z.literal("MemoryMatch"), data: MemoryMatchData }),
   ExhibitBase.extend({ type: z.literal("BodyHotspot"), data: BodyHotspotData }),
+  // ホール専用のゲーム。src/halls/<hall>/exhibits/<kind>.ts（描画）と <kind>.schema.ts（データの形）に置く。
+  // 別のホールでも使うようになったら、共通の型に格上げする。
+  ExhibitBase.extend({ type: z.literal("Custom"), kind: z.string().regex(/^[a-z][a-zA-Z0-9]*$/), data: z.unknown() }),
 ]);
 
 /* ================= ホール ================= */

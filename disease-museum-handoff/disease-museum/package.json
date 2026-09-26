@@ -8,7 +8,8 @@
     "build": "npm run check && vite build",
     "build:single": "npm run check && tsx scripts/build-single.ts",
     "check": "tsc --noEmit && tsx scripts/validate.ts",
-    "shots": "tsx scripts/shots.ts"
+    "shots": "tsx scripts/shots.ts",
+    "publish:pages": "tsx scripts/publish-pages.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

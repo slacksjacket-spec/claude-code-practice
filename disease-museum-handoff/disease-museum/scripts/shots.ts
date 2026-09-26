@@ -101,6 +101,15 @@ const PLAY: Record<string, (page: Page, ex: string) => Promise<void>> = {
   panc: async (p, ex) => { await p.click(`${ex} .labt >> nth=0`); await p.click(`${ex} .labt >> nth=2`); await p.click(`${ex} .row .btn >> nth=0`); },
   vs: async (p, ex) => { await p.click(`${ex} .pick .btn`); await p.waitForTimeout(200); await p.click(`${ex} .pick .btn >> nth=0`); },
   memory: async (p, ex) => { await p.click(`${ex} .mc >> nth=0`); await p.click(`${ex} .mc >> nth=1`); },
+  // 消化管ホール
+  reveal: async (p, ex) => { await p.click(`${ex} .more`); await p.click(`${ex} .opt >> nth=0`); },
+  endoscopy: async (p, ex) => { await p.click(`${ex} .go`); await p.waitForTimeout(300); await p.click(`${ex} .opt >> nth=3`); },
+  depth: async (p, ex) => { await p.click(`${ex} .band >> nth=0`); await p.click(`${ex} .opt >> nth=0`); },
+  pylori: async (p, ex) => { await p.click(`${ex} .opt >> nth=1`); },
+  resection: async (p, ex) => { await p.click(`${ex} .segChips button >> nth=7`); await p.click(`${ex} .go`); },
+  versus: async (p, ex) => { await p.click(`${ex} .pick .btn`); await p.waitForTimeout(200); await p.click(`${ex} .pick .btn >> nth=0`); },
+  food: async (p, ex) => { await p.locator(`${ex} .rewind input`).fill("70"); await p.click(`${ex} .mb >> nth=0`); await p.click(`${ex} .opt >> nth=0`); },
+  race: async (p, ex) => { await p.click(`${ex} .more`); await p.click(`${ex} .opt >> nth=0`); },
 };
 
 async function shootPlayed(page: Page, dir: string, ids: string[]) {
@@ -266,7 +275,7 @@ for (const hall of halls) {
       const o = await overflowCheck(page);
       if (o.scrollW > o.W || o.bad.length) problems.push(`museum 390: 横にはみ出し ${o.bad.join(" / ")}`);
     }
-    await page.click(".hallCard >> nth=0");
+    await page.click('a.hallCard[href="halls/kantansui/"]');
     await page.waitForURL(/halls\/kantansui/);
     await settle(page);
     const coins = await page.locator("#coins").textContent();

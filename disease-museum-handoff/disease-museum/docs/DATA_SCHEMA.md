@@ -79,7 +79,8 @@ type Exhibit =
   | (ExhibitBase & { type: "ScoreAttack"; data: ScoreAttackData })
   | (ExhibitBase & { type: "VersusQuiz"; data: VersusQuizData })
   | (ExhibitBase & { type: "MemoryMatch"; data: MemoryMatchData })
-  | (ExhibitBase & { type: "BodyHotspot"; data: BodyHotspotData });
+  | (ExhibitBase & { type: "BodyHotspot"; data: BodyHotspotData })
+  | (ExhibitBase & { type: "Custom"; kind: string; data: unknown });  // ホール専用のゲーム。data は src/halls/<hall>/exhibits/<kind>.schema.ts で検証
 ```
 
 ## 型ごとのデータ
@@ -223,6 +224,7 @@ interface EmergencySimData {
     explanation: string;
   })[];
   penaltyMinutes: number;                            // 30
+  normalRanges: { SBP: [number, number]; HR: [number, number]; SpO2: [number, number]; T: [number, number] };  // この外の値だけモニターで点滅（演出用のイメージ値）
 }
 ```
 
@@ -305,6 +307,10 @@ interface GachaSpec {
 ## 検証（`npm run check`）
 
 型に加えて次を確かめる：展示・ウィング・景品の id の重複、`stampOrder` と展示の過不足、館内図とガチャの行き先の wing が存在すること、型ごとの添字や id の参照（answer が選択肢の範囲内か、path のノードが存在し答えが選択肢にあるか、pattern の長さが markers と同じか、など）、`src/halls/registry.ts`（館の入口の一覧）と data.ts が一致すること。ガチャはコンプリートまでの回数をシミュレーションして表示する。
+
+## ホール専用のゲーム
+
+`src/halls/<hall>/exhibits/<kind>.schema.ts` に zod で書く（`Meta` は `src/engine/schema.ts` から使う）。ブラウザ側のモジュールは schema から**型だけ**を import する。定数が要るときは `<kind>.consts.ts` に分ける（schema から値を import すると zod がバンドルに入る。`npm run build:single` が検出して失敗する）。
 
 ## 保存（localStorage）
 

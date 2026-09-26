@@ -1,5 +1,5 @@
 import { mountHall } from "../../engine/hall";
 import { hall } from "./data";
-import { hooks } from "./hooks";
+import { custom } from "./exhibits";
 
-mountHall(hall, { hooks });
+mountHall(hall, { custom });
