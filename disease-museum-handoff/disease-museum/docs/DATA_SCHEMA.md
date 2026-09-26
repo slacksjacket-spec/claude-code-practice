@@ -79,17 +79,19 @@ type Exhibit =
   | (ExhibitBase & { type: "ScoreAttack"; data: ScoreAttackData })
   | (ExhibitBase & { type: "VersusQuiz"; data: VersusQuizData })
   | (ExhibitBase & { type: "MemoryMatch"; data: MemoryMatchData })
-  | (ExhibitBase & { type: "BodyHotspot"; data: BodyHotspotData })
-  | (ExhibitBase & { type: "Placeholder"; plannedType: ExhibitType }); // Phase 0 の仮置き。Phase 1 で消す
+  | (ExhibitBase & { type: "BodyHotspot"; data: BodyHotspotData });
 ```
 
 ## 型ごとのデータ
+
+報酬のコイン数など SPEC.md に書いてある型共通の数値は、型のモジュールに定数で持つ（ホールごとには変えない）。ホールごとに変わりうる数値（スタンプ条件など）はデータに持つ。
 
 ### DiagnosisLab
 
 ```ts
 interface DiagnosisLabData {
   budget: number;                                   // 7
+  stampAt: number;                                  // 通算この人数を正解でスタンプ（4）
   tests: { id: string; name: string; cost: number }[];
   diagnoses: { name: string; short: string }[];     // short は確率バーの見出し
   cases: (Meta & {
@@ -97,7 +99,7 @@ interface DiagnosisLabData {
     vignette: string;
     faceColor?: string;
     answer: number;                                 // diagnoses の添字
-    results: Record<string, { text: string; abnormal: boolean }>;  // tests.id ごと
+    results: Record<string, { text: string; abnormal: boolean }>;  // tests.id ごと（全検査ぶん必須）
     explanation: string;
     flow: {
       prior: number[];                              // diagnoses と同じ長さ。合計は自動で100に正規化
@@ -139,27 +141,37 @@ interface DiagnosisLabData {
 
 ```ts
 interface PathoSimData {
-  slider: { label: string; unit: string; min: number; max: number; step: number; initial: number };
+  slider: {
+    label: string; unit: string; min: number; max: number; step: number; initial: number;
+    gauge?: string[];                   // スライダーの下の目盛りの字
+    bonus?: { at: number; coins: number };  // 初めてここまで上げたらコイン（門脈は 14 で 10）
+  };
   svg: string;                          // 図。可変部分に id を付ける
-  thresholds: {                         // スライダー値に応じて何を変えるか
-    at: number;
-    show?: string[];                    // 表示する要素の id
-    text: string;                       // 説明文
+  thresholds: {                         // at の小さい順
+    at: number;                         // 値が at 以上のうち一番大きい at の text を出す
+    show?: string[];                    // at 以上で表示（opacity 1）、未満で非表示にする要素の id
+    text: string;                       // 説明文（html 可）
   }[];
-  missions: (Meta & { text: string; answer: number; alt?: number[]; explanation: string })[];
+  missions: (Meta & {
+    text: string; answer: number; alt?: number[];   // alt も正解
+    altNote?: string;                   // alt で正解したときの一言（「内服ならβ遮断薬」）
+    explanation: string;
+  })[];
   tools: string[];                      // 治療の選択肢
 }
 ```
 
-図の変化（脾臓の拡大、血流アニメの速度など）は、型の共通処理でまかなえない分を `hooks.ts` にホール固有の関数として書いてよい。
+図の変化（脾臓の拡大、うっすら現れる側副路、血流アニメの速度など）は、型の共通処理でまかなえない分を `src/halls/<hall>/hooks.ts` にホール固有の関数として書く（`exhibit.id → (図の要素, 値) => void`）。
 
 ### DecodePuzzle
 
 ```ts
 interface DecodePuzzleData {
+  modeLabels?: [string, string];                     // ["解読モード", "ランプを点けろ"]
+  question?: string;                                 // 既定「この人は？」
   markers: string[];                                 // 解読モードのランプ名
   states: (Meta & { name: string; pattern: (0 | 1)[]; labelOverride?: Record<number, string>; explanation: string })[];
-  reverse?: {                                        // 逆モード
+  reverse?: Meta & {                                 // 逆モード
     markers: string[];
     targets: { name: string; pattern: (0 | 1)[] }[];
     lesson: string;
@@ -173,27 +185,31 @@ interface DecodePuzzleData {
 
 ```ts
 interface AlgorithmBoardData {
+  stampAt: number;                                   // 通算この人数ゴールでスタンプ（4）
   nodes: { id: string; label: string; question: string; options: { value: string; label: string }[] }[];
-  goalLabel: string;                                 // "治療"
+  goalLabel: string;                                 // "治療"（ゴールのマスはエンジンが最後に足す。"goal" は予約語）
   treatments: string[];
   // 患者ごとに、各ノードの正しい値と通る順番を持つ
   patients: (Meta & {
     card: Record<string, string>;                    // 患者カードに出す項目
-    path: string[];                                  // 通るノードの id（goal を含む）
-    answers: Record<string, string>;                 // node.id → 正しい value
+    path: string[];                                  // 通るノードの id（最後は "goal"）
+    answers: Record<string, string>;                 // node.id → 正しい value（path の全ノードぶん）
     treatments: number[];                            // 正解の treatments 添字（複数可）
     explanation: string;
   })[];
 }
 ```
 
-試作では通る順番を関数で計算していたが、データに `path` を明示する形に変える（レビューしやすくするため）。
+試作では通る順番を関数で計算していたが、データに `path` を明示する形に変えた（レビューしやすくするため）。
 
 ### EmergencySim
 
 ```ts
 interface EmergencySimData {
-  gradeLabels: string[];                             // ["軽症 Grade I", …]
+  condition: string;                                 // "急性胆管炎"（収蔵庫の問題文に使う）
+  gradeQuestion: string;                             // "重症度は？（TG18）"
+  stampAt: number;                                   // 通算この人数成功でスタンプ（3）
+  gradeLabels: string[];                             // ["軽症 Grade I", …]。最後が最重症（モニターが赤）
   orders: { name: string; kind: "core" | "severe" | "wrong" }[];
   timingLabel: string;                               // "胆道ドレナージのタイミング"
   timings: string[];
@@ -202,8 +218,8 @@ interface EmergencySimData {
     vitals: { BP: string; HR: number; SpO2: number; T: number; 意識: string };
     vitalsAfter: EmergencySimData["patients"][number]["vitals"];
     grade: number;                                   // gradeLabels の添字
-    requiredOrders: string[];
-    timing: number;
+    requiredOrders: string[];                        // orders の name
+    timing: number;                                  // timings の添字
     explanation: string;
   })[];
   penaltyMinutes: number;                            // 30
@@ -214,17 +230,29 @@ interface EmergencySimData {
 
 ```ts
 interface ScoreAttackData {
+  modeLabels?: [string, string];                     // 画像種目があるときのタブ名
+  scoreName: string;                                 // "予後因子"
+  instructions: string;                              // "陽性の予後因子をタップ → 重症度を判定"
   timeLimitSec: number;                              // 45
+  stampAt: number;                                   // 種目ごとにこの回数正解でスタンプ（2）
   items: {                                           // 1項目＝1タイル。値は毎回生成
     name: string;
     positive: { gen: GenSpec; display: string };     // 陽性になる値の作り方
     negative: { gen: GenSpec; display: string };
-    compound?: "SIRS";                               // 複数の値から判定させる特殊タイル
+    compound?: "SIRS";                               // SIRS：gen は満たす項目の数、display は {t} {hr} {rr} {wbc}
   }[];
   positiveRate: number;                              // 各項目が陽性になる確率（0.34）
   severeAt: number;                                  // 3点以上で重症
-  imageMode?: { kind: "PancCT" };                    // 画像スコア種目
   explanation: string;
+  missQuestion: { q: string; opts: string[]; ans: string };  // まちがえたとき収蔵庫に送る問題
+  imageMode?: Meta & {                               // 画像スコア種目
+    kind: "PancCT";                                  // 図の描き方（エンジンが持つ）
+    prompt: string;
+    extent: { label: string; options: [string, string, string] };  // 0〜2点
+    poor: { label: string; options: [string, string, string] };    // 0〜2点
+    explanation: string;                             // html 可
+    missQuestion: { q: string; opts: string[]; ans: string };
+  };
 }
 type GenSpec = { min: number; max: number; digits: number };
 // display は "{v} mg/dL" のようなテンプレート
@@ -236,7 +264,7 @@ type GenSpec = { min: number; max: number; digits: number };
 interface VersusQuizData {
   matches: (Meta & {
     id: string; title: string;
-    a: { name: string; color: string; traits: string[] };
+    a: { name: string; color: string; traits: string[] };   // color はトークン名か #hex
     b: { name: string; color: string; traits: string[] };
     clues: { text: string; side: "a" | "b" }[];      // 6個
   })[];
@@ -250,7 +278,7 @@ interface VersusQuizData {
 interface MemoryMatchData { pairs: (Meta & { marker: string; disease: string })[]; bonusMoves: number }
 ```
 
-### BodyHotspot
+### BodyHotspot（型の実装は、使うホールができたときに作る）
 
 ```ts
 interface BodyHotspotData { svg: string; spots: (Meta & { id: string; x: number; y: number; name: string; text: string })[] }
@@ -276,4 +304,10 @@ interface GachaSpec {
 
 ## 検証（`npm run check`）
 
-型に加えて次を確かめる：展示・ウィング・景品の id の重複、`stampOrder` と展示の過不足、館内図とガチャの行き先の wing が存在すること。
+型に加えて次を確かめる：展示・ウィング・景品の id の重複、`stampOrder` と展示の過不足、館内図とガチャの行き先の wing が存在すること、型ごとの添字や id の参照（answer が選択肢の範囲内か、path のノードが存在し答えが選択肢にあるか、pattern の長さが markers と同じか、など）、`src/halls/registry.ts`（館の入口の一覧）と data.ts が一致すること。ガチャはコンプリートまでの回数をシミュレーションして表示する。
+
+## 保存（localStorage）
+
+- 館全体 `diseaseMuseum.museum.v3`：`{ coins, xp }`（ランクは XP から決まる）
+- ホールごと `diseaseMuseum.hall.<id>.v3`：`{ stamps, gacha, dry, free, review, prog }`
+- 試作の `diseaseMuseum.hall03.v2` は引き継がない。

@@ -33,8 +33,12 @@ async function launch(): Promise<Browser> {
 }
 
 // Google Fonts は Node 側で取りに行く（Node はプロキシの CA を信頼している。ブラウザの TLS 検証は切らない）
+// 乱数を固定して、撮るたびに同じ画面になるようにする（エンジンと試作の両方）
+const SEED_RANDOM = `(() => { let a = 20260926; Math.random = () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();`;
+
 async function newContext(browser: Browser, opts: BrowserContextOptions) {
   const ctx = await browser.newContext(opts);
+  await ctx.addInitScript(SEED_RANDOM);
   await ctx.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, async (route) => {
     try { await route.fulfill({ response: await route.fetch() }); } catch { await route.abort(); }
   });
@@ -87,6 +91,31 @@ async function shootExhibits(page: Page, dir: string, idPrefix = "ex-") {
   return ids;
 }
 
+// 展示ごとに「1手遊んだ」状態を作る。クラス名はエンジンと試作で同じなので、同じ手順が両方に効く
+const PLAY: Record<string, (page: Page, ex: string) => Promise<void>> = {
+  lab: async (p, ex) => { await p.click(`${ex} .test >> nth=0`); await p.click(`${ex} .test >> nth=3`); await p.click(`${ex} .opt >> nth=4`); },
+  portal: async (p, ex) => { await p.locator(`${ex} input[type=range]`).fill("14"); await p.click(`${ex} .opt >> nth=1`); },
+  hbv: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); },
+  hcc: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); await p.waitForTimeout(800); await p.click(`${ex} .opt >> nth=1`); },
+  er: async (p, ex) => { await p.click(`${ex} .opt >> nth=1`); },
+  panc: async (p, ex) => { await p.click(`${ex} .labt >> nth=0`); await p.click(`${ex} .labt >> nth=2`); await p.click(`${ex} .row .btn >> nth=0`); },
+  vs: async (p, ex) => { await p.click(`${ex} .pick .btn`); await p.waitForTimeout(200); await p.click(`${ex} .pick .btn >> nth=0`); },
+  memory: async (p, ex) => { await p.click(`${ex} .mc >> nth=0`); await p.click(`${ex} .mc >> nth=1`); },
+};
+
+async function shootPlayed(page: Page, dir: string, ids: string[]) {
+  const style = await page.addStyleTag({ content: HIDE_TOPBAR + ".toast{display:none!important}" });
+  for (const id of ids) {
+    const play = PLAY[id.replace(/^ex-/, "")];
+    if (!play) continue;
+    await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+    await play(page, `#${id}`);
+    await page.waitForTimeout(700);
+    await page.locator(`#${id}`).screenshot({ path: resolve(dir, `play-${id}.png`), animations: "disabled" });
+  }
+  await style.evaluate((n) => (n as ChildNode).remove());
+}
+
 const browser = await launch();
 rmSync(outRoot, { recursive: true, force: true });
 
@@ -113,6 +142,10 @@ for (const hall of halls) {
     await page.screenshot({ path: resolve(dir, "01-full.png"), fullPage: true });
     const ids = await shootExhibits(page, dir);
     for (const id of ids) sheet.push({ hall, vp: vp.name, label: id, mine: relative(outRoot, resolve(dir, `${id}.png`)) });
+    await shootPlayed(page, dir, ids);
+    for (const id of ids.filter((i) => PLAY[i.replace(/^ex-/, "")])) sheet.push({ hall, vp: vp.name, label: `play-${id}`, mine: relative(outRoot, resolve(dir, `play-${id}.png`)) });
+    await page.reload();
+    await settle(page);
 
     if (vp.name === "390") {
       const o = await overflowCheck(page);
@@ -140,18 +173,19 @@ for (const hall of halls) {
     }
 
     // 3. 遊んだあとの状態（XP・スタンプ・収蔵庫）を入れて読み直す
-    const key = await page.evaluate(() => Object.keys(localStorage).find((k) => k.startsWith("diseaseMuseum.")) ?? "");
-    await page.evaluate((key) => {
+    await page.evaluate((hall) => {
+      localStorage.setItem("diseaseMuseum.museum.v3", JSON.stringify({ coins: 85, xp: 430 }));
+      const key = `diseaseMuseum.hall.${hall}.v3`;
       const st = JSON.parse(localStorage.getItem(key) || "{}");
       Object.assign(st, {
-        coins: 85, xp: 430, stamps: { lab: 1, hbv: 1, er: 1 }, gacha: { ...st.gacha, chol: 1, ileus: 1 },
+        stamps: { lab: 1, hbv: 1, er: 1 }, gacha: { ...st.gacha, chol: 1, ileus: 1 },
         review: [
           { id: "shot-1", src: "黄疸診断ラボ", q: "（撮影用のダミー）56歳 女性：食後の右季肋部痛、発熱と黄疸。", opts: ["総胆管結石", "急性肝炎", "溶血性貧血"], ans: "総胆管結石" },
           { id: "shot-2", src: "対決の間：PBC vs PSC", q: "（撮影用のダミー）「AMA陽性」はどっち？", opts: ["PBC", "PSC"], ans: "PBC" },
         ],
       });
       localStorage.setItem(key, JSON.stringify(st));
-    }, key);
+    }, hall);
     await page.reload();
     await settle(page);
     await page.evaluate("window.scrollTo(0, 0)");
@@ -188,11 +222,61 @@ for (const hall of halls) {
         const p = relative(outRoot, resolve(rdir, `${id}.png`));
         if (row) row.ref = p; else sheet.push({ hall, vp: vp.name, label: id, ref: p });
       }
+      await shootPlayed(rp, rdir, rids);
+      for (const id of rids) {
+        const row = sheet.find((x) => x.hall === hall && x.vp === vp.name && x.label === `play-${id}`);
+        if (row) row.ref = relative(outRoot, resolve(rdir, `play-${id}.png`));
+      }
       for (const f of ["00-top", "01-full"]) sheet.push({ hall, vp: vp.name, label: f, mine: relative(outRoot, resolve(dir, `${f}.png`)), ref: relative(outRoot, resolve(rdir, `${f}.png`)) });
       await rc.close();
     }
   }
 }
+// 館の入口（静的サイト）。vite preview で配信して、入口 → ホールの移動とコインの共有を確かめる
+{
+  execSync("npx vite build --logLevel warn", { cwd: root, stdio: "inherit" });
+  // dist/ をディスクから直接返す（ローカルのサーバーを立てない。Playwright はループバックもプロキシに通すため）
+  const base = "http://museum.test/";
+  const serveDist = async (ctx: Awaited<ReturnType<typeof newContext>>) => {
+    await ctx.route(`${base}**`, async (route) => {
+      let path = decodeURIComponent(new URL(route.request().url()).pathname);
+      if (path.endsWith("/")) path += "index.html";
+      const file = resolve(root, "dist", "." + path);
+      if (!file.startsWith(resolve(root, "dist")) || !existsSync(file)) return route.fulfill({ status: 404, body: "not found" });
+      await route.fulfill({ path: file });
+    });
+  };
+  for (const vp of VIEWPORTS) {
+    const dir = resolve(outRoot, "museum", vp.name);
+    mkdirSync(dir, { recursive: true });
+    const ctx = await newContext(browser, { viewport: { width: vp.width, height: vp.height }, isMobile: vp.isMobile, hasTouch: vp.hasTouch, deviceScaleFactor: vp.deviceScaleFactor, reducedMotion: "reduce" });
+    await serveDist(ctx);
+    const page = await ctx.newPage();
+    page.on("pageerror", (e) => problems.push(`museum ${vp.name}: JSエラー ${e.message}`));
+    await page.goto(base);
+    await page.evaluate(() => {
+      localStorage.setItem("diseaseMuseum.museum.v3", JSON.stringify({ coins: 85, xp: 430 }));
+      localStorage.setItem("diseaseMuseum.hall.kantansui.v3", JSON.stringify({ stamps: { lab: 1, hbv: 1, er: 1 } }));
+    });
+    await page.reload();
+    await settle(page);
+    await page.screenshot({ path: resolve(dir, "00-museum.png"), fullPage: true });
+    sheet.push({ hall: "museum", vp: vp.name, label: "入口", mine: relative(outRoot, resolve(dir, "00-museum.png")) });
+    if (vp.name === "390") {
+      const o = await overflowCheck(page);
+      if (o.scrollW > o.W || o.bad.length) problems.push(`museum 390: 横にはみ出し ${o.bad.join(" / ")}`);
+    }
+    await page.click(".hallCard >> nth=0");
+    await page.waitForURL(/halls\/kantansui/);
+    await settle(page);
+    const coins = await page.locator("#coins").textContent();
+    if (coins !== "85") problems.push(`museum ${vp.name}: ホールに入るとコインが ${coins}（館全体の 85 が引き継がれていない）`);
+    if (!(await page.locator('a[href="../../"]').count())) problems.push(`museum ${vp.name}: ホールに「館の入口へ」のリンクがない`);
+    await page.screenshot({ path: resolve(dir, "01-hall-from-museum.png") });
+    await ctx.close();
+  }
+}
+
 await browser.close();
 
 // 見比べ用の一覧
