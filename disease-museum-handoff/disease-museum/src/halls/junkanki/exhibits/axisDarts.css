@@ -1,0 +1,6 @@
+.limbGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.limbGrid .ecgBox svg{width:100%!important}
+.limbGrid .ecgBox{box-shadow:none;border-width:2px;overflow:hidden}
+.dial{display:block;width:min(320px,86vw);margin:10px auto 0;touch-action:none;cursor:crosshair}
+.dial text{font-size:9px;font-weight:800;fill:var(--ink)}
+@media (max-width:520px){.limbGrid{grid-template-columns:repeat(2,1fr)}}

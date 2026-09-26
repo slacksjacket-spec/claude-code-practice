@@ -1,0 +1,11 @@
+.calBox{position:relative}
+.calBox .cal{cursor:ew-resize}
+.calBox .cal line{stroke:var(--cobalt);stroke-width:.5}
+.calBox .cal.sel line{stroke:var(--tomato)}
+.calBox .cal circle{fill:var(--cobalt);stroke:#fff;stroke-width:.4}
+.calBox .cal.sel circle{fill:var(--tomato)}
+.calRead{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0;font-weight:800}
+.calRead .big{font-family:"Dela Gothic One",sans-serif;font-size:22px}
+.nudge{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.nudge button{min-width:44px;min-height:44px;border:3px solid var(--line);border-radius:12px;background:var(--card);font-weight:800}
+.nudge button[aria-pressed="true"]{background:var(--tomato);color:#fff}

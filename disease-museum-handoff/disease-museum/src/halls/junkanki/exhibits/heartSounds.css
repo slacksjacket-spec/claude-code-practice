@@ -1,0 +1,11 @@
+.pcg{display:block;width:100%;border:3px solid var(--line);border-radius:14px;background:#0B1A14;box-shadow:var(--shadow)}
+.pcg text{font-size:9px;font-weight:800;fill:#9FFFC6}
+.chest{display:block;width:min(260px,72vw);margin:6px auto 0}
+.chest .spot{cursor:pointer}
+.chest .spot circle{fill:var(--card);stroke:var(--line);stroke-width:2}
+.chest .spot:hover circle,.chest .spot:focus-visible circle{fill:var(--sun)}
+.chest .spot.right circle{fill:var(--mint)}
+.chest .spot.wrong circle{fill:var(--pink)}
+.chest .spot text{font-size:10px;font-weight:800;fill:var(--ink)}
+.chest > path{pointer-events:none}
+.listen{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}

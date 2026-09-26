@@ -29,7 +29,7 @@ Claude Codeを使ったプログラミング学習用のリポジトリです。
 - **[pubhealth-stats](pubhealth-stats/index.html)** — 公衆衛生の統計数値ドリル。出生数・死因順位・医療費などをフラッシュカード/3択/順位当てで暗記。統計は毎年変わるため、数値・年度をアプリ内で編集してlocalStorageに上書き保存できる。
 - **[exam-countdown](exam-countdown/index.html)** — 国試カウントダウン&ペース逆算ダッシュボード。教材ごとの総量と消化量から必要ペース/日と完了予測日を計算し、間に合うかを色分け表示。日次消化量の棒グラフつき。
 - **[mock-tracker](mock-tracker/index.html)** — 模試成績トラッカー。総合・必修得点率の推移折れ線、最新模試の分野別レーダーチャート(前回比較つき)、分野別の弱点バーを素のSVGで描画。分野リストは受ける模試に合わせて編集可能。
-- **[disease-museum](disease-museum/index.html)** — 病気博物館。国試の消化器を「遊んで覚える」ゲーム集（消化管ホール・肝胆膵ホール）。ソースは `disease-museum-handoff/disease-museum`（Vite＋TypeScript）、`disease-museum/` はそのビルド結果（`npm run publish:pages` で作る）。展示内容は未レビュー。
+- **[disease-museum](disease-museum/index.html)** — 病気博物館。国試の循環器・消化器を「遊んで覚える」ゲーム集（循環器ホール・消化管ホール・肝胆膵ホール）。循環器は心電図を合成して毎回ちがう波形が出る。ソースは `disease-museum-handoff/disease-museum`（Vite＋TypeScript）、`disease-museum/` はそのビルド結果（`npm run publish:pages` で作る）。展示内容は未レビュー。
 - **[claude-code-guide.html](claude-code-guide.html)** — Claude Codeの使い方をまとめた個人用ガイド(Windows版)。
 - **[hello.txt](hello.txt)** — はじめの自己紹介メモ。
 

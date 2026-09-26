@@ -1,0 +1,12 @@
+/* 心電図の表示（方眼紙は明るいまま。ダークモードでも紙の色は変えない） */
+.ecgBox{overflow-x:auto;border:3px solid var(--line);border-radius:14px;background:#FFF7F5;box-shadow:var(--shadow);-webkit-overflow-scrolling:touch}
+.ecgBox svg{display:block;height:auto;max-width:none}
+.ecgBox.fit svg{width:100%!important}
+.ecgHint{font-size:12px;font-weight:800;color:var(--sub);margin:4px 2px 0}
+.leadChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.leadChips button{border:3px solid var(--line);border-radius:12px;background:var(--card);min-width:52px;min-height:44px;font-weight:800}
+.leadChips button[aria-pressed="true"]{background:var(--tomato);color:#fff}
+.leadChips button.right{outline:4px solid var(--mint)}
+.leadChips button.missed{outline:4px dashed var(--pink)}
+.ecg12 .leadHit{cursor:pointer}
+.ecg12 .leadHit.on{fill:rgba(255,90,54,.18);stroke:var(--tomato);stroke-width:.6}

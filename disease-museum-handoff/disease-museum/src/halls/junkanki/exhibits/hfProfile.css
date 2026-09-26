@@ -1,0 +1,8 @@
+.quad{display:grid;grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:6px;margin-top:8px}
+.quad .ax{font-size:12px;font-weight:800;color:var(--sub);display:grid;place-items:center;text-align:center}
+.quad .ax.v{writing-mode:vertical-rl}
+.quad button{border:3px solid var(--line);border-radius:16px;background:var(--card);min-height:84px;font-weight:800;padding:8px;box-shadow:3px 3px 0 var(--line)}
+.quad button b{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:18px;display:block}
+.quad button.right{background:var(--mint);color:#1C1537}
+.quad button.wrong{background:var(--pink);color:#1C1537}
+.signs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}

@@ -1,4 +1,4 @@
-import{k as d,r as o,m as r,e as l,$ as e,n as p}from"./economy-CFKDFCG_.js";const m=[{id:"shokakan",no:2,title:"消化管ホール",catch:"のぞいて、見つけて、切って、ときどき早押し。",stamps:8},{id:"kantansui",no:3,title:"肝胆膵ホール",catch:"診断して、治療して、ときどきガチャを回す。",stamps:8}],v=[],b=a=>String(a).padStart(2,"0");function t(){const a=d();document.body.innerHTML=`<div class="topbar"><div class="wrap">
+import{k as d,r as o,m as r,e as l,$ as e,n as p}from"./economy-CFKDFCG_.js";const m=[{id:"junkanki",no:1,title:"循環器ホール",catch:"波を読んで、音を聴いて、止まった心臓を動かす。",stamps:8},{id:"shokakan",no:2,title:"消化管ホール",catch:"のぞいて、見つけて、切って、ときどき早押し。",stamps:8},{id:"kantansui",no:3,title:"肝胆膵ホール",catch:"診断して、治療して、ときどきガチャを回す。",stamps:8}],v=[],b=a=>String(a).padStart(2,"0");function t(){const a=d();document.body.innerHTML=`<div class="topbar"><div class="wrap">
   <span class="rankPill"><span>${o(a.xp)}</span><b>XP ${a.xp}</b></span>
   <span class="coinPill"><i class="coin"></i><span>${a.coins}</span></span>
 </div></div>
