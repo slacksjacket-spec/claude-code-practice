@@ -26,10 +26,14 @@ interface ReviewItem {     // 収蔵庫に送る形
 
 ```ts
 interface Hall {
-  id: string;              // "kantansui"
+  id: string;              // "kantansui"（halls/<id>/ と src/halls/<id>/ のフォルダ名と同じ）
   no: number;              // 館内番号（肝胆膵=3）
   title: string;           // "肝胆膵ホール"
+  headingParts?: string[]; // 入口の大見出しで跳ねる文字。既定は title から「ホール」を除いた1文字ずつ
+  version?: string;        // "ver.2"
   catch: string;           // 入口の一文
+  ticketNote: string;      // 入館券の下の小さな一文
+  footerNote?: string;     // フッターの注記
   map: MapSpec;            // 館内図（臓器キャラのSVGとリンク先）
   wings: Wing[];
   gacha: GachaSpec;
@@ -39,9 +43,22 @@ interface Hall {
 interface Wing {
   id: string;              // "w-liver"
   label: string;           // "肝ウィング"
-  color: string;           // デザイントークン名
+  color: string;           // デザイントークン名（"liver"）か #hex
+  labelText?: "dark" | "light"; // ラベルの文字色。既定は dark
   headline: string;        // "黄色くなる、つまる、ふえる"
-  exhibits: Exhibit[];
+  side?: string;           // 見出し右の一言。既定は「展示 n点」
+  exhibits: Exhibit[];     // 0個でもよい（ガチャだけのウィング）
+}
+
+interface MapSpec {
+  viewBox: string;         // "0 0 600 420"
+  ariaLabel: string;
+  hint: string;            // 図の下の一文
+  organs: {                // 描く順＝重なり順
+    go: string;            // 移動先の wing.id
+    label: string;         // aria-label（"肝ウィングへ"）
+    svg: string;           // 臓器キャラのSVG断片。目は class="eye" でまばたきする
+  }[];
 }
 
 interface ExhibitBase {
@@ -62,7 +79,8 @@ type Exhibit =
   | (ExhibitBase & { type: "ScoreAttack"; data: ScoreAttackData })
   | (ExhibitBase & { type: "VersusQuiz"; data: VersusQuizData })
   | (ExhibitBase & { type: "MemoryMatch"; data: MemoryMatchData })
-  | (ExhibitBase & { type: "BodyHotspot"; data: BodyHotspotData });
+  | (ExhibitBase & { type: "BodyHotspot"; data: BodyHotspotData })
+  | (ExhibitBase & { type: "Placeholder"; plannedType: ExhibitType }); // Phase 0 の仮置き。Phase 1 で消す
 ```
 
 ## 型ごとのデータ
@@ -242,9 +260,20 @@ interface BodyHotspotData { svg: string; spots: (Meta & { id: string; x: number;
 
 ```ts
 interface GachaSpec {
+  wing?: string;             // このウィングの中に置く（肝胆膵は "w-gb"）。なければウィングの後ろに単独で置く
+  title: string;             // "胆石ガチャ"
+  machineLabel: string;      // マシンの胴の字 "胆石"
+  intro: string;             // 回す前の景品欄の一文
+  domeColors?: string[];     // ドームの玉5つの色。既定は景品の色
   cost: number;              // 30
   dupRefund: number;         // 10
   pityAfterDups: number;     // 4
   items: (Meta & { id: string; name: string; rarity: 1 | 2 | 3 | 4; weight: number; color: string; text: string })[];
 }
 ```
+
+遊び方の説明文（「1回30コイン…9種そろえると図鑑コンプリート」）は数値から自動で作る。
+
+## 検証（`npm run check`）
+
+型に加えて次を確かめる：展示・ウィング・景品の id の重複、`stampOrder` と展示の過不足、館内図とガチャの行き先の wing が存在すること。
