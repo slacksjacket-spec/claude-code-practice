@@ -1,0 +1,1036 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>病気博物館 肝胆膵ホール ver.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5EFFF;--card:#FFFFFF;--ink:#1C1537;--sub:#5E567E;--line:#1C1537;
+  --tomato:#FF5A36;--sun:#FFC933;--mint:#22C1A0;--cobalt:#3D5AFE;--pink:#FF7AB6;--bile:#8BD450;--liver:#C8453B;
+  --shadow:4px 4px 0 var(--line);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17122E;--card:#241C47;--ink:#FFF6E8;--sub:#BDB4E0;--line:#0B0819;--shadow:4px 4px 0 #0B0819}}
+:root[data-theme="dark"]{--bg:#17122E;--card:#241C47;--ink:#FFF6E8;--sub:#BDB4E0;--line:#0B0819;--shadow:4px 4px 0 #0B0819}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth;overflow-x:clip}
+body{overflow-x:clip}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",system-ui,sans-serif;font-weight:500;line-height:1.7;
+  background-image:radial-gradient(color-mix(in srgb,var(--ink) 9%,transparent) 1.4px,transparent 1.6px);background-size:22px 22px}
+h1,h2,h3,.disp{font-family:"Dela Gothic One","Hiragino Sans",sans-serif;font-weight:400;line-height:1.2;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--cobalt);outline-offset:3px}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.pop{background:var(--card);border:3px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.btn{border:3px solid var(--line);border-radius:999px;background:var(--sun);color:#1C1537;padding:10px 20px;font-weight:800;box-shadow:3px 3px 0 var(--line);transition:transform .08s,box-shadow .08s;min-height:44px}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--line)}
+.btn.alt{background:var(--card);color:var(--ink)}
+.chip{display:inline-block;border:2px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:800;background:var(--card)}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;padding:10px 0}
+.topbar .wrap{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.logo{font-family:"Dela Gothic One",sans-serif;font-size:15px;background:var(--ink);color:var(--bg);padding:6px 12px;border-radius:999px}
+.stampPill{display:flex;align-items:center;gap:6px;border:3px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px 4px 6px;font-weight:800;box-shadow:3px 3px 0 var(--line)}
+.stampPill .dots{display:flex;gap:3px}
+.stampPill .dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:transparent}
+.stampPill .dots i.on{background:var(--tomato)}
+.snd{width:44px;height:44px;border-radius:50%;border:3px solid var(--line);background:var(--card);box-shadow:3px 3px 0 var(--line);font-weight:800}
+
+/* entrance */
+.entrance{padding:26px 0 10px;text-align:center}
+.entrance h1{font-size:clamp(40px,11vw,96px);letter-spacing:.02em;line-height:1.05}
+.entrance h1 span{display:inline-block;animation:bob 2.4s ease-in-out infinite}
+.entrance h1 span:nth-child(2){animation-delay:.2s;color:var(--tomato)}
+.entrance h1 span:nth-child(3){animation-delay:.4s;color:var(--mint)}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-3deg)}}
+.entrance .sub{font-weight:800;color:var(--sub);margin-top:8px}
+.ticket{position:relative;display:flex;max-width:520px;margin:22px auto 0;text-align:left}
+.ticket .main{flex:1;background:var(--sun);color:#1C1537;border:3px solid var(--line);border-right:0;border-radius:20px 0 0 20px;padding:16px 18px;box-shadow:var(--shadow)}
+.ticket .stub{width:128px;background:var(--pink);color:#1C1537;border:3px dashed var(--line);border-left-style:dashed;border-radius:0 20px 20px 0;display:grid;place-items:center;text-align:center;padding:10px;box-shadow:var(--shadow);transition:transform .7s cubic-bezier(.5,-0.4,.7,1.4),opacity .7s}
+.ticket.torn .stub{transform:translate(40px,140px) rotate(38deg);opacity:0}
+.ticket .main b{font-family:"Dela Gothic One",sans-serif;font-size:24px;display:block}
+.ticket small{font-weight:800}
+
+/* map */
+.mapWrap{padding:26px 0}
+.sectionTitle{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.sectionTitle h2{font-size:clamp(24px,5.6vw,38px)}
+.sectionTitle .no{font-family:"Dela Gothic One",sans-serif;background:var(--ink);color:var(--bg);border-radius:12px;padding:2px 10px;font-size:14px}
+.map svg{width:100%;height:auto;display:block}
+.organ{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.organ:hover,.organ:focus-visible{transform:scale(1.06) rotate(-2deg)}
+.organ:focus{outline:none}
+.eye{transform-box:fill-box;transform-origin:center;animation:blink 4.6s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.mapHint{text-align:center;font-weight:800;color:var(--sub);font-size:14px}
+
+/* wings */
+.wing{padding:34px 0 10px}
+.wingHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.wingHead h2{font-size:clamp(28px,7vw,52px)}
+.wingHead p{margin:0;font-weight:800;color:var(--sub)}
+.wingLabel{display:inline-block;font-family:"Dela Gothic One",sans-serif;font-size:13px;padding:3px 12px;border-radius:999px;border:2px solid var(--line);margin-bottom:6px;color:#1C1537}
+.exhibit{padding:18px;margin-bottom:22px;position:relative}
+.exhibit h3{font-size:clamp(20px,4.8vw,28px);margin-bottom:4px}
+.exhibit h3,.exhibit .how{padding-right:66px}
+.exhibit .how{font-size:14px;color:var(--sub);font-weight:800;margin:0 0 12px}
+.plaque{position:absolute;top:-14px;right:14px;background:var(--ink);color:var(--bg);font-family:"Dela Gothic One",sans-serif;font-size:12px;padding:4px 10px;border-radius:999px}
+.stampMark{position:absolute;top:10px;right:14px;width:64px;height:64px;border-radius:50%;border:4px solid var(--tomato);color:var(--tomato);display:grid;place-items:center;font-family:"Dela Gothic One",sans-serif;font-size:13px;transform:rotate(-14deg) scale(0);opacity:0;transition:transform .45s cubic-bezier(.3,1.8,.5,1),opacity .2s;pointer-events:none;background:color-mix(in srgb,var(--card) 70%,transparent)}
+.exhibit.stamped .stampMark{transform:rotate(-14deg) scale(1);opacity:1}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+
+/* jaundice */
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.seg button{border:3px solid var(--line);border-radius:999px;background:var(--card);padding:6px 12px;font-weight:800;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+input[type=range]{width:100%;accent-color:var(--tomato);height:30px}
+.readout{font-family:"Dela Gothic One",sans-serif;font-size:34px}
+.cups{display:flex;gap:14px;justify-content:center;margin-top:10px}
+.cups figure{margin:0;text-align:center;font-size:13px;font-weight:800}
+.bubble{border:3px solid var(--line);border-radius:16px;padding:10px 12px;background:var(--bg);font-size:14px;margin-top:10px}
+
+/* body hotspots */
+.body svg{width:100%;max-width:360px;display:block;margin:0 auto}
+.hs{cursor:pointer}
+.hs circle.ring{animation:pulse 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.hs.found circle.ring{animation:none;opacity:0}
+.found-list{display:flex;flex-wrap:wrap;gap:6px}
+.found-list .chip.on{background:var(--mint);color:#1C1537}
+.card-pop{animation:popin .35s cubic-bezier(.3,1.7,.5,1)}
+@keyframes popin{from{transform:scale(.6) rotate(-4deg);opacity:0}}
+
+/* gacha */
+.gacha{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:center}
+@media (max-width:640px){.gacha{grid-template-columns:1fr}}
+.machine{width:220px;margin:0 auto;display:block}
+.machine.shake .dome{animation:shake .5s}
+@keyframes shake{25%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}75%{transform:rotate(-2deg)}}
+.knob{transform-box:fill-box;transform-origin:center;transition:transform .6s cubic-bezier(.5,0,.3,1.4)}
+.prize{min-height:170px;padding:14px;border-radius:18px;border:3px solid var(--line);background:var(--bg)}
+.prize .rar{font-family:"Dela Gothic One",sans-serif;color:var(--tomato)}
+.prize h4{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:24px;margin:2px 0 6px}
+.coll{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.coll span{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center;line-height:1.1;background:var(--card);opacity:.35}
+.coll span.got{opacity:1}
+
+/* cholangitis */
+.syms{display:flex;flex-wrap:wrap;gap:8px}
+.sym{border:3px solid var(--line);border-radius:14px;background:var(--card);padding:10px 14px;font-weight:800;box-shadow:3px 3px 0 var(--line)}
+.sym.on{background:var(--sun);color:#1C1537;transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.sym.nope{animation:no .4s}
+@keyframes no{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.meterRow{display:flex;gap:6px;margin:14px 0 8px}
+.meterRow i{flex:1;height:18px;border-radius:9px;border:3px solid var(--line);background:var(--card);transition:background .2s}
+.meterRow i.on{background:var(--tomato)}
+.alarm{font-family:"Dela Gothic One",sans-serif;font-size:clamp(20px,5vw,30px);text-align:center;padding:12px;border-radius:16px;border:3px solid var(--line);background:var(--bg);transition:background .2s}
+.alarm.red{background:var(--tomato);color:#fff;animation:siren .6s steps(2) infinite}
+@keyframes siren{50%{background:var(--sun);color:#1C1537}}
+.alarm.gold{background:var(--sun);color:#1C1537}
+
+/* vs */
+.vsTabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.arena{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}
+.fighter{border:3px solid var(--line);border-radius:18px;padding:12px;color:#1C1537}
+.fighter h4{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:clamp(18px,4.4vw,26px);margin:0}
+.fighter ul{margin:6px 0 0;padding-left:1.1em;font-size:13px;font-weight:800}
+.vsMark{font-family:"Dela Gothic One",sans-serif;font-size:32px;align-self:center;color:var(--tomato);transform:rotate(-8deg)}
+@media (max-width:560px){.arena{grid-template-columns:1fr 1fr}.vsMark{display:none}}
+.clue{margin:16px auto 10px;max-width:420px;text-align:center;border:3px solid var(--line);border-radius:18px;padding:18px;background:var(--card);box-shadow:var(--shadow);font-family:"Dela Gothic One",sans-serif;font-size:clamp(20px,5vw,26px);min-height:92px;display:grid;place-items:center}
+.clue.ok{background:var(--mint);color:#1C1537}.clue.ng{background:var(--pink);color:#1C1537;animation:no .4s}
+.pick{display:flex;gap:10px;justify-content:center}
+.pick .btn{flex:1;max-width:210px}
+.vsScore{text-align:center;font-weight:800;color:var(--sub);margin-top:8px}
+
+/* memory */
+.memo{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:520px){.memo{grid-template-columns:repeat(3,1fr)}}
+.mc{aspect-ratio:3/4;perspective:600px;border:0;background:none;padding:0}
+.mc .in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.mc.flip .in,.mc.done .in{transform:rotateY(180deg)}
+.mc .f,.mc .b{position:absolute;inset:0;border:3px solid var(--line);border-radius:16px;display:grid;place-items:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;padding:6px;text-align:center;font-weight:800;box-shadow:3px 3px 0 var(--line)}
+.mc .f{background:repeating-linear-gradient(45deg,var(--cobalt) 0 10px,#5A73FF 10px 20px);color:#fff;font-family:"Dela Gothic One",sans-serif;font-size:26px}
+.mc .b{transform:rotateY(180deg);background:var(--card);font-size:clamp(13px,3.4vw,16px);line-height:1.3}
+.mc .b.mk{background:var(--sun);color:#1C1537;font-family:"Dela Gothic One",sans-serif;font-weight:400}
+.mc.done .b{background:var(--mint);color:#1C1537}
+.memoInfo{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-weight:800}
+
+/* toast & modal */
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160%);z-index:50;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 18px;font-weight:800;transition:transform .35s cubic-bezier(.3,1.6,.5,1);white-space:nowrap}
+.toast.show{transform:translate(-50%,0)}
+dialog{border:3px solid var(--line);border-radius:24px;box-shadow:6px 6px 0 var(--line);padding:0;max-width:min(520px,92vw);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(20,14,40,.55)}
+.cert{padding:22px;text-align:center}
+.cert .frame{border:4px double var(--line);border-radius:16px;padding:18px;background:var(--bg)}
+.cert h3{font-size:28px;margin:6px 0}
+.stampGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.stampGrid div{aspect-ratio:1;border-radius:50%;border:3px dashed var(--line);display:grid;place-items:center;font-size:12px;font-weight:800;padding:6px;line-height:1.2}
+.stampGrid div.on{border:4px solid var(--tomato);color:var(--tomato);background:color-mix(in srgb,var(--tomato) 10%,var(--card));transform:rotate(-8deg);font-family:"Dela Gothic One",sans-serif;font-weight:400}
+.cert input{border:3px solid var(--line);border-radius:12px;padding:8px 12px;font:inherit;font-weight:800;text-align:center;width:100%;max-width:260px;background:var(--card);color:var(--ink)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+footer{padding:30px 0 60px;text-align:center;font-size:13px;color:var(--sub);font-weight:800}
+
+/* ===== v2 additions ===== */
+.rankPill{white-space:nowrap;display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;border:3px solid var(--line);background:var(--card);border-radius:14px;padding:4px 10px;box-shadow:3px 3px 0 var(--line);font-weight:800;font-size:11px}
+.rankPill b{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:13px}
+.coinPill{display:flex;align-items:center;gap:5px;border:3px solid var(--line);background:var(--sun);color:#1C1537;border-radius:999px;padding:4px 10px;font-weight:800;box-shadow:3px 3px 0 var(--line)}
+.coin{display:inline-block;width:16px;height:16px;border-radius:50%;background:#FFE27A;border:2px solid #1C1537;box-shadow:inset -2px -2px 0 #E0A800}
+.coinPill.bump{animation:bump .4s}
+@keyframes bump{40%{transform:scale(1.25) rotate(-6deg)}}
+.float{position:fixed;z-index:70;font-family:"Dela Gothic One",sans-serif;color:#1C1537;background:var(--sun);border:2px solid #1C1537;border-radius:999px;padding:2px 10px;pointer-events:none;animation:floatup 1s forwards}
+@keyframes floatup{to{transform:translateY(-60px);opacity:0}}
+.guide{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.guide a{display:block;text-decoration:none;color:var(--ink);border:3px solid var(--line);border-radius:14px;padding:8px 10px;background:var(--card);font-weight:800;font-size:13px;box-shadow:3px 3px 0 var(--line)}
+.guide a small{display:block;color:var(--sub);font-size:11px}
+.guide a.done{background:var(--mint);color:#1C1537}
+.guide a.done small{color:#1C1537}
+
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:10px}
+.opt{border:3px solid var(--line);border-radius:14px;background:var(--card);padding:10px 12px;font-weight:800;text-align:left;box-shadow:3px 3px 0 var(--line);font-size:14px;line-height:1.4;min-height:48px}
+.opt:disabled{cursor:default}
+.opt.right{background:var(--mint);color:#1C1537}
+.opt.wrong{background:var(--pink);color:#1C1537;animation:no .4s}
+.opt.sel{background:var(--sun);color:#1C1537;transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.feedback{margin-top:12px;border:3px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg);font-size:14px}
+.feedback b.t{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:18px;display:block;margin-bottom:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.small{font-size:13px}
+.hud{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.tagk{font-family:"Dela Gothic One",sans-serif;font-size:12px;border:2px solid var(--line);border-radius:8px;padding:1px 8px;background:var(--ink);color:var(--bg)}
+
+/* lab */
+.patient{display:grid;grid-template-columns:78px 1fr;gap:12px;align-items:center;border:3px solid var(--line);border-radius:18px;padding:12px;background:var(--bg)}
+.budget{display:flex;gap:4px}
+.budget i{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);background:var(--sun)}
+.budget i.used{background:transparent}
+.tests{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px}
+.test{border:3px dashed var(--line);border-radius:12px;background:var(--card);padding:8px 10px;text-align:left;font-weight:800;font-size:13px}
+.test .cost{float:right;font-family:"Dela Gothic One",sans-serif}
+.test.done{border-style:solid;background:var(--ink);color:var(--bg)}
+.slip{margin-top:10px;border:3px solid var(--line);border-radius:12px;background:#FFFDF3;color:#1C1537;padding:8px 12px;font-family:ui-monospace,Menlo,monospace;font-size:13px;min-height:60px}
+.slip div{padding:3px 0;border-bottom:1px dashed #cbbf9c;animation:popin .3s}
+.slip .ab{color:#D0331C;font-weight:800}
+
+/* portal */
+.portalFig svg{width:100%;max-width:420px;display:block;margin:auto}
+.flowing{stroke-dasharray:6 10;animation:dash 1s linear infinite}
+.flowing.slow{animation-duration:3.2s}
+@keyframes dash{to{stroke-dashoffset:-32}}
+.cvl{transition:opacity .4s}
+.gauge{display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--sub)}
+.mission{border:3px solid var(--line);border-radius:16px;padding:10px 12px;background:var(--bg);margin-top:10px}
+.mission b{font-family:"Dela Gothic One",sans-serif;font-weight:400}
+.mdots{display:flex;gap:6px;margin-top:8px}
+.mdots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
+.mdots i.on{background:var(--mint)}
+
+/* hbv */
+.lamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.lamp{border:3px solid var(--line);border-radius:14px;padding:8px 10px;font-weight:800;font-size:13px;background:var(--card);display:flex;justify-content:space-between;align-items:center;gap:6px}
+.lamp .bulb{width:22px;height:22px;border-radius:50%;border:3px solid var(--line);background:#ccc;flex:none;display:grid;place-items:center;font-size:12px;color:#1C1537}
+.lamp.on .bulb{background:var(--tomato);box-shadow:0 0 12px var(--tomato);color:#fff}
+.lamp.off .bulb{background:#8ea0c0}
+button.lamp{cursor:pointer;text-align:left}
+.modeTabs{margin-bottom:10px}
+
+/* hcc sugoroku */
+.board{display:flex;gap:6px;overflow-x:auto;padding:10px 4px 14px;position:relative}
+.tile{flex:none;width:92px;min-height:70px;border:3px solid var(--line);border-radius:14px;background:var(--card);padding:6px;font-size:12px;font-weight:800;text-align:center;display:grid;place-items:center;position:relative;transition:background .3s,opacity .3s}
+.tile.cur{background:var(--sun);color:#1C1537}
+.tile.past{background:var(--mint);color:#1C1537}
+.tile.skip{opacity:.35;text-decoration:line-through}
+.tile.goal{background:var(--pink);color:#1C1537}
+.pawn{position:absolute;top:-16px;left:50%;width:26px;height:26px;margin-left:-13px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--cobalt);border:3px solid #1C1537;animation:hop .6s ease-in-out infinite}
+@keyframes hop{50%{transform:translateY(-6px)}}
+.pcard{border:3px solid var(--line);border-radius:18px;background:var(--bg);padding:10px 12px;font-weight:800;font-size:14px}
+.pcard .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+
+/* ER */
+.monitor{background:#0B1A14;color:#5CFF9D;border:3px solid var(--line);border-radius:16px;padding:10px 12px;font-family:ui-monospace,Menlo,monospace;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.monitor svg{width:100%;height:46px}
+.monitor .ecg{stroke:#5CFF9D;stroke-width:2.5;fill:none;stroke-dasharray:500;stroke-dashoffset:500;animation:ecg 1.6s linear infinite}
+.monitor.bad .ecg{stroke:#FF6B6B;animation-duration:.8s}
+.monitor.bad{color:#FF8B8B}
+@keyframes ecg{to{stroke-dashoffset:0}}
+.vitals{display:grid;grid-template-columns:repeat(2,auto);gap:2px 12px;font-size:13px}
+.vitals b{font-size:18px}
+.erText{margin-top:10px;font-size:14px;font-weight:800}
+.stepLabel{font-family:"Dela Gothic One",sans-serif;font-size:14px;margin-top:12px}
+.clock{font-family:"Dela Gothic One",sans-serif;background:var(--ink);color:var(--bg);border-radius:10px;padding:2px 10px;font-size:13px}
+
+/* pancreatitis */
+.labs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:520px){.labs{grid-template-columns:repeat(2,1fr)}}
+.labt{border:3px solid var(--line);border-radius:14px;background:var(--card);padding:8px;font-weight:800;font-size:13px;text-align:left;line-height:1.35;min-height:70px}
+.labt .v{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:16px;display:block}
+.labt.sel{background:var(--sun);color:#1C1537}
+.labt.okp{background:var(--mint);color:#1C1537}
+.labt.miss{background:var(--pink);color:#1C1537}
+.labt.fp{background:#FFD0C4;color:#1C1537;text-decoration:line-through}
+.timer{height:14px;border-radius:7px;border:3px solid var(--line);background:var(--card);overflow:hidden;margin:8px 0}
+.timer i{display:block;height:100%;background:var(--tomato);transition:width .25s linear}
+.ctFig svg{width:100%;max-width:380px;display:block;margin:auto}
+
+/* review */
+.revList{display:grid;gap:10px}
+.rev{border:3px solid var(--line);border-radius:16px;background:var(--card);padding:10px 12px}
+.rev .src{font-size:11px;color:var(--sub);font-weight:800}
+.rev p{margin:2px 0 6px;font-weight:800}
+.empty{text-align:center;color:var(--sub);font-weight:800;padding:16px}
+.combo{font-family:"Dela Gothic One",sans-serif;color:var(--tomato);font-size:18px;min-height:26px;text-align:center}
+
+.stampPill .dots i{width:9px!important;height:9px!important}
+.stampPill{padding:4px 8px 4px 6px!important}
+@media (max-width:420px){.rankPill{font-size:10px;padding:3px 7px}.rankPill b{font-size:11px}.coinPill{padding:3px 8px}.snd{width:38px;height:38px}}
+
+.flowBox{margin-top:12px;border:3px solid var(--line);border-radius:14px;background:var(--card);padding:10px 12px}
+.flowNav{display:flex;align-items:center;gap:10px;margin:8px 0}
+.flowNav .btn{padding:6px 14px;min-height:40px}
+.flowNav .btn:disabled{opacity:.35}
+.flowPos{font-family:"Dela Gothic One",sans-serif;font-size:14px;min-width:48px;text-align:center}
+.fs{border:2px dashed var(--line);border-radius:12px;padding:8px 10px;font-size:13px;line-height:1.6;min-height:88px}
+.fs .dn{color:#C0392B;font-weight:800}.fs .upp{color:#138A6E;font-weight:800}
+.bars{margin-top:10px;display:grid;gap:5px}
+.barRow{display:grid;grid-template-columns:86px 1fr 40px;gap:6px;align-items:center;font-size:12px;font-weight:800}
+.barT{height:14px;border:2px solid var(--line);border-radius:7px;background:var(--bg);overflow:hidden}
+.barT i{display:block;height:100%;width:0;background:var(--cobalt);transition:width .5s cubic-bezier(.3,1.3,.5,1)}
+.barT i.ans{background:var(--tomato)}
+.barRow em{font-style:normal;text-align:right}
+
+.peek{display:inline-flex;align-items:center;gap:6px;border:2px dashed var(--line);border-radius:999px;background:transparent;padding:5px 12px;font-weight:800;font-size:13px;color:var(--sub);margin:-4px 0 12px;min-height:36px}
+.peek::before{content:"";width:14px;height:10px;border:2px solid currentColor;border-radius:2px 2px 4px 4px}
+dialog#peekDlg{max-width:min(560px,94vw);width:100%}
+.peekIn{padding:16px 18px;max-height:80vh;overflow:auto}
+.peekHead{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-16px;background:var(--card);padding:6px 0 10px}
+.peekHead b{font-size:18px;line-height:1.3}
+#peekBody{font-size:14px;line-height:1.65}
+#peekBody h4{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:15px;margin:14px 0 4px}
+#peekBody table{width:100%;border-collapse:collapse}
+#peekBody th,#peekBody td{border:2px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+#peekBody th{background:var(--bg);white-space:nowrap;font-size:13px}
+#peekBody ul,#peekBody ol{margin:4px 0;padding-left:1.3em}
+#peekBody p{margin:6px 0}
+
+#peekClose{white-space:nowrap;flex:none}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="topbar"><div class="wrap">
+  <button class="rankPill" id="rankPill" aria-label="ランクとスタンプ"><span id="rankSub">見習い学芸員</span><b id="rankXp">XP 0</b></button>
+  <div style="display:flex;gap:6px;align-items:center">
+    <span class="coinPill" id="coinPill"><i class="coin"></i><span id="coins">0</span></span>
+    <button class="snd" id="snd" aria-label="効果音の切り替え">♪</button>
+    <button class="stampPill" id="stampPill" aria-label="スタンプカードを開く"><span class="dots" id="dots"></span><span id="stampCount">0/8</span></button>
+  </div>
+</div></div>
+
+<header class="entrance"><div class="wrap">
+  <h1><span>肝</span><span>胆</span><span>膵</span><br>ホール</h1>
+  <p class="sub">診断して、治療して、ときどきガチャを回す。展示をクリアしてスタンプを8つ集めよう。</p>
+  <div class="ticket" id="ticket">
+    <div class="main"><small>DISEASE MUSEUM　NO.03　ver.2</small><b>肝胆膵ホール 入館券</b><small>正解でコイン、まちがいは収蔵庫へ</small></div>
+    <button class="stub" id="tear"><span class="disp" style="font-size:18px">もぎる</span></button>
+  </div>
+</div></header>
+
+<section class="mapWrap" id="map"><div class="wrap">
+  <div class="sectionTitle"><span class="no">館内図</span><h2>どの臓器から見る？</h2></div>
+  <div class="pop map" style="padding:10px">
+    <svg viewBox="0 0 600 420" role="img" aria-label="肝胆膵ホールの館内図">
+      <g class="organ" tabindex="0" role="button" aria-label="マーカーの間へ" data-go="w-marker">
+        <path d="M300 250 C250 250 236 300 250 340 C266 386 360 392 380 350" fill="none" stroke="#FFB38A" stroke-width="44" stroke-linecap="round"/>
+        <text x="228" y="398" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">十二指腸（マーカーの間）</text>
+      </g>
+      <g class="organ" tabindex="0" role="button" aria-label="膵ウィングへ" data-go="w-pan">
+        <path d="M280 318 C300 290 380 292 450 282 C500 276 548 262 556 286 C564 312 520 326 470 330 C410 336 350 350 300 350 C278 350 268 334 280 318Z" fill="var(--sun)" stroke="#1C1537" stroke-width="4"/>
+        <circle class="eye" cx="410" cy="306" r="5" fill="#1C1537"/><circle class="eye" cx="436" cy="303" r="5" fill="#1C1537"/>
+        <path d="M414 318 Q424 326 434 316" stroke="#1C1537" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <text x="456" y="358" font-family="Dela Gothic One" font-size="18" fill="var(--ink)">膵臓</text>
+      </g>
+      <g class="organ" tabindex="0" role="button" aria-label="胆管ウィングへ" data-go="w-duct">
+        <path d="M300 170 C302 210 296 240 290 280" stroke="var(--bile)" stroke-width="18" fill="none" stroke-linecap="round"/>
+        <text x="312" y="236" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">胆管</text>
+      </g>
+      <g class="organ" tabindex="0" role="button" aria-label="肝ウィングへ" data-go="w-liver">
+        <path d="M40 120 C40 50 150 22 280 30 C390 36 470 60 470 104 C470 150 390 170 320 186 C250 204 150 226 90 206 C54 194 40 160 40 120Z" fill="var(--liver)" stroke="#1C1537" stroke-width="4"/>
+        <ellipse cx="200" cy="100" rx="16" ry="18" fill="#fff" stroke="#1C1537" stroke-width="3"/><circle class="eye" cx="204" cy="104" r="8" fill="#1C1537"/>
+        <ellipse cx="260" cy="100" rx="16" ry="18" fill="#fff" stroke="#1C1537" stroke-width="3"/><circle class="eye" cx="264" cy="104" r="8" fill="#1C1537"/>
+        <path d="M212 140 Q232 158 252 140" stroke="#1C1537" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <ellipse cx="172" cy="134" rx="12" ry="7" fill="var(--pink)" opacity=".8"/><ellipse cx="292" cy="134" rx="12" ry="7" fill="var(--pink)" opacity=".8"/>
+        <text x="370" y="80" font-family="Dela Gothic One" font-size="26" fill="#fff">肝臓</text>
+      </g>
+      <g class="organ" tabindex="0" role="button" aria-label="胆のうウィングへ" data-go="w-gb">
+        <path d="M232 196 C220 236 238 276 262 270 C286 264 290 222 282 190 Z" fill="var(--bile)" stroke="#1C1537" stroke-width="4"/>
+        <circle class="eye" cx="252" cy="232" r="4" fill="#1C1537"/><circle class="eye" cx="268" cy="230" r="4" fill="#1C1537"/>
+        <text x="120" y="260" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">胆のう</text>
+      </g>
+      <g class="organ" tabindex="0" role="button" aria-label="対決の間へ" data-go="w-vs">
+        <circle cx="530" cy="150" r="44" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
+        <text x="530" y="164" text-anchor="middle" font-family="Dela Gothic One" font-size="34" fill="#fff">VS</text>
+        <text x="530" y="214" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">対決の間</text>
+      </g>
+    </svg>
+    <p class="mapHint">臓器をタップすると、その展示室へ移動します</p>
+    <div class="guide" id="guide"></div>
+  </div>
+</div></section>
+
+<!-- ============ LIVER ============ -->
+<section class="wing" id="w-liver"><div class="wrap">
+  <div class="wingHead"><div><span class="wingLabel" style="background:var(--liver);color:#fff">肝ウィング</span><h2>黄色くなる、つまる、ふえる</h2></div><p>展示 4点</p></div>
+
+  <article class="pop exhibit" data-ex="lab" id="ex-lab">
+    <span class="plaque">展示 01</span><div class="stampMark">済</div>
+    <h3>黄疸診断ラボ</h3>
+    <p class="how">黄疸の患者が次々やってくる。予算内で検査を選んで、診断をつけよう。予算が余るほどボーナス。4人正解でスタンプ。</p>
+    <div id="labRoot"></div>
+  </article>
+
+  <article class="pop exhibit" data-ex="portal" id="ex-portal">
+    <span class="plaque">展示 02</span><div class="stampMark">済</div>
+    <h3>門脈の渋滞マップ</h3>
+    <p class="how">門脈圧を上げて、血液がどこへあふれ出すかを見よう。そのあと5つの治療ミッションに挑戦。</p>
+    <div class="two">
+      <div class="portalFig" id="portalFig"></div>
+      <div>
+        <label for="hvpg" style="font-weight:800">肝静脈圧較差（HVPG）</label>
+        <div class="readout"><span id="hvpgVal">5</span><small style="font-size:16px"> mmHg</small></div>
+        <input type="range" id="hvpg" min="3" max="22" step="1" value="5">
+        <div class="gauge"><span>正常</span><span>5〜 門脈圧亢進</span><span>10〜 静脈瘤</span><span>12〜 破裂</span></div>
+        <div class="bubble" id="portalNote"></div>
+      </div>
+    </div>
+    <div class="mission" id="mission"></div>
+  </article>
+
+  <article class="pop exhibit" data-ex="hbv" id="ex-hbv">
+    <span class="plaque">展示 03</span><div class="stampMark">済</div>
+    <h3>HBVマーカー解読パズル</h3>
+    <p class="how">ランプの点き方から、この人のB型肝炎の状態を解読しよう。6問中5問正解でスタンプ。「ランプを点けろ」モードもあるよ。</p>
+    <button class="peek" data-k="hbv">カンペを見る</button>
+    <div class="seg modeTabs" id="hbvTabs"><button aria-pressed="true" data-m="read">解読モード</button><button aria-pressed="false" data-m="make">ランプを点けろ</button></div>
+    <div id="hbvRoot"></div>
+  </article>
+
+  <article class="pop exhibit" data-ex="hcc" id="ex-hcc">
+    <span class="plaque">展示 04</span><div class="stampMark">済</div>
+    <h3>肝細胞癌 治療すごろく</h3>
+    <p class="how">患者カードを見て分かれ道を選び、ゴールで治療を決めよう。まちがえるとコマが戻る。4人ゴールでスタンプ。</p>
+    <button class="peek" data-k="hcc">カンペを見る</button>
+    <div id="hccRoot"></div>
+  </article>
+</div></section>
+
+<!-- ============ GB ============ -->
+<section class="wing" id="w-gb"><div class="wrap">
+  <div class="wingHead"><div><span class="wingLabel" style="background:var(--bile)">胆のうウィング</span><h2>石が生まれる場所</h2></div><p>ごほうびコーナー</p></div>
+  <article class="pop exhibit" id="ex-gacha">
+    <span class="plaque">ごほうび</span>
+    <h3>胆石ガチャ</h3>
+    <p class="how">展示で稼いだコインで回そう。1回30コイン（最初の1回は無料）。ダブりは10コイン返却、4回続けてダブったら次は新種確定。9種そろえると図鑑コンプリート。</p>
+    <div class="gacha">
+      <div>
+        <svg class="machine" id="machine" viewBox="0 0 220 300" aria-label="ガチャマシン">
+          <g class="dome"><circle cx="110" cy="96" r="84" fill="#DDF4FF" stroke="#1C1537" stroke-width="4"/>
+            <circle cx="72" cy="112" r="16" fill="var(--sun)" stroke="#1C1537" stroke-width="3"/><circle cx="110" cy="130" r="16" fill="#3A2A2A" stroke="#1C1537" stroke-width="3"/><circle cx="146" cy="110" r="16" fill="#A0642E" stroke="#1C1537" stroke-width="3"/><circle cx="92" cy="78" r="16" fill="var(--pink)" stroke="#1C1537" stroke-width="3"/><circle cx="134" cy="72" r="16" fill="var(--mint)" stroke="#1C1537" stroke-width="3"/>
+            <path d="M60 50 Q80 30 110 28" stroke="#fff" stroke-width="8" fill="none" stroke-linecap="round"/></g>
+          <rect x="30" y="170" width="160" height="116" rx="18" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
+          <text x="110" y="200" text-anchor="middle" font-family="Dela Gothic One" font-size="16" fill="#fff">胆石</text>
+          <g class="knob" id="knob"><circle cx="110" cy="236" r="26" fill="var(--sun)" stroke="#1C1537" stroke-width="4"/><rect x="104" y="214" width="12" height="44" rx="6" fill="#fff" stroke="#1C1537" stroke-width="3"/></g>
+          <rect x="140" y="258" width="38" height="22" rx="6" fill="#1C1537"/>
+          <circle id="capsule" cx="159" cy="268" r="0" fill="var(--sun)" stroke="#1C1537" stroke-width="3"/>
+        </svg>
+        <div style="text-align:center;margin-top:8px"><button class="btn" id="spin">回す</button></div><p id="pity" style="text-align:center;margin:6px 0 0;font-size:13px;font-weight:800;color:var(--sub)"></p>
+      </div>
+      <div>
+        <div class="prize" id="prize"><span class="rar">？？？</span><h4>なにが出るかな</h4><p style="margin:0;font-size:14px">胆石は成分で大きく3系統。できる場所と原因がちがいます。</p></div>
+        <div class="coll" id="coll"></div>
+      </div>
+    </div>
+  </article>
+</div></section>
+
+<!-- ============ DUCT ============ -->
+<section class="wing" id="w-duct"><div class="wrap">
+  <div class="wingHead"><div><span class="wingLabel" style="background:var(--mint)">胆管ウィング</span><h2>つまると、あぶない</h2></div><p>展示 1点</p></div>
+  <article class="pop exhibit" data-ex="er" id="ex-er">
+    <span class="plaque">展示 05</span><div class="stampMark">済</div>
+    <h3>胆管炎ER</h3>
+    <p class="how">救急外来に胆管炎の患者が3人。重症度を判定して、指示を出そう。まちがえると時間が過ぎて容体が悪化する。</p>
+    <button class="peek" data-k="er">カンペを見る</button>
+    <div id="erRoot"></div>
+  </article>
+</div></section>
+
+<!-- ============ PANCREAS ============ -->
+<section class="wing" id="w-pan"><div class="wrap">
+  <div class="wingHead"><div><span class="wingLabel" style="background:var(--sun)">膵ウィング</span><h2>数えて、見きわめる</h2></div><p>展示 1点</p></div>
+  <article class="pop exhibit" data-ex="panc" id="ex-panc">
+    <span class="plaque">展示 06</span><div class="stampMark">済</div>
+    <h3>急性膵炎 重症度判定</h3>
+    <p class="how">予後因子タイムアタックと造影CT判定の2種目。それぞれ2回ずつ正解でスタンプ。検査値は毎回ランダムに変わる。</p>
+    <button class="peek" data-k="panc">カンペを見る</button>
+    <div class="seg modeTabs" id="pancTabs"><button aria-pressed="true" data-m="lab">予後因子タイムアタック</button><button aria-pressed="false" data-m="ct">造影CT Grade</button></div>
+    <div id="pancRoot"></div>
+  </article>
+</div></section>
+
+<!-- ============ VS ============ -->
+<section class="wing" id="w-vs"><div class="wrap">
+  <div class="wingHead"><div><span class="wingLabel" style="background:var(--tomato);color:#fff">対決の間</span><h2>似たもの同士、白黒つける</h2></div><p>展示 1点</p></div>
+  <article class="pop exhibit" data-ex="vs" id="ex-vs">
+    <span class="plaque">展示 07</span><div class="stampMark">済</div>
+    <h3>ヒントはどっちの味方？</h3>
+    <p class="how">ヒントがどちらの病気のものか左右で答えよう。連続正解でコンボ。6問中5問以上でスタンプ。</p>
+    <div class="vsTabs seg" id="vsTabs"></div>
+    <div class="arena" id="arena"></div>
+    <div class="combo" id="combo"></div>
+    <div class="clue" id="clue">スタートを押してね</div>
+    <div class="pick" id="pick"></div>
+    <div class="vsScore" id="vsScore"></div>
+  </article>
+</div></section>
+
+<!-- ============ MARKER ============ -->
+<section class="wing" id="w-marker"><div class="wrap">
+  <div class="wingHead"><div><span class="wingLabel" style="background:#FFB38A">マーカーの間</span><h2>この数値、だれのもの？</h2></div><p>展示 1点</p></div>
+  <article class="pop exhibit" data-ex="memory" id="ex-memory">
+    <span class="plaque">展示 08</span><div class="stampMark">済</div>
+    <h3>マーカー神経衰弱</h3>
+    <p class="how">マーカーや抗体（黄色）と、それが目印になる病気をペアでめくろう。20手以内ならボーナス。</p>
+    <div class="memo" id="memo"></div>
+    <div class="memoInfo"><span id="memoMoves">0手</span><button class="btn alt" id="memoReset">並べなおす</button></div>
+  </article>
+</div></section>
+
+<!-- ============ REVIEW ============ -->
+<section class="wing" id="w-review"><div class="wrap">
+  <div class="wingHead"><div><span class="wingLabel" style="background:var(--ink);color:var(--bg)">収蔵庫</span><h2>まちがえた問題の保管室</h2></div><p id="revCount">0点を保管中</p></div>
+  <article class="pop exhibit" id="ex-review">
+    <h3>要復習コーナー</h3>
+    <p class="how">展示でまちがえた問題がここに保管される。正解すると退館して、1問5コイン。</p>
+    <div class="revList" id="revList"></div>
+  </article>
+</div></section>
+
+<footer><div class="wrap">
+  <button class="btn" id="openCard">スタンプカードを見る</button>
+  <p>病気博物館 試作版 ver.2。展示内容は未レビューです。<br>肝細胞癌の治療分岐は2021年版の骨格を使用（2025年版で改訂あり）。</p>
+</div></footer>
+
+<dialog id="cardDlg"><div class="cert">
+  <div class="frame">
+    <p class="disp" style="font-size:14px;color:var(--sub)">肝胆膵ホール</p>
+    <h3 id="certTitle">スタンプカード</h3>
+    <p style="margin:0;font-weight:800" id="certRank"></p>
+    <div class="stampGrid" id="stampGrid"></div>
+    <div id="certBody"></div>
+  </div>
+  <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn alt" id="resetAll">データを消して最初から</button><button class="btn" id="closeDlg">とじる</button></div>
+</div></dialog>
+<dialog id="peekDlg"><div class="peekIn"><div class="peekHead"><b class="disp" id="peekTitle"></b><button class="btn alt" id="peekClose">とじる</button></div><div id="peekBody"></div></div></dialog>
+<div class="toast" id="toast"></div>
+<script>
+(()=>{
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const cl=x=>Math.max(0,Math.min(1,x));
+
+/* ================= state ================= */
+const KEY="diseaseMuseum.hall03.v2";
+const STAMPS=[["lab","黄疸ラボ"],["portal","門脈"],["hbv","HBV"],["hcc","肝癌すごろく"],["er","胆管炎ER"],["panc","膵炎判定"],["vs","対決"],["memory","マーカー"]];
+let st={stamps:{},stones:{},coins:0,xp:0,review:[],prog:{},free:1};
+try{const s=localStorage.getItem(KEY);if(s)st=Object.assign(st,JSON.parse(s))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const prog=(k,inc=1)=>{st.prog[k]=(st.prog[k]||0)+inc;save();return st.prog[k]};
+
+/* ================= sound ================= */
+let ac=null,soundOn=true;
+function beep(f=660,d=.12,type="square",vol=.06,slide){if(!soundOn)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime;o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
+const yay=()=>[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.14,"square",.05),i*80));
+const ding=()=>{beep(880,.08,"square",.05);setTimeout(()=>beep(1320,.1,"square",.04),70)};
+const boo=()=>beep(180,.3,"sawtooth",.06,110);
+$("#snd").onclick=()=>{soundOn=!soundOn;$("#snd").textContent=soundOn?"♪":"×"};
+
+/* ================= economy ================= */
+const RANKS=[[0,"見習い学芸員"],[150,"学芸員"],[400,"主任学芸員"],[800,"副館長"],[1300,"館長"]];
+const rank=()=>RANKS.filter(r=>st.xp>=r[0]).pop()[1];
+let lastRank=rank();
+function hudUpdate(){$("#coins").textContent=st.coins;$("#rankSub").textContent=rank();$("#rankXp").textContent="XP "+st.xp;
+  const n=STAMPS.filter(([k])=>st.stamps[k]).length;$("#stampCount").textContent=`${n}/8`;
+  $("#dots").innerHTML=STAMPS.map(([k])=>`<i class="${st.stamps[k]?"on":""}"></i>`).join("");
+  STAMPS.forEach(([k])=>{const el=document.querySelector(`[data-ex="${k}"]`);el&&el.classList.toggle("stamped",!!st.stamps[k])});
+  $("#guide").innerHTML=STAMPS.map(([k,n],i)=>`<a href="#ex-${k}" class="${st.stamps[k]?"done":""}"><small>展示 0${i+1}</small>${n}</a>`).join("")+`<a href="#ex-review"><small>収蔵庫</small>要復習 ${st.review.length}</a>`;
+  if(rank()!==lastRank){lastRank=rank();setTimeout(()=>{toast(`昇進！「${lastRank}」になった`);yay();confetti(90)},900)}}
+function award(n,el){st.coins+=n;st.xp+=n;save();hudUpdate();const p=$("#coinPill");p.classList.remove("bump");void p.offsetWidth;p.classList.add("bump");
+  if(el){const r=el.getBoundingClientRect(),f=document.createElement("div");f.className="float";f.textContent="+"+n;f.style.left=(r.left+r.width/2-20)+"px";f.style.top=(r.top-6)+"px";document.body.appendChild(f);setTimeout(()=>f.remove(),1000)}}
+function miss(item){if(!st.review.find(r=>r.id===item.id)){st.review.push(item);save();renderReview();hudUpdate()}}
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),2400)}
+function stamp(k){if(st.stamps[k])return;st.stamps[k]=1;st.xp+=50;save();hudUpdate();yay();toast(`ポン！「${STAMPS.find(s=>s[0]===k)[1]}」スタンプ　XP+50`);confetti(70);
+  if(STAMPS.every(([x])=>st.stamps[x]))setTimeout(openCard,1500)}
+const fb=(el,ok,title,body)=>{el.innerHTML=`<div class="feedback card-pop" style="background:${ok?"color-mix(in srgb,var(--mint) 30%,var(--card))":"color-mix(in srgb,var(--pink) 30%,var(--card))"}"><b class="t">${title}</b>${body}</div>`};
+
+/* ================= ticket & map ================= */
+$("#tear").onclick=()=>{$("#ticket").classList.add("torn");beep(900,.08,"triangle",.08,300);setTimeout(()=>{$("#tear").style.visibility="hidden";$("#map").scrollIntoView({behavior:"smooth"})},650)};
+$$(".organ").forEach(g=>{const go=()=>{beep(520,.1,"triangle",.07,780);document.getElementById(g.dataset.go).scrollIntoView({behavior:"smooth"})};g.onclick=go;g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
+
+
+const PEEK={
+ er:["急性胆管炎（TG18）",`<h4>診断基準</h4><table><tr><th>A 全身の炎症</th><td>発熱・悪寒戦慄、血液検査で炎症反応</td></tr><tr><th>B 胆汁うっ滞</th><td>黄疸、肝機能検査の異常</td></tr><tr><th>C 画像</th><td>胆管拡張、原因（結石・狭窄など）</td></tr></table><p>確診＝A＋B＋C　疑診＝A＋（BまたはC）</p>
+ <h4>重症（Grade III）：臓器障害が1つ以上</h4><ul><li>循環：ドパミン5μg/kg/分以上、またはノルアドレナリン使用</li><li>中枢神経：意識障害</li><li>呼吸：PaO₂/FiO₂＜300</li><li>腎：乏尿、Cr＞2.0</li><li>肝：PT-INR＞1.5</li><li>血液：血小板＜10万</li></ul>
+ <h4>中等症（Grade II）：2項目以上</h4><ul><li>WBC＞12,000 または＜4,000</li><li>39℃以上の発熱</li><li>75歳以上</li><li>T-Bil 5 mg/dL以上</li><li>低アルブミン（基準下限×0.7未満）</li></ul>
+ <h4>軽症（Grade I）</h4><p>重症・中等症のどちらにも当てはまらない</p>
+ <h4>対応</h4><table><tr><th>共通</th><td>血液培養、抗菌薬、絶食・輸液</td></tr><tr><th>軽症</th><td>抗菌薬で反応しなければドレナージ</td></tr><tr><th>中等症</th><td>早期（24時間以内）ドレナージ</td></tr><tr><th>重症</th><td>呼吸循環管理＋緊急ドレナージ</td></tr></table>`],
+ panc:["急性膵炎 重症度判定基準（厚労省2008）",`<h4>予後因子（各1点、3点以上で重症）</h4><ol><li>BE≦−3 mEq/L、またはショック（収縮期血圧＜80）</li><li>PaO₂≦60 mmHg（room air）、または呼吸不全</li><li>BUN≧40 mg/dL（またはCr≧2）、または乏尿</li><li>LDH≧基準上限の2倍</li><li>血小板≦10万/μL</li><li>総Ca≦7.5 mg/dL</li><li>CRP≧15 mg/dL</li><li>SIRS診断基準の陽性項目数≧3</li><li>年齢≧70歳</li></ol>
+ <h4>SIRS診断基準</h4><ul><li>体温＞38℃または＜36℃</li><li>脈拍＞90/分</li><li>呼吸数＞20/分またはPaCO₂＜32 mmHg</li><li>WBC＞12,000または＜4,000、または幼若球＞10%</li></ul>
+ <h4>造影CT Grade（原則48時間以内）</h4><table><tr><th>膵外進展度</th><td>前腎傍腔 0点／結腸間膜根部 1点／腎下極以遠 2点</td></tr><tr><th>造影不良域</th><td>1区域に限局 0点／2区域にかかる 1点／2区域全体以上 2点</td></tr></table><p>合計1点以下＝Grade 1、2点＝Grade 2、3点以上＝Grade 3。<b>Grade 2以上は重症</b>。</p><p>アミラーゼ・リパーゼの値は重症度に入らない。</p>`],
+ hcc:["肝細胞癌 治療アルゴリズム（2021年版の骨格）",`<table><tr><th>Child-Pugh C</th><td>ミラノ基準内なら肝移植、外なら緩和ケア</td></tr><tr><th>肝外転移あり</th><td>薬物療法</td></tr><tr><th>脈管侵襲あり</th><td>肝切除、塞栓、薬物療法（動注を含む）</td></tr><tr><th>1個</th><td>肝切除、焼灼</td></tr><tr><th>2〜3個・3cm以内</th><td>肝切除、焼灼</td></tr><tr><th>2〜3個・3cm超</th><td>肝切除、塞栓</td></tr><tr><th>4個以上</th><td>塞栓、薬物療法（動注を含む）</td></tr></table><p>確認する順番：肝予備能 → 肝外転移 → 脈管侵襲 → 腫瘍数 → 腫瘍径。</p><p style="color:var(--sub)">2025年版（第6版）でオプション治療・粒子線・Child-Pugh Bの肝移植などが加わり改訂。</p>`],
+ hbv:["HBVマーカーの読み方",`<table><tr><th>HBs抗原</th><td>いま感染している</td></tr><tr><th>HBs抗体</th><td>免疫がある（治癒またはワクチン）</td></tr><tr><th>IgM-HBc抗体</th><td>急性感染（高力価）</td></tr><tr><th>HBc抗体</th><td>感染したことがある。高力価なら持続感染、低力価なら既往。ワクチンではできない</td></tr><tr><th>HBe抗原</th><td>ウイルスの増殖が盛ん</td></tr><tr><th>HBe抗体</th><td>増殖がおさまった（セロコンバージョン）</td></tr></table>
+ <h4>パターン</h4><table><tr><th>急性B型肝炎</th><td>HBs抗原＋、IgM-HBc抗体＋</td></tr><tr><th>キャリア</th><td>HBs抗原＋、HBc抗体高力価、IgM-HBc−</td></tr><tr><th>既往感染</th><td>HBs抗原−、HBs抗体＋、HBc抗体＋</td></tr><tr><th>ワクチン後</th><td>HBs抗体のみ＋</td></tr></table>`]
+};
+const peeked={};
+const pk_=$("#peekDlg");
+$$(".peek").forEach(b=>b.onclick=()=>{const k=b.dataset.k;peeked[k]=true;$("#peekTitle").textContent=PEEK[k][0];$("#peekBody").innerHTML=PEEK[k][1];pk_.showModal?pk_.showModal():pk_.setAttribute("open","");beep(520,.06,"triangle",.05)});
+$("#peekClose").onclick=()=>pk_.close();pk_.addEventListener("click",e=>{if(e.target===pk_)pk_.close()});
+function noPeek(k,el){if(!peeked[k]){setTimeout(()=>{award(5,el);toast("ノーカンペ +5")},450)}}
+const resetPeek=k=>{peeked[k]=false};
+/* =====================================================================
+   01 黄疸診断ラボ
+   ===================================================================== */
+const TESTS=[{id:"bil",n:"ビリルビン分画",c:1},{id:"ast",n:"AST / ALT",c:1},{id:"alp",n:"ALP / γ-GTP",c:1},{id:"us",n:"腹部エコー",c:2},{id:"hem",n:"網赤血球・ハプトグロビン",c:2},{id:"ca",n:"CA19-9",c:2},{id:"ct",n:"造影CT / MRCP",c:3}];
+const DXS=["体質性黄疸（間接型：Gilbert）","体質性黄疸（直接型：Dubin-Johnsonなど）","溶血性貧血","急性肝炎","総胆管結石","膵頭部癌"];
+const LAB=[
+ {who:"22歳 男性",face:"#F2D36B",v:"数日絶食したあと白目が黄色いと言われた。元気いっぱい。",dx:0,
+  r:{bil:["T-Bil 2.8（直接 0.3）間接優位",1],ast:["AST 22 / ALT 18",0],alp:["ALP・γ-GTP 正常",0],us:["肝・胆管に異常なし",0],hem:["網赤血球 正常、ハプトグロビン 正常",0],ca:["CA19-9 正常",0],ct:["異常なし",0]},
+  ex:"間接優位だが溶血はない、肝酵素も正常。絶食やストレスで悪化するのがGilbert症候群の特徴。治療不要。"},
+ {who:"31歳 女性",face:"#F4D07A",v:"倦怠感と息切れ、最近顔色が黄色い。",dx:2,
+  r:{bil:["T-Bil 3.4（直接 0.4）間接優位",1],ast:["AST 48 / ALT 20（ASTだけ軽度↑）",1],alp:["ALP・γ-GTP 正常",0],us:["軽度の脾腫",1],hem:["網赤血球 ↑↑、ハプトグロビン ↓↓",1],ca:["CA19-9 正常",0],ct:["脾腫。胆管拡張なし",1]},
+  ex:"間接優位＋網赤血球↑＋ハプトグロビン↓は溶血のサイン。ASTとLDHは赤血球からも出る。"},
+ {who:"28歳 男性",face:"#EDD24E",v:"発熱と倦怠感の数日後、食欲不振と黄疸。1か月前に海外で生ガキを食べた。",dx:3,
+  r:{bil:["T-Bil 6.2（直接 3.9）両方↑",1],ast:["AST 2140 / ALT 2680 ↑↑↑",1],alp:["ALP 軽度↑",1],us:["肝腫大、胆管拡張なし",1],hem:["網赤血球 正常",0],ca:["CA19-9 正常",0],ct:["肝腫大、胆管拡張なし",1]},
+  ex:"トランスアミナーゼが千単位で、胆管拡張なし。肝細胞そのものの障害。IgM-HA抗体で確定。"},
+ {who:"56歳 女性",face:"#E6CE3A",v:"脂っこい食事のあと右季肋部痛。その後、発熱と黄疸。",dx:4,
+  r:{bil:["T-Bil 4.8（直接 3.6）直接優位",1],ast:["AST 180 / ALT 210（軽〜中等度↑）",1],alp:["ALP・γ-GTP ↑↑",1],us:["総胆管拡張、内部に音響陰影を伴う高エコー",1],hem:["網赤血球 正常",0],ca:["CA19-9 軽度↑（胆管炎で上がることも）",1],ct:["総胆管内に結石、上流の胆管拡張",1]},
+  ex:"直接優位＋胆道系酵素↑＋胆管拡張＝閉塞性黄疸。痛みと発熱を伴うなら結石を疑う。胆管炎に進めばドレナージ。"},
+ {who:"71歳 男性",face:"#E2CB2E",v:"痛みはないが、黄疸と体重減少。右季肋部に丸いものを触れる。",dx:5,
+  r:{bil:["T-Bil 9.1（直接 7.2）直接優位",1],ast:["AST 96 / ALT 120",1],alp:["ALP・γ-GTP ↑↑↑",1],us:["胆嚢腫大、総胆管と膵管の拡張",1],hem:["網赤血球 正常",0],ca:["CA19-9 ↑↑↑",1],ct:["膵頭部に乏血性の腫瘤、double duct sign",1]},
+  ex:"無痛性黄疸＋触知できる胆嚢腫大（Courvoisier徴候）。膵頭部の乏血性腫瘤とCA19-9高値で膵癌を疑う。"},
+ {who:"19歳 女性",face:"#EFD35E",v:"健診で黄疸を指摘。自覚症状なし。",dx:1,
+  r:{bil:["T-Bil 3.1（直接 2.3）直接優位",1],ast:["AST 20 / ALT 16",0],alp:["ALP・γ-GTP 正常",0],us:["胆管拡張なし",0],hem:["網赤血球 正常",0],ca:["CA19-9 正常",0],ct:["異常なし",0]},
+  ex:"直接優位なのに胆道系酵素も胆管も正常。体質性黄疸（Dubin-Johnson症候群では肝が黒色に、Rotor症候群では黒色化しない）。"}
+];
+
+const DXS_S=["Gilbert","直接型体質性","溶血","急性肝炎","総胆管結石","膵頭部癌"];
+const FLOW=[
+ {prior:[30,5,15,25,15,10],why0:"若くて元気、絶食後に悪化。体質性や溶血をまず考える。",steps:[
+   {t:"bil",f:"間接優位",why:"直接型の病態（直接型体質性・閉塞・肝炎）の可能性が大きく下がる。残るのは間接型の2択。",p:[55,1,35,6,2,1]},
+   {t:"hem",f:"網赤血球・ハプトグロビンとも正常",why:"赤血球の破壊が亢進していないので溶血を否定。",p:[90,1,3,5,.5,.5]},
+   {t:"ast",f:"AST・ALT正常",why:"肝細胞障害も否定。間接優位の単独上昇＝Gilbert症候群。",p:[97,1,1,1,0,0]}],
+  note:"画像検査は不要。「何を否定するか」を考えると安い検査だけで診断できる。"},
+ {prior:[15,5,35,20,15,10],why0:"息切れ・倦怠感は貧血のサインかも。",steps:[
+   {t:"bil",f:"間接優位",why:"閉塞や肝炎の可能性が下がり、溶血とGilbertが残る。",p:[30,1,60,6,2,1]},
+   {t:"hem",f:"網赤血球↑↑、ハプトグロビン↓↓",why:"赤血球が壊れて骨髄が頑張っている証拠。溶血でほぼ確定。",p:[2,0,95,2,.5,.5]}],
+  note:"ASTだけ軽度上昇しているのは赤血球由来（LDHも上がる）。肝障害と取り違えないこと。原因検索は直接Coombs試験などへ。"},
+ {prior:[5,3,5,50,25,12],why0:"前駆症状のあとの黄疸と、生ガキの摂食歴。A型肝炎を強く疑う。",steps:[
+   {t:"ast",f:"AST・ALTとも千単位",why:"肝細胞がこわれているパターン。溶血・体質性はほぼ否定。",p:[1,1,1,85,9,3]},
+   {t:"us",f:"胆管拡張なし",why:"出口の閉塞がないことを確認。閉塞性黄疸を否定。",p:[1,1,1,96,1,0]}],
+  note:"確定は血清のIgM-HA抗体。ビリルビン分画は両方上がるので、今回は決め手になりにくい。"},
+ {prior:[2,2,3,15,55,23],why0:"食後の右季肋部痛→発熱・黄疸。胆石と胆管炎を疑う。",steps:[
+   {t:"bil",f:"直接優位",why:"間接型の病態（Gilbert・溶血）を否定。",p:[0,5,0,17,55,23]},
+   {t:"alp",f:"ALP・γ-GTP↑↑",why:"胆汁うっ滞パターン。閉塞性黄疸の可能性がさらに上がる。",p:[0,2,0,8,62,28]},
+   {t:"us",f:"総胆管拡張＋音響陰影を伴う結石",why:"閉塞の場所と原因が見えた。痛みと発熱もそろい、総胆管結石でほぼ確定。",p:[0,0,0,2,93,5]}],
+  note:"CA19-9は胆管炎でも上がるので、ここで追加すると膵癌と迷わされる。黄疸の鑑別はまずエコーで胆管拡張の有無を。"},
+ {prior:[1,2,2,5,20,70],why0:"無痛性黄疸＋体重減少＋胆嚢を触れる（Courvoisier徴候）。膵頭部癌を強く疑う。",steps:[
+   {t:"us",f:"胆嚢腫大、総胆管と膵管の拡張",why:"下部胆管〜乳頭部での閉塞。結石なら痛みが出やすく、無痛性は腫瘍寄り。",p:[0,0,0,1,14,85]},
+   {t:"ct",f:"膵頭部の乏血性腫瘤、double duct sign",why:"原因の腫瘤を同定。膵頭部癌でほぼ確定。病期診断もここで。",p:[0,0,0,0,3,97]}],
+  note:"CA19-9は補助。特異的ではないので診断の決め手には使わない。ビリルビン分画や肝酵素は「閉塞性だ」と分かったあとでは追加の情報が少ない。"},
+ {prior:[35,20,15,15,10,5],why0:"若くて無症状。体質性黄疸が有力だが、直接型か間接型かでまったく違う。",steps:[
+   {t:"bil",f:"直接優位",why:"Gilbertと溶血を否定。直接型なので閉塞や肝障害を除外する必要がある。",p:[1,45,1,20,20,13]},
+   {t:"alp",f:"ALP・γ-GTP正常",why:"胆汁うっ滞がない。閉塞性の可能性が下がる。",p:[0,70,0,20,6,4]},
+   {t:"ast",f:"AST・ALT正常",why:"肝細胞障害も否定。",p:[0,92,0,3,3,2]},
+   {t:"us",f:"胆管拡張なし",why:"念のため閉塞を画像でも否定。直接型の体質性黄疸（Dubin-JohnsonまたはRotor）。",p:[0,98,0,1,.5,.5]}],
+  note:"Dubin-Johnson症候群は肝が黒色になり、尿中コプロポルフィリンの分画で見分ける。どちらも治療不要。"}
+];
+LAB.forEach((c,i)=>c.flow=FLOW[i]);
+const norm=a=>{const s=a.reduce((x,y)=>x+y,0);return a.map(v=>v/s*100)};
+function flowHTML(c,done){const f=c.flow,cost=f.steps.reduce((a,s)=>a+TESTS.find(t=>t.id===s.t).c,0),mine=[...done];
+  const useful=new Set(f.steps.map(s=>s.t));
+  return `<div class="flowBox"><b class="disp" style="font-size:16px">理想の流れ（検査コスト ${cost}）</b>
+  <div class="flowNav"><button class="btn alt" data-d="-1" aria-label="前のステップ">◀</button><span class="flowPos"></span><button class="btn" data-d="1" aria-label="次のステップ">▶</button></div>
+  <div class="flowStep"></div><div class="bars">${DXS_S.map((d,j)=>`<div class="barRow"><span>${d}</span><div class="barT"><i data-j="${j}" class="${j===c.dx?"ans":""}"></i></div><em data-j="${j}"></em></div>`).join("")}</div>
+  <p class="small" style="margin:8px 0 0">${f.note}</p>
+  <p class="small" style="margin:6px 0 0;color:var(--sub)">あなたの検査：${mine.length?mine.map(t=>{const x=TESTS.find(y=>y.id===t);return`${x.n}${useful.has(t)?"":"（今回は決め手にならず）"}`}).join("、"):"なし"}${mine.length?`　コスト ${mine.reduce((a,t)=>a+TESTS.find(y=>y.id===t).c,0)}`:""}</p>
+  <p class="small" style="margin:4px 0 0;color:var(--sub)">確率はイメージです。</p></div>`}
+function flowBind(c){const f=c.flow,box=$("#labFb .flowBox");let k=0;const n=f.steps.length;
+  const show=()=>{const p=norm(k===0?f.prior:f.steps[k-1].p);
+    box.querySelector(".flowPos").textContent=k===0?"問診":`${k} / ${n}`;
+    box.querySelector(".flowStep").innerHTML=k===0?`<div class="fs card-pop"><span class="tagk">問診</span> ${f.why0}</div>`:(()=>{const s=f.steps[k-1],t=TESTS.find(x=>x.id===s.t),prev=norm(k===1?f.prior:f.steps[k-2].p),cur=p;
+      const up=cur.map((v,j)=>[v-prev[j],j]).filter(x=>x[0]>4).map(x=>DXS_S[x[1]]),down=cur.map((v,j)=>[prev[j]-v,j]).filter(x=>x[0]>=3&&cur[x[1]]<=2).map(x=>DXS_S[x[1]]);
+      return `<div class="fs card-pop"><span class="tagk">${k}</span> <b>${t.n}</b>（${t.c}）→ <b>${s.f}</b><br>${s.why}${down.length?`<br><span class="dn">否定：${down.join("、")}</span>`:""}${up.length?`<br><span class="upp">上昇：${up.join("、")}</span>`:""}</div>`})();
+    box.querySelectorAll(".barT i").forEach(i=>i.style.width=p[+i.dataset.j].toFixed(1)+"%");
+    box.querySelectorAll("em").forEach(e=>e.textContent=Math.round(p[+e.dataset.j])+"%");
+    box.querySelector('[data-d="-1"]').disabled=k===0;box.querySelector('[data-d="1"]').disabled=k===n};
+  box.querySelectorAll(".flowNav button").forEach(b=>b.onclick=()=>{k=Math.max(0,Math.min(n,k+ +b.dataset.d));beep(500+k*80,.06,"triangle",.05);show()});show()}
+let labQ=shuffle(LAB),labI=0,labBudget=7,labDone=new Set(),labAns=false;
+function labRender(){const c=labQ[labI],root=$("#labRoot");labAns=false;
+  root.innerHTML=`<div class="hud"><span class="tagk">患者 ${labI+1} / ${labQ.length}</span><span class="small" style="font-weight:800">予算</span><span class="budget" id="labBud"></span></div>
+  <div class="patient"><svg viewBox="0 0 78 78" width="78" height="78"><circle cx="39" cy="39" r="34" fill="${c.face}" stroke="#1C1537" stroke-width="3"/><ellipse cx="28" cy="34" rx="7" ry="5" fill="#F7EA88" stroke="#1C1537" stroke-width="2"/><ellipse cx="50" cy="34" rx="7" ry="5" fill="#F7EA88" stroke="#1C1537" stroke-width="2"/><circle cx="28" cy="35" r="2.6" fill="#1C1537"/><circle cx="50" cy="35" r="2.6" fill="#1C1537"/><path d="M30 54 Q39 50 48 54" stroke="#1C1537" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+  <div><b class="disp" style="font-size:18px">${c.who}</b><div style="font-size:14px;font-weight:800">${c.v}</div></div></div>
+  <div class="tests">${TESTS.map(t=>`<button class="test" data-t="${t.id}">${t.n}<span class="cost">${t.c}</span></button>`).join("")}</div>
+  <div class="slip" id="slip"><span style="opacity:.6">検査をタップするとここに結果が出ます</span></div>
+  <div class="stepLabel">診断は？</div>
+  <div class="opts" id="labDx">${DXS.map((d,i)=>`<button class="opt" data-i="${i}">${d}</button>`).join("")}</div>
+  <div id="labFb"></div>`;
+  labBudget=7;labDone=new Set();labBud();
+  $$("#labRoot .test").forEach(b=>b.onclick=()=>{if(labAns||labDone.has(b.dataset.t))return;const t=TESTS.find(x=>x.id===b.dataset.t);
+    if(t.c>labBudget){boo();toast("予算が足りない！");return}
+    labBudget-=t.c;labDone.add(t.id);b.classList.add("done");labBud();beep(700,.06,"triangle",.05);
+    const slip=$("#slip");if(labDone.size===1)slip.innerHTML="";const [txt,ab]=c.r[t.id];slip.insertAdjacentHTML("beforeend",`<div class="${ab?"ab":""}">${t.n}：${txt}</div>`)});
+  $$("#labDx .opt").forEach(b=>b.onclick=()=>{if(labAns)return;labAns=true;const i=+b.dataset.i,ok=i===c.dx;
+    $$("#labDx .opt").forEach(x=>{x.disabled=true;if(+x.dataset.i===c.dx)x.classList.add("right")});
+    if(!ok){b.classList.add("wrong");boo();miss({id:"lab-"+c.dx,src:"黄疸診断ラボ",q:`${c.who}：${c.v}`,opts:shuffle([DXS[c.dx],...shuffle(DXS.filter((_,j)=>j!==c.dx)).slice(0,2)]),ans:DXS[c.dx]})}
+    else{ding();award(20+labBudget*3,b);if(prog("labOk")>=4)stamp("lab")}
+    fb($("#labFb"),ok,ok?`正解！ 残り予算ボーナス +${labBudget*3}`:`正解は「${DXS[c.dx]}」`,`${c.ex}${flowHTML(c,labDone)}<div style="margin-top:10px"><button class="btn" id="labNext">${labI<labQ.length-1?"次の患者":"もう一巡"}</button></div>`);flowBind(c);
+    $("#labNext").onclick=()=>{labI++;if(labI>=labQ.length){labQ=shuffle(LAB);labI=0}labRender();$("#ex-lab").scrollIntoView({behavior:"smooth"})}})}
+function labBud(){$("#labBud").innerHTML=Array.from({length:7},(_,i)=>`<i class="${i>=labBudget?"used":""}"></i>`).join("")}
+labRender();
+
+/* =====================================================================
+   02 門脈の渋滞マップ
+   ===================================================================== */
+$("#portalFig").innerHTML=`<svg viewBox="0 0 360 380" aria-label="門脈と側副路の模式図">
+ <rect x="236" y="8" width="26" height="120" rx="12" fill="#FFD9C9" stroke="#1C1537" stroke-width="3"/><text x="249" y="146" text-anchor="middle" font-size="11" font-weight="800" fill="var(--ink)">食道</text>
+ <path d="M30 70 C30 30 110 14 190 20 C230 24 232 44 226 70 C218 104 170 120 120 122 C70 124 30 110 30 70Z" fill="var(--liver)" stroke="#1C1537" stroke-width="4"/>
+ <text x="96" y="74" font-family="Dela Gothic One" font-size="16" fill="#fff" id="jam">肝臓</text>
+ <ellipse id="spleen" cx="306" cy="226" rx="30" ry="42" fill="#B05A8A" stroke="#1C1537" stroke-width="4"/><text x="306" y="286" text-anchor="middle" font-size="11" font-weight="800" fill="var(--ink)">脾臓</text>
+ <ellipse cx="318" cy="320" rx="18" ry="30" fill="#E8B3A0" stroke="#1C1537" stroke-width="3"/><text x="318" y="366" text-anchor="middle" font-size="11" font-weight="800" fill="var(--ink)">左腎</text>
+ <circle cx="70" cy="300" r="10" fill="#FFB38A" stroke="#1C1537" stroke-width="3"/><text x="70" y="330" text-anchor="middle" font-size="11" font-weight="800" fill="var(--ink)">臍</text>
+ <rect x="180" y="346" width="44" height="26" rx="10" fill="#FFD9C9" stroke="#1C1537" stroke-width="3"/><text x="202" y="364" text-anchor="middle" font-size="11" font-weight="800" fill="#1C1537">直腸</text>
+ <!-- main portal system -->
+ <path d="M276 226 C230 232 190 236 160 240" stroke="#3D5AFE" stroke-width="16" fill="none" stroke-linecap="round"/>
+ <path d="M160 340 L160 240 L140 118" stroke="#3D5AFE" stroke-width="18" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+ <path id="mainFlow" d="M276 226 C230 232 190 236 160 240 L140 118" stroke="#fff" stroke-width="4" fill="none" class="flowing" stroke-linecap="round"/>
+ <path d="M160 340 L160 240" stroke="#fff" stroke-width="4" fill="none" class="flowing mf2" stroke-linecap="round"/>
+ <text x="170" y="300" font-size="11" font-weight="800" fill="var(--ink)">上腸間膜静脈</text><text x="196" y="224" font-size="11" font-weight="800" fill="var(--ink)">脾静脈</text><text x="104" y="190" font-size="11" font-weight="800" fill="var(--ink)">門脈</text>
+ <!-- collaterals -->
+ <g class="cvl" id="cv-eso" opacity="0"><path d="M170 238 C200 200 240 170 249 110 L249 30" stroke="#8E6BFF" stroke-width="7" fill="none"/><path d="M170 238 C200 200 240 170 249 110 L249 30" stroke="#fff" stroke-width="2.5" fill="none" class="flowing"/>
+   <g id="varix"><circle cx="249" cy="46" r="7" fill="#8E6BFF" stroke="#1C1537" stroke-width="2"/><circle cx="249" cy="72" r="8" fill="#8E6BFF" stroke="#1C1537" stroke-width="2"/><circle cx="249" cy="98" r="7" fill="#8E6BFF" stroke="#1C1537" stroke-width="2"/></g><text x="270" y="60" font-size="11" font-weight="800" fill="var(--ink)">食道静脈瘤</text></g>
+ <g class="cvl" id="cv-umb" opacity="0"><path d="M136 124 C110 170 84 240 72 292" stroke="#8E6BFF" stroke-width="6" fill="none"/><path d="M136 124 C110 170 84 240 72 292" stroke="#fff" stroke-width="2.5" fill="none" class="flowing"/>
+   <g stroke="#8E6BFF" stroke-width="4" stroke-linecap="round"><path d="M70 300 L40 286"/><path d="M70 300 L36 312"/><path d="M70 300 L56 340"/><path d="M70 300 L96 336"/><path d="M70 300 L104 292"/></g><text x="8" y="270" font-size="11" font-weight="800" fill="var(--ink)">メドゥーサの頭</text></g>
+ <g class="cvl" id="cv-rec" opacity="0"><path d="M160 336 C170 350 180 356 186 358" stroke="#8E6BFF" stroke-width="6" fill="none"/><circle cx="190" cy="372" r="6" fill="#8E6BFF" stroke="#1C1537" stroke-width="2"/><circle cx="212" cy="374" r="6" fill="#8E6BFF" stroke="#1C1537" stroke-width="2"/><text x="232" y="378" font-size="11" font-weight="800" fill="var(--ink)">直腸静脈瘤</text></g>
+ <g class="cvl" id="cv-gr" opacity="0"><path d="M296 256 C300 280 306 292 312 294" stroke="#8E6BFF" stroke-width="6" fill="none"/><path d="M296 256 C300 280 306 292 312 294" stroke="#fff" stroke-width="2.5" fill="none" class="flowing"/><text x="228" y="274" font-size="11" font-weight="800" fill="var(--ink)">胃腎シャント</text><circle cx="262" cy="190" r="10" fill="#8E6BFF" stroke="#1C1537" stroke-width="2"/><text x="190" y="176" font-size="11" font-weight="800" fill="var(--ink)">胃静脈瘤</text></g>
+ <g id="ascites" opacity="0"><path d="M20 250 q10 -16 20 0 q-10 14 -20 0Z M40 346 q10 -16 20 0 q-10 14 -20 0Z M110 360 q10 -16 20 0 q-10 14 -20 0Z" fill="#6CC9FF" stroke="#1C1537" stroke-width="2"/><text x="112" y="346" font-size="11" font-weight="800" fill="var(--ink)">腹水</text></g>
+</svg>`;
+function portal(){const p=+$("#hvpg").value;$("#hvpgVal").textContent=p;
+  const k=cl((p-5)/10);$("#spleen").setAttribute("rx",30+k*12);$("#spleen").setAttribute("ry",42+k*16);
+  $("#cv-eso").setAttribute("opacity",p>=10?1:p>=8?.35:0);$("#cv-umb").setAttribute("opacity",p>=12?1:p>=10?.4:0);
+  $("#cv-rec").setAttribute("opacity",p>=12?1:0);$("#cv-gr").setAttribute("opacity",p>=14?1:p>=11?.4:0);$("#ascites").setAttribute("opacity",p>=12?1:0);
+  $("#varix").setAttribute("transform",p>=12?"translate(249 72) scale(1.35) translate(-249 -72)":"");
+  $$("#portalFig .flowing").forEach(el=>el.classList.toggle("slow",p>=10&&(el.id==="mainFlow"||el.classList.contains("mf2"))));
+  $("#jam").textContent=p>=10?"大渋滞！":p>5?"混雑中":"肝臓";
+  $("#portalNote").innerHTML=p<=5?"門脈圧は正常。血液はすいすい肝臓へ。":p<10?"<b>門脈圧亢進症</b>。肝臓の入口が混み始め、脾臓がふくらんでくる。":p<12?"<b>臨床的に有意な門脈圧亢進（10mmHg以上）</b>。行き場のない血液が側副路へ。食道静脈瘤ができはじめる。":"<b>12mmHg以上</b>で静脈瘤破裂のリスク。腹水もたまる。胃腎シャントを通れば胃静脈瘤にも。";
+  if(p>=14&&!st.prog.portalMax){st.prog.portalMax=1;save();award(10,$("#hvpg"))}}
+$("#hvpg").oninput=portal;portal();
+const TOOLS=["非選択的β遮断薬","内視鏡的静脈瘤結紮術（EVL）","バルーン下逆行性経静脈的塞栓術（B-RTO）","経頸静脈的肝内門脈大循環短絡術（TIPS）","部分的脾動脈塞栓術（PSE）"];
+const MISS=[
+ {t:"吐血して救急搬送。内視鏡で食道静脈瘤からの出血を確認。まず止血したい。",a:1,ex:"食道静脈瘤出血の内視鏡的止血はEVLが第一。血管作動薬と抗菌薬の併用、輸血は控えめに。"},
+ {t:"胃穹窿部の孤立性胃静脈瘤。CTで太い胃腎シャントが見える。",a:2,ex:"胃腎シャントからバルーンで逆行性に硬化剤を入れるのがB-RTO。日本で発展した治療。"},
+ {t:"利尿薬が効かない難治性腹水。穿刺をくり返している。",a:3,ex:"肝内に門脈と肝静脈の短絡を作って門脈圧を下げるのがTIPS。肝性脳症の悪化に注意。"},
+ {t:"出血歴のない中等度以上の食道静脈瘤。出血を予防したい（内服で）。",a:0,alt:[1],ex:"一次予防では非選択的β遮断薬（プロプラノロールなど）で門脈圧を下げる。EVLでもよい。"},
+ {t:"脾機能亢進で血小板が3万台。これから処置を控えている。",a:4,ex:"脾動脈の一部を塞栓して脾臓の働きを弱め、血小板を増やすのがPSE。"}
+];
+let mOrder=shuffle(MISS.map((_,i)=>i)),mI=0;st.prog.mDone=st.prog.mDone||[];
+function missionRender(){const m=MISS[mOrder[mI%MISS.length]],root=$("#mission");
+  root.innerHTML=`<b>ミッション ${mI%MISS.length+1} / ${MISS.length}</b><div style="font-weight:800;font-size:14px;margin-top:4px">${m.t}</div>
+  <div class="opts" id="toolOpts">${TOOLS.map((t,i)=>`<button class="opt" data-i="${i}">${t}</button>`).join("")}</div><div id="mFb"></div>
+  <div class="mdots">${MISS.map((_,i)=>`<i class="${st.prog.mDone.includes(i)?"on":""}"></i>`).join("")}</div>`;
+  $$("#toolOpts .opt").forEach(b=>b.onclick=()=>{const acc=[m.a,...(m.alt||[])],i=+b.dataset.i,ok=acc.includes(i),idx=mOrder[mI%MISS.length];$$("#toolOpts .opt").forEach(x=>{x.disabled=true;if(acc.includes(+x.dataset.i))x.classList.add("right")});
+    if(ok){ding();award(15,b);if(!st.prog.mDone.includes(idx)){st.prog.mDone.push(idx);save()}if(st.prog.mDone.length>=MISS.length)stamp("portal")}
+    else{b.classList.add("wrong");boo();miss({id:"portal-"+idx,src:"門脈の渋滞マップ",q:m.t,opts:shuffle([TOOLS[m.a],...shuffle(TOOLS.filter((_,j)=>j!==m.a)).slice(0,2)]),ans:TOOLS[m.a]})}
+    fb($("#mFb"),ok,ok?(m.alt&&i!==m.a?"ミッション成功！（内服ならβ遮断薬）":"ミッション成功！"):`正解は「${TOOLS[m.a]}」`,`${m.ex}<div style="margin-top:8px"><button class="btn" id="mNext">次のミッション</button></div>`);
+    $("#mNext").onclick=()=>{mI++;missionRender()}})}
+missionRender();
+
+/* =====================================================================
+   03 HBVマーカー解読パズル
+   ===================================================================== */
+const MK=["HBs抗原","HBs抗体","IgM-HBc抗体","HBc抗体（高力価）","HBe抗原","HBe抗体"];
+const HBV=[
+ {n:"急性B型肝炎",p:[1,0,1,1,1,0],ex:"HBs抗原＋IgM-HBc抗体（高力価）が急性感染の決め手。成人の急性感染の多くは治癒する。"},
+ {n:"HBVキャリア（HBe抗原陽性）",p:[1,0,0,1,1,0],ex:"HBs抗原が持続陽性でIgM-HBcは陰性。HBe抗原陽性はウイルス増殖が盛んな時期。"},
+ {n:"非活動性キャリア（HBe抗体陽性）",p:[1,0,0,1,0,1],ex:"HBe抗原が消えてHBe抗体が出た（セロコンバージョン）。ウイルス量は低めで落ち着いた状態が多い。"},
+ {n:"既往感染（治癒）",p:[0,1,0,0,0,1],ex:"HBs抗原陰性でHBs抗体とHBc抗体が陽性（HBc抗体は低力価）。免疫抑制や化学療法で再活性化（de novo肝炎）に注意。"},
+ {n:"ワクチン接種後",p:[0,1,0,0,0,0],ex:"HBs抗体だけ陽性。ワクチンにはHBs抗原しか含まれないので、HBc抗体はできない。"},
+ {n:"未感染・未接種",p:[0,0,0,0,0,0],ex:"すべて陰性。医療者ならワクチン接種の対象。"}
+];
+// 既往感染ではHBc抗体（低力価）陽性を示すため、表示を差し替える
+const mkLabel=(i,c)=>c.n==="既往感染（治癒）"&&i===3?"HBc抗体（低力価）":MK[i];
+HBV[3].p=[0,1,0,1,0,1];
+let hbvMode="read",hbvQ=[],hbvI=0,hbvOk=0;
+const MAKE=[{n:"ワクチン接種後",p:[0,1,1]},{n:"既往感染（治癒）",p:[0,1,1]},{n:"現在感染している",p:[1,0,1]},{n:"未感染・未接種",p:[0,0,0]}];
+MAKE[0].p=[0,1,0];
+const MK3=["HBs抗原","HBs抗体","HBc抗体"];
+function hbvRender(){const root=$("#hbvRoot");
+  if(hbvMode==="read"){if(hbvI===0&&!hbvQ.length){hbvQ=shuffle(HBV);hbvOk=0}
+    if(hbvI>=hbvQ.length){const pass=hbvOk>=5;root.innerHTML=`<div class="feedback card-pop"><b class="t">${hbvOk} / 6 正解</b>${pass?"解読マスター！":"5問以上でスタンプ。もう一回！"}<div style="margin-top:8px"><button class="btn" id="hbvAgain">もう一回</button></div></div>`;if(pass)stamp("hbv");$("#hbvAgain").onclick=()=>{hbvI=0;hbvQ=[];hbvRender()};return}
+    const c=hbvQ[hbvI];resetPeek("hbv");
+    root.innerHTML=`<div class="hud"><span class="tagk">Q${hbvI+1} / 6</span><span class="small" style="font-weight:800">正解 ${hbvOk}</span></div>
+    <div class="lamps">${c.p.map((v,i)=>`<div class="lamp ${v?"on":"off"}">${mkLabel(i,c)}<span class="bulb">${v?"＋":"−"}</span></div>`).join("")}</div>
+    <div class="stepLabel">この人は？</div><div class="opts" id="hbvOpts">${shuffle(HBV).map(h=>`<button class="opt" data-n="${h.n}">${h.n}</button>`).join("")}</div><div id="hbvFb"></div>`;
+    $$("#hbvOpts .opt").forEach(b=>b.onclick=()=>{const ok=b.dataset.n===c.n;$$("#hbvOpts .opt").forEach(x=>{x.disabled=true;if(x.dataset.n===c.n)x.classList.add("right")});
+      if(ok){hbvOk++;ding();award(12,b);noPeek("hbv",b)}else{b.classList.add("wrong");boo();miss({id:"hbv-"+c.n,src:"HBVマーカー解読",q:"陽性："+(c.p.map((v,i)=>v?mkLabel(i,c):null).filter(Boolean).join("、")||"すべて陰性")+"。この状態は？",opts:shuffle([c.n,...shuffle(HBV.filter(h=>h.n!==c.n)).slice(0,2).map(h=>h.n)]),ans:c.n})}
+      fb($("#hbvFb"),ok,ok?"解読成功！":`正解は「${c.n}」`,`${c.ex}<div style="margin-top:8px"><button class="btn" id="hbvNext">次へ</button></div>`);$("#hbvNext").onclick=()=>{hbvI++;hbvRender()}})}
+  else{const t=pick(MAKE);let s=[0,0,0];
+    root.innerHTML=`<div class="bubble" style="font-weight:800">お題：「<span class="disp">${t.n}</span>」の人のランプを点けよう</div>
+    <div class="lamps" style="margin-top:10px">${MK3.map((m,i)=>`<button class="lamp off" data-i="${i}">${m}<span class="bulb">−</span></button>`).join("")}</div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="mkGo">これで決定</button></div><div id="mkFb"></div>`;
+    $$("#hbvRoot button.lamp").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;s[i]^=1;b.className="lamp "+(s[i]?"on":"off");b.querySelector(".bulb").textContent=s[i]?"＋":"−";beep(s[i]?880:440,.05,"triangle",.05)});
+    $("#mkGo").onclick=()=>{const ok=s.every((v,i)=>v===t.p[i]);if(ok){ding();award(10,$("#mkGo"))}else{boo()}
+      fb($("#mkFb"),ok,ok?"点灯成功！":"おしい！",`正解：${MK3.map((m,i)=>`${m}${t.p[i]?"＋":"−"}`).join("　")}<br>ポイントは「HBs抗原＝いま感染」「HBs抗体＝免疫あり」「HBc抗体＝感染したことがある（ワクチンではできない）」。<div style="margin-top:8px"><button class="btn" id="mkNext">次のお題</button></div>`);$("#mkNext").onclick=hbvRender}}}
+$$("#hbvTabs button").forEach(b=>b.onclick=()=>{hbvMode=b.dataset.m;$$("#hbvTabs button").forEach(x=>x.setAttribute("aria-pressed",x===b));hbvRender()});
+hbvRender();
+
+/* =====================================================================
+   04 肝細胞癌 治療すごろく
+   ===================================================================== */
+const TX=["肝切除","ラジオ波焼灼（RFA）","肝動脈化学塞栓療法（TACE）","薬物療法","肝移植","緩和ケア"];
+const HCCP=[
+ {d:{年齢:64,"Child-Pugh":"A",腫瘍:"1個・2.5cm",脈管侵襲:"なし",肝外転移:"なし"},cp:"AB",meta:0,vasc:0,num:"1",size:null,tx:[0,1],ex:"単発なら切除または焼灼。3cm以内なら焼灼も有力。"},
+ {d:{年齢:70,"Child-Pugh":"A",腫瘍:"3個・最大2cm",脈管侵襲:"なし",肝外転移:"なし"},cp:"AB",meta:0,vasc:0,num:"23",size:"le3",tx:[0,1],ex:"2〜3個で3cm以内なら切除または焼灼。"},
+ {d:{年齢:68,"Child-Pugh":"B",腫瘍:"2個・最大4.5cm",脈管侵襲:"なし",肝外転移:"なし"},cp:"AB",meta:0,vasc:0,num:"23",size:"gt3",tx:[0,2],ex:"2〜3個で3cm超なら切除または塞栓（TACE）。"},
+ {d:{年齢:73,"Child-Pugh":"A",腫瘍:"6個・最大3cm",脈管侵襲:"なし",肝外転移:"なし"},cp:"AB",meta:0,vasc:0,num:"4",size:null,tx:[2,3],ex:"4個以上は塞栓（TACE）や薬物療法（動注を含む）。"},
+ {d:{年齢:66,"Child-Pugh":"A",腫瘍:"2個・最大5cm",脈管侵襲:"なし",肝外転移:"肺転移あり"},cp:"AB",meta:1,vasc:null,num:null,size:null,tx:[3],ex:"肝外転移があれば全身の薬物療法（免疫チェックポイント阻害薬を含む併用療法など）。"},
+ {d:{年齢:58,"Child-Pugh":"C",腫瘍:"1個・3cm（ミラノ基準内）",脈管侵襲:"なし",肝外転移:"なし"},cp:"C",milan:1,tx:[4],ex:"肝予備能が悪いChild-Pugh Cでも、ミラノ基準内なら肝移植で癌と肝硬変を同時に治せる。"},
+ {d:{年齢:71,"Child-Pugh":"A",腫瘍:"1個・7cm",脈管侵襲:"門脈腫瘍栓あり",肝外転移:"なし"},cp:"AB",meta:0,vasc:1,num:null,size:null,tx:[0,2,3],ex:"脈管侵襲があれば、肝切除・塞栓・薬物療法（動注を含む）から選ぶ。"}
+];
+const NODES=[["cp","肝予備能"],["milan","ミラノ基準"],["meta","肝外転移"],["vasc","脈管侵襲"],["num","腫瘍数"],["size","腫瘍径"],["goal","治療"]];
+const Q_={cp:["肝予備能は？",[["AB","Child-Pugh A / B"],["C","Child-Pugh C"]]],milan:["ミラノ基準内？",[[1,"内"],[0,"外"]]],meta:["肝外転移は？",[[1,"あり"],[0,"なし"]]],vasc:["脈管侵襲は？",[[1,"あり"],[0,"なし"]]],num:["腫瘍数は？",[["1","1個"],["23","2〜3個"],["4","4個以上"]]],size:["腫瘍径は？（2〜3個のとき）",[["le3","3cm以内"],["gt3","3cm超"]]]};
+function hccPath(p){return p.cp==="C"?["cp","milan","goal"]:p.meta?["cp","meta","goal"]:p.vasc?["cp","meta","vasc","goal"]:p.num==="23"?["cp","meta","vasc","num","size","goal"]:["cp","meta","vasc","num","goal"]}
+let hq=shuffle(HCCP),hI=0,hStep=0,hPath=[];
+function hccRender(){const p=hq[hI%hq.length];if(hStep===0&&!hccRender.kept)resetPeek("hcc");hccRender.kept=false;hPath=hccPath(p);const cur=hPath[hStep];const root=$("#hccRoot");
+  root.innerHTML=`<div class="pcard"><span class="tagk">患者 ${hI%hq.length+1}</span><div class="chips">${Object.entries(p.d).map(([k,v])=>`<span class="chip">${k}：${v}</span>`).join("")}</div></div>
+  <div class="board" id="board">${NODES.map(([k,n])=>{const inP=hPath.includes(k),idx=hPath.indexOf(k);const cls=!inP?"skip":k==="goal"?"goal"+(cur==="goal"?" cur":""):idx<hStep?"past":idx===hStep?"cur":"";return`<div class="tile ${cls}">${n}${idx===hStep?'<span class="pawn"></span>':""}</div>`}).join("")}</div>
+  <div class="stepLabel">${cur==="goal"?"ゴール！治療はどれ？":Q_[cur][0]}</div>
+  <div class="opts" id="hOpts">${cur==="goal"?TX.map((t,i)=>`<button class="opt" data-v="${i}">${t}</button>`).join(""):Q_[cur][1].map(([v,l])=>`<button class="opt" data-v="${v}">${l}</button>`).join("")}</div><div id="hFb"></div>`;
+  const tile=$("#board .cur"),bd=$("#board");if(tile)bd.scrollTo({left:tile.offsetLeft-bd.clientWidth/2+tile.offsetWidth/2,behavior:"smooth"});
+  $$("#hOpts .opt").forEach(b=>b.onclick=()=>{
+    if(cur==="goal"){const i=+b.dataset.v,ok=p.tx.includes(i);$$("#hOpts .opt").forEach(x=>{x.disabled=true;if(p.tx.includes(+x.dataset.v))x.classList.add("right")});
+      if(ok){ding();award(25,b);confetti(30);noPeek("hcc",b);if(prog("hccOk")>=4)stamp("hcc")}else{b.classList.add("wrong");boo();miss({id:"hcc-"+hI%hq.length+p.d.腫瘍,src:"肝細胞癌すごろく",q:Object.entries(p.d).map(([k,v])=>`${k} ${v}`).join("、")+"。推奨される治療は？",opts:shuffle([TX[p.tx[0]],...shuffle(TX.filter((_,j)=>!p.tx.includes(j))).slice(0,2)]),ans:TX[p.tx[0]]})}
+      fb($("#hFb"),ok,ok?"ゴール！":`正解は「${p.tx.map(i=>TX[i]).join("」「")}」`,`${p.ex}<div style="margin-top:8px"><button class="btn" id="hNext">次の患者</button></div>`);
+      $("#hNext").onclick=()=>{hI++;hStep=0;if(hI%hq.length===0)hq=shuffle(HCCP);hccRender()};return}
+    const v=b.dataset.v,want=String(p[cur]);
+    if(v===want){beep(660,.08,"triangle",.06,990);hStep++;hccRender()}
+    else{b.classList.add("wrong");boo();toast("ちがう道！1マス戻る");hStep=Math.max(0,hStep-1);setTimeout(()=>{hccRender.kept=true;hccRender()},700)}})}
+hccRender();
+
+/* =====================================================================
+   胆石ガチャ（ごほうび）
+   ===================================================================== */
+const STONES=[
+ {id:"chol",n:"コレステロール結石",r:"★",w:22,c:"#FFD95A",d:"胆嚢結石で最多。5F（Female, Forty, Fatty, Fertile, Fair）。エコーで音響陰影。"},
+ {id:"black",n:"黒色石",r:"★★",w:14,c:"#2E2426",d:"溶血性貧血や肝硬変に多い胆嚢の色素結石。"},
+ {id:"brown",n:"ビリルビンカルシウム石",r:"★★",w:14,c:"#A0642E",d:"褐色でもろい。細菌感染が関与し、胆管にできやすい。"},
+ {id:"silent",n:"無症候性胆石",r:"★",w:12,c:"#BFE8FF",d:"症状がなければ原則は経過観察。"},
+ {id:"cbd",n:"総胆管結石",r:"★★",w:10,c:"#8BD450",d:"黄疸や胆管炎の原因に。内視鏡で乳頭を切開し（EST）バスケットで除去。"},
+ {id:"ih",n:"肝内結石",r:"★★★",w:8,c:"#C8453B",d:"肝内胆管にできる。胆管癌の合併に注意。東アジアに多い。"},
+ {id:"porcelain",n:"陶器様胆嚢",r:"★★★",w:7,c:"#F4F4F4",d:"胆嚢壁が石灰化。胆嚢癌との関連で胆摘を考える。"},
+ {id:"mirizzi",n:"Mirizzi症候群",r:"★★★",w:7,c:"#6CC9FF",d:"胆嚢頸部の石が総肝管を外から圧迫して黄疸。"},
+ {id:"ileus",n:"胆石イレウス",r:"★★★★",w:6,c:"#FF7AB6",d:"胆嚢と腸に瘻孔ができ、石が回腸末端でつまる。胆道気腫がヒント。"}
+];
+function renderColl(){$("#coll").innerHTML=STONES.map(s=>`<span class="${st.stones[s.id]?"got":""}" style="background:${st.stones[s.id]?s.c:""};color:${s.id==="black"&&st.stones[s.id]?"#fff":"#1C1537"}" title="${st.stones[s.id]?s.n:"未入手"}">${st.stones[s.id]?s.r:"?"}</span>`).join("");
+  const left=STONES.filter(s=>!st.stones[s.id]).length,dry=st.dry||0;$("#spin").textContent=st.free?"無料で回す":"回す（30コイン）";$("#pity").textContent=left?`あと${5-dry}回以内に新種確定`:"図鑑コンプリート済み"}
+let spinning=false;
+$("#spin").onclick=()=>{if(spinning)return;if(!st.free&&st.coins<30){boo();toast("コインが足りない。展示で稼ごう！");return}
+  if(st.free)st.free=0;else{st.coins-=30;hudUpdate()}save();spinning=true;const m=$("#machine"),kn=$("#knob"),cap=$("#capsule");
+  kn.style.transform="rotate(360deg)";m.classList.add("shake");beep(300,.5,"sawtooth",.03,900);
+  const rest=STONES.filter(s=>!st.stones[s.id]);let pk=STONES[0];if(rest.length&&(st.dry||0)>=4){pk=pick(rest)}else{let tot=STONES.reduce((a,s)=>a+s.w,0),r=Math.random()*tot;for(const s of STONES){if((r-=s.w)<0){pk=s;break}}}
+  setTimeout(()=>{cap.setAttribute("fill",pk.c);cap.setAttribute("r","14");beep(1200,.08,"triangle",.07)},600);
+  setTimeout(()=>{const isNew=!st.stones[pk.id];st.stones[pk.id]=1;if(isNew){st.xp+=10;st.dry=0}else{st.dry=(st.dry||0)+1;st.coins+=10}save();
+    $("#prize").innerHTML=`<span class="rar">${pk.r}${isNew?"　NEW!":"　ダブり（10コイン返却）"}</span><h4>${pk.n}</h4><p style="margin:0;font-size:14px">${pk.d}</p>`;
+    $("#prize").classList.remove("card-pop");void $("#prize").offsetWidth;$("#prize").classList.add("card-pop");
+    pk.r.length>=3?(yay(),confetti(40)):beep(880,.12,"square",.05);
+    renderColl();hudUpdate();m.classList.remove("shake");kn.style.transition="none";kn.style.transform="rotate(0)";void kn.offsetWidth;kn.style.transition="";cap.setAttribute("r","0");spinning=false;
+    if(isNew&&STONES.every(s=>st.stones[s.id])){toast("図鑑コンプリート！XP+100");st.xp+=100;save();hudUpdate();confetti(150)}},1100)};
+renderColl();
+
+/* =====================================================================
+   05 胆管炎ER
+   ===================================================================== */
+const ORD_BASE=["血液培養","抗菌薬の投与","絶食・輸液"],ORD_G3="呼吸循環管理（昇圧薬など）",ORD_BAD=["緊急開腹で胆嚢摘出","ステロイドパルス","帰宅して外来フォロー"];
+const DRAIN=["抗菌薬に反応しなければ実施","早期（24時間以内）に実施","緊急で実施（全身管理と並行）"];
+const ER=[
+ {who:"45歳 女性",g:1,v:{BP:"128/78",HR:96,SpO2:98,T:38.2,意識:"清明"},lab:"WBC 11,000、T-Bil 3.1、Alb 3.9、Plt 22万、Cr 0.8、PT-INR 1.0",cc:"発熱、黄疸、右季肋部痛。エコーで総胆管結石と胆管拡張。",
+  ex:"Charcotの三徴そろい、胆管炎と診断。中等症の項目（WBC>12,000または<4,000、39℃以上、75歳以上、T-Bil 5以上、低アルブミン）に1つも当てはまらず、臓器障害もない → 軽症（Grade I）。"},
+ {who:"78歳 男性",g:2,v:{BP:"118/70",HR:108,SpO2:96,T:39.4,意識:"清明"},lab:"WBC 15,800、T-Bil 4.2、Alb 3.4、Plt 18万、Cr 1.1、PT-INR 1.1",cc:"悪寒戦慄、黄疸。エコーで総胆管拡張。",
+  ex:"75歳以上、39℃以上、WBC>12,000の3項目 → 中等症（Grade II）。臓器障害はない。早期の胆道ドレナージを。"},
+ {who:"70歳 女性",g:3,v:{BP:"78/46",HR:128,SpO2:91,T:38.9,意識:"JCS 10"},lab:"WBC 3,200、T-Bil 5.6、Plt 8万、Cr 2.4、PT-INR 1.7",cc:"発熱と黄疸のあと、意識がもうろう。ノルアドレナリンを始めないと血圧が保てない。",
+  ex:"ショック＋意識障害でReynoldsの五徴。循環障害・意識障害・腎障害・凝固障害・血小板減少 → 重症（Grade III）。全身管理をしながら緊急ドレナージ。"}
+];
+let eI=0,eStage=0,eMin=0,eSel=new Set(),eDrain=null,eErr=0;
+function erVitals(c,bad){return`<div class="monitor ${bad?"bad":""}"><svg viewBox="0 0 200 46" preserveAspectRatio="none"><path class="ecg" d="M0 26 L40 26 L48 26 L54 8 L60 42 L66 26 L110 26 L118 26 L124 8 L130 42 L136 26 L200 26"/></svg>
+ <div class="vitals"><span>BP</span><b>${c.v.BP}</b><span>HR</span><b>${c.v.HR}</b><span>SpO₂</span><b>${c.v.SpO2}</b><span>体温</span><b>${c.v.T}</b><span>意識</span><b>${c.v.意識}</b></div></div>`}
+function erRender(){const c=ER[eI],root=$("#erRoot"),bad=c.g===3||eErr>=2;
+  let h=`<div class="hud"><span class="tagk">患者 ${eI+1} / 3</span><span class="clock">経過 ${eMin}分</span><span class="small" style="font-weight:800">${c.who}</span></div>${erVitals(c,bad)}<div class="erText">${c.cc}<br><span style="color:var(--sub)">${c.lab}</span></div>`;
+  if(eStage===0){h+=`<div class="stepLabel">STEP 1　重症度は？（TG18）</div><div class="opts" id="eG"><button class="opt" data-g="1">軽症 Grade I</button><button class="opt" data-g="2">中等症 Grade II</button><button class="opt" data-g="3">重症 Grade III</button></div><div id="eFb"></div>`;root.innerHTML=h;
+    $$("#eG .opt").forEach(b=>b.onclick=()=>{const g=+b.dataset.g;if(g===c.g){ding();award(15,b);eStage=1;eMin+=10;erRender()}else{b.classList.add("wrong");boo();eErr++;eMin+=30;miss({id:"er-g"+c.g,src:"胆管炎ER",q:`${c.who}：${c.cc}${c.lab}。重症度は？`,opts:["軽症 Grade I","中等症 Grade II","重症 Grade III"],ans:["軽症 Grade I","中等症 Grade II","重症 Grade III"][c.g-1]});toast("判定ミス：30分経過");setTimeout(erRender,600)}})}
+  else if(eStage===1){const all=shuffle([...ORD_BASE,ORD_G3,...ORD_BAD]);
+    h+=`<div class="stepLabel">STEP 2　指示を出す（必要なものをすべて）</div><div class="opts" id="eO">${all.map(o=>`<button class="opt ${eSel.has(o)?"sel":""}" data-o="${o}">${o}</button>`).join("")}</div>
+    <div class="stepLabel">胆道ドレナージのタイミング</div><div class="opts" id="eD">${DRAIN.map((d,i)=>`<button class="opt ${eDrain===i?"sel":""}" data-i="${i}">${d}</button>`).join("")}</div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="eGo">指示！</button></div><div id="eFb"></div>`;root.innerHTML=h;
+    $$("#eO .opt").forEach(b=>b.onclick=()=>{const o=b.dataset.o;eSel.has(o)?eSel.delete(o):eSel.add(o);b.classList.toggle("sel");beep(600,.04,"triangle",.04)});
+    $$("#eD .opt").forEach(b=>b.onclick=()=>{eDrain=+b.dataset.i;$$("#eD .opt").forEach(x=>x.classList.toggle("sel",x===b));beep(600,.04,"triangle",.04)});
+    $("#eGo").onclick=()=>{const need=new Set([...ORD_BASE,...(c.g===3?[ORD_G3]:[])]);const lack=[...need].filter(o=>!eSel.has(o)),extra=[...eSel].filter(o=>!need.has(o)),dOk=eDrain===c.g-1;
+      const ok=!lack.length&&!extra.length&&dOk;
+      if(ok){yay();award(30,$("#eGo"));noPeek("er",$("#eGo"));eStage=2;eMin+=20;c.v=c.g===3?{BP:"104/62",HR:98,SpO2:95,T:37.8,意識:"JCS 1"}:{...c.v,HR:Math.max(80,c.v.HR-18),T:+(c.v.T-1).toFixed(1)};if(prog("erOk")>=3)stamp("er");erRender()}
+      else{boo();eErr++;eMin+=30;miss({id:"er-d"+c.g,src:"胆管炎ER",q:`急性胆管炎 ${["軽症","中等症","重症"][c.g-1]}（Grade ${"I".repeat(c.g)}）。胆道ドレナージのタイミングは？`,opts:DRAIN,ans:DRAIN[c.g-1]});
+        fb($("#eFb"),false,"容体が悪化…30分経過",`${lack.length?`足りない指示：${lack.join("、")}<br>`:""}${extra.length?`不要な指示：${extra.join("、")}<br>`:""}${dOk?"":"ドレナージのタイミングを見直そう。"}<div style="margin-top:8px"><button class="btn" id="eRetry">指示をやり直す</button></div>`);$("#eRetry").onclick=erRender;$(".monitor").classList.add("bad")}}}
+  else{h+=`<div class="feedback card-pop" style="background:color-mix(in srgb,var(--mint) 30%,var(--card))"><b class="t">容体安定！（経過 ${eMin}分）</b>${c.ex}<div style="margin-top:8px"><button class="btn" id="eNext">${eI<2?"次の患者":"最初の患者から"}</button></div></div>`;root.innerHTML=h;
+    $("#eNext").onclick=()=>{resetPeek("er");eI=(eI+1)%3;eStage=0;eMin=0;eSel=new Set();eDrain=null;eErr=0;ER.forEach((x,i)=>{if(i===eI)x.v=ER0[i]});erRender()}}}
+const ER0=ER.map(x=>({...x.v}));
+erRender();
+
+/* =====================================================================
+   06 急性膵炎 重症度判定
+   ===================================================================== */
+const r1=(a,b,d=0)=>+(a+Math.random()*(b-a)).toFixed(d);
+function genPanc(){let pos=Array.from({length:9},()=>Math.random()<.34);if(Math.random()<.5){const n=pos.filter(Boolean).length;if(n<2){pos[Math.floor(Math.random()*9)]=true;pos[Math.floor(Math.random()*9)]=true}}
+  const sirsN=pos[7]?pick([3,4]):pick([0,1,2]),sc=shuffle([0,1,2,3]).slice(0,sirsN);
+  const S={t:sc.includes(0)?r1(38.3,39.5,1):r1(36.4,37.8,1),hr:sc.includes(1)?r1(96,130):r1(70,88),rr:sc.includes(2)?r1(22,30):r1(14,19),wbc:sc.includes(3)?r1(12500,19000):r1(6000,11000)};
+  return[
+   {n:"BE",v:pos[0]?`${r1(-8,-3.5,1)} mEq/L`:`${r1(-1.5,1.5,1)} mEq/L`,p:pos[0]},
+   {n:"PaO₂（room air）",v:pos[1]?`${r1(48,59)} mmHg`:`${r1(72,95)} mmHg`,p:pos[1]},
+   {n:"BUN",v:pos[2]?`${r1(42,70)} mg/dL`:`${r1(10,28)} mg/dL`,p:pos[2]},
+   {n:"LDH（上限222）",v:pos[3]?`${r1(470,900)} U/L`:`${r1(200,400)} U/L`,p:pos[3]},
+   {n:"血小板",v:pos[4]?`${r1(5,9.8,1)}万/μL`:`${r1(14,28,1)}万/μL`,p:pos[4]},
+   {n:"総Ca",v:pos[5]?`${r1(6.4,7.4,1)} mg/dL`:`${r1(8.4,9.6,1)} mg/dL`,p:pos[5]},
+   {n:"CRP",v:pos[6]?`${r1(15.5,28,1)} mg/dL`:`${r1(1,12,1)} mg/dL`,p:pos[6]},
+   {n:"SIRS項目",v:`体温${S.t}℃ 脈拍${S.hr} 呼吸${S.rr} WBC${S.wbc.toLocaleString()}`,p:pos[7],small:1},
+   {n:"年齢",v:pos[8]?`${r1(70,88)}歳`:`${r1(34,68)}歳`,p:pos[8]}]}
+let pMode="lab",pTimer=null;
+function pancRender(){clearInterval(pTimer);resetPeek("panc");const root=$("#pancRoot");
+  if(pMode==="lab"){const L=genPanc(),sel=new Set();let left=45,done=false;
+    root.innerHTML=`<div class="hud"><span class="tagk">正解 ${st.prog.pLab||0} / 2</span><span class="small" style="font-weight:800">陽性の予後因子をタップ → 重症度を判定</span></div>
+    <div class="timer"><i id="pT" style="width:100%"></i></div>
+    <div class="labs">${L.map((x,i)=>`<button class="labt" data-i="${i}">${x.n}<span class="v" style="${x.small?"font-size:12px;font-family:inherit;font-weight:800":""}">${x.v}</span></button>`).join("")}</div>
+    <div class="row" style="margin-top:12px"><button class="btn" data-s="1" id="pSev">重症</button><button class="btn alt" data-s="0" id="pMild">軽症</button><span class="small" style="font-weight:800">選んだ数：<span id="pN">0</span>点</span></div><div id="pFb"></div>`;
+    $$("#pancRoot .labt").forEach(b=>b.onclick=()=>{if(done)return;const i=+b.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);b.classList.toggle("sel");$("#pN").textContent=sel.size;beep(640,.04,"triangle",.04)});
+    const finish=s=>{if(done)return;done=true;clearInterval(pTimer);const trueN=L.filter(x=>x.p).length,sev=trueN>=3?1:0;let tileErr=0;
+      $$("#pancRoot .labt").forEach(b=>{const i=+b.dataset.i,x=L[i];b.classList.remove("sel");if(x.p&&sel.has(i))b.classList.add("okp");else if(x.p)b.classList.add("miss"),tileErr++;else if(sel.has(i))b.classList.add("fp"),tileErr++});
+      const ok=s===sev&&tileErr<=1;
+      if(ok){ding();award(20+Math.round(left/3),$("#pSev"));noPeek("panc",$("#pSev"));if(prog("pLab")>=2&&(st.prog.pCt||0)>=2)stamp("panc")}else{boo();miss({id:"panc-cut",src:"急性膵炎 重症度判定",q:"急性膵炎（厚労省2008）で「重症」と判定する予後因子の点数は？",opts:["1点以上","2点以上","3点以上"],ans:"3点以上"})}
+      fb($("#pFb"),ok,ok?`正解！予後因子 ${trueN}点 → ${sev?"重症":"軽症"}`:`${s===-1?"時間切れ！":s===sev?"重症度は正解！でも拾い方が惜しい。":""}予後因子は${trueN}点 → ${sev?"重症":"軽症"}（見落とし・余分 ${tileErr}）`,
+      `予後因子は9項目で各1点、3点以上なら重症。アミラーゼ・リパーゼの高さは重症度に入らないのがポイント。緑＝正しく拾えた、ピンク＝見落とし、打ち消し線＝余分。<div style="margin-top:8px"><button class="btn" id="pNext">次の患者</button></div>`);$("#pNext").onclick=pancRender};
+    $("#pSev").onclick=()=>finish(1);$("#pMild").onclick=()=>finish(0);
+    pTimer=setInterval(()=>{left-=.25;const el=$("#pT");if(!el){clearInterval(pTimer);return}el.style.width=(left/45*100)+"%";if(left<=10&&Math.abs(left%1)<.01)beep(1000,.03,"square",.03);if(left<=0)finish(-1)},250)}
+  else{const ext=Math.floor(Math.random()*3),poor=Math.floor(Math.random()*3),tot=ext+poor,grade=tot<=1?1:tot===2?2:3;let aE=null,aP=null;
+    const blob=[`<ellipse cx="190" cy="118" rx="112" ry="30" fill="#FF9F43" opacity=".55"/>`,`<path d="M80 110 C80 80 300 80 300 110 C300 150 240 200 190 210 C140 200 80 150 80 110Z" fill="#FF9F43" opacity=".55"/>`,`<path d="M70 110 C70 70 310 70 310 110 C320 200 300 300 260 330 C200 350 150 340 110 320 C60 280 60 180 70 110Z" fill="#FF9F43" opacity=".55"/>`][ext];
+    const segs=[[96,160],[160,224],[224,288]];let hatch;if(poor===0)hatch=[[120,150]];else if(poor===1)hatch=[[140,200]];else hatch=[[96,224]];
+    root.innerHTML=`<div class="hud"><span class="tagk">正解 ${st.prog.pCt||0} / 2</span><span class="small" style="font-weight:800">模式図（冠状断イメージ）から2つのスコアを読もう</span></div>
+    <div class="ctFig"><svg viewBox="0 0 380 350" aria-label="急性膵炎の造影CT模式図"><rect x="4" y="4" width="372" height="342" rx="24" fill="#20232B"/>
+     ${blob}
+     <ellipse cx="96" cy="210" rx="26" ry="60" fill="#8C8C96" stroke="#fff" stroke-width="2"/><ellipse cx="284" cy="210" rx="26" ry="60" fill="#8C8C96" stroke="#fff" stroke-width="2"/>
+     <line x1="20" y1="270" x2="360" y2="270" stroke="#fff" stroke-dasharray="4 5" opacity=".6"/><text x="24" y="264" font-size="11" fill="#fff" opacity=".8">腎下極の高さ</text>
+     <circle cx="190" cy="200" r="10" fill="#8C8C96" stroke="#fff" stroke-width="2"/><text x="206" y="204" font-size="11" fill="#fff" opacity=".8">結腸間膜根部</text>
+     <rect x="96" y="104" width="192" height="28" rx="14" fill="#E4C9B8" stroke="#fff" stroke-width="2"/>
+     ${hatch.map(([a,b])=>`<rect x="${a}" y="104" width="${b-a}" height="28" fill="#3A3A44"/>`).join("")}
+     <line x1="160" y1="100" x2="160" y2="136" stroke="#fff" stroke-dasharray="3 3"/><line x1="224" y1="100" x2="224" y2="136" stroke="#fff" stroke-dasharray="3 3"/>
+     <text x="128" y="96" font-size="11" fill="#fff" text-anchor="middle">頭部</text><text x="192" y="96" font-size="11" fill="#fff" text-anchor="middle">体部</text><text x="256" y="96" font-size="11" fill="#fff" text-anchor="middle">尾部</text>
+     <text x="190" y="330" font-size="11" fill="#FF9F43" text-anchor="middle">オレンジ＝炎症の広がり　黒＝造影不良域</text></svg></div>
+    <div class="stepLabel">① 炎症の膵外進展度</div><div class="opts" id="cE"><button class="opt" data-v="0">前腎傍腔（0点）</button><button class="opt" data-v="1">結腸間膜根部（1点）</button><button class="opt" data-v="2">腎下極以遠（2点）</button></div>
+    <div class="stepLabel">② 膵の造影不良域</div><div class="opts" id="cP"><button class="opt" data-v="0">1区域に限局（0点）</button><button class="opt" data-v="1">2区域にかかる（1点）</button><button class="opt" data-v="2">2区域全体以上（2点）</button></div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="cGo">判定</button></div><div id="cFb"></div>`;
+    $$("#cE .opt").forEach(b=>b.onclick=()=>{aE=+b.dataset.v;$$("#cE .opt").forEach(x=>x.classList.toggle("sel",x===b))});
+    $$("#cP .opt").forEach(b=>b.onclick=()=>{aP=+b.dataset.v;$$("#cP .opt").forEach(x=>x.classList.toggle("sel",x===b))});
+    $("#cGo").onclick=()=>{if(aE===null||aP===null){toast("2つとも選んでね");return}const ok=aE===ext&&aP===poor;
+      if(ok){ding();award(20,$("#cGo"));noPeek("panc",$("#cGo"));prog("pCt");if((st.prog.pLab||0)>=2&&st.prog.pCt>=2)stamp("panc")}else{boo();miss({id:"panc-ct",src:"急性膵炎 造影CT",q:"造影CT Grade（膵外進展度＋造影不良域の合計）で「重症」とするのは？",opts:["合計1点以上（Grade 1以上）","合計2点以上（Grade 2以上）","合計4点（Grade 3）のみ"],ans:"合計2点以上（Grade 2以上）"})}
+      fb($("#cFb"),ok,ok?`正解！合計${tot}点 → Grade ${grade}`:`正解は 進展度${ext}点＋造影不良${poor}点＝${tot}点 → Grade ${grade}`,`合計1点以下がGrade 1、2点がGrade 2、3点以上がGrade 3。<b>Grade 2以上は、予後因子が何点でも重症</b>。<div style="margin-top:8px"><button class="btn" id="cNext">次の画像</button></div>`);$("#cNext").onclick=pancRender}}}
+$$("#pancTabs button").forEach(b=>b.onclick=()=>{pMode=b.dataset.m;$$("#pancTabs button").forEach(x=>x.setAttribute("aria-pressed",x===b));pancRender()});
+pancRender();
+
+/* =====================================================================
+   07 VS
+   ===================================================================== */
+const VS=[
+ {id:"pbcpsc",t:"PBC vs PSC",a:{n:"PBC",c:"var(--pink)",k:["中年女性","小さな肝内胆管","AMA陽性"]},b:{n:"PSC",c:"#8FB2FF",k:["若年男性","太い胆管が数珠状","潰瘍性大腸炎"]},
+  q:[["AMA陽性","a"],["胆管造影で数珠状","b"],["潰瘍性大腸炎を合併","b"],["UDCAが第一選択","a"],["胆管癌に注意","b"],["皮膚のかゆみから始まる","a"]]},
+ {id:"cholecyst",t:"胆嚢炎 vs 胆管炎",a:{n:"急性胆嚢炎",c:"var(--bile)",k:["胆嚢頸部の結石","胆嚢壁の肥厚","早期の胆嚢摘出"]},b:{n:"急性胆管炎",c:"var(--mint)",k:["総胆管結石","Charcotの三徴","胆道ドレナージ"]},
+  q:[["Murphy徴候","a"],["Charcotの三徴","b"],["胆嚢の腫大と壁肥厚","a"],["内視鏡的胆道ドレナージ","b"],["Reynoldsの五徴","b"],["腹腔鏡下胆嚢摘出術","a"]]},
+ {id:"aip",t:"自己免疫性膵炎 vs 膵癌",a:{n:"自己免疫性膵炎",c:"var(--sun)",k:["IgG4高値","膵のびまん性腫大","ステロイドが効く"]},b:{n:"膵癌",c:"#FFB38A",k:["CA19-9高値","主膵管の途絶","予後不良"]},
+  q:[["ソーセージ様の膵腫大","a"],["主膵管の途絶と上流の拡張","b"],["IgG4高値","a"],["ステロイドでよくなる","a"],["乏血性の腫瘤と上流膵管の拡張","b"],["CA19-9高値","b"]]},
+ {id:"hepab",t:"A型肝炎 vs B型肝炎",a:{n:"A型肝炎",c:"#FFE27A",k:["経口感染","慢性化しない","IgM-HA抗体"]},b:{n:"B型肝炎",c:"#C8B6FF",k:["血液・体液感染","キャリア化あり","HBs抗原"]},
+  q:[["生ガキなど貝類の生食","a"],["母子感染","b"],["慢性化・肝癌につながりうる","b"],["IgM-HA抗体","a"],["核酸アナログで治療","b"],["慢性化しない","a"]]}
+];
+let vs=VS[0],qi=0,vsOk=0,order=[],combo=0;
+$("#vsTabs").innerHTML=VS.map((v,i)=>`<button data-i="${i}" aria-pressed="${i===0}">${v.t}</button>`).join("");
+$$("#vsTabs button").forEach(b=>b.onclick=()=>{vs=VS[+b.dataset.i];$$("#vsTabs button").forEach(x=>x.setAttribute("aria-pressed",x===b));vsSetup()});
+const fighter=(f,id)=>`<div class="fighter" id="${id}" style="background:${f.c}"><h4>${f.n}</h4><ul>${f.k.map(k=>`<li>${k}</li>`).join("")}</ul></div>`;
+function vsSetup(){$("#arena").innerHTML=fighter(vs.a,"fa")+`<div class="vsMark">VS</div>`+fighter(vs.b,"fb");qi=0;vsOk=0;combo=0;$("#combo").textContent="";order=shuffle(vs.q);
+  $("#clue").className="clue";$("#clue").textContent="スタートを押してね";$("#pick").innerHTML=`<button class="btn" id="vsStart">スタート</button>`;$("#vsScore").textContent="";$("#vsStart").onclick=vsNext}
+function vsNext(){if(qi>=order.length){const c=$("#clue");c.className="clue ok";c.innerHTML=`${vsOk} / ${order.length} 正解！`;$("#pick").innerHTML=`<button class="btn alt" id="vsAgain">もう一回</button>`;$("#vsAgain").onclick=vsSetup;if(vsOk>=5)stamp("vs");else toast("5問以上正解でスタンプ");return}
+  const c=$("#clue");c.className="clue card-pop";c.textContent=order[qi][0];
+  $("#pick").innerHTML=`<button class="btn" style="background:${vs.a.c}" data-s="a">← ${vs.a.n}</button><button class="btn" style="background:${vs.b.c}" data-s="b">${vs.b.n} →</button>`;
+  $$("#pick button").forEach(b=>b.onclick=()=>{const right=b.dataset.s===order[qi][1];c.className="clue "+(right?"ok":"ng");
+    if(right){vsOk++;combo++;beep(700+combo*90,.1,"square",.05);award(5+Math.min(combo,5)*2,b);const f=$(order[qi][1]==="a"?"#fa":"#fb");f.animate([{transform:"scale(1)"},{transform:"scale(1.08) rotate(-3deg)"},{transform:"scale(1)"}],{duration:300});$("#combo").textContent=combo>=2?`${combo} COMBO!`:""}
+    else{combo=0;$("#combo").textContent="";boo();c.innerHTML=`${order[qi][0]}<br><span style="font-size:.6em">→ ${order[qi][1]==="a"?vs.a.n:vs.b.n}</span>`;miss({id:"vs-"+vs.id+qi+order[qi][0],src:"対決の間："+vs.t,q:`「${order[qi][0]}」はどっち？`,opts:[vs.a.n,vs.b.n],ans:order[qi][1]==="a"?vs.a.n:vs.b.n})}
+    $$("#pick button").forEach(x=>x.disabled=true);qi++;$("#vsScore").textContent=`${qi} / ${order.length}　正解 ${vsOk}`;setTimeout(vsNext,right?650:1300)})}
+vsSetup();
+
+/* =====================================================================
+   08 memory
+   ===================================================================== */
+const PAIRS=[["AFP","肝細胞癌"],["CA19-9","膵癌"],["AMA","PBC"],["IgG4","自己免疫性膵炎"],["HBs抗原","B型肝炎"],["抗平滑筋抗体","自己免疫性肝炎"],["IgM-HA抗体","急性A型肝炎"],["HCV-RNA","C型肝炎"]];
+let flipped=[],moves=0,matched=0,lock=false;
+function memoSetup(){const cards=shuffle(PAIRS.flatMap((p,i)=>[{t:p[0],k:i,mk:1},{t:p[1],k:i,mk:0}]));moves=0;matched=0;flipped=[];
+  $("#memo").innerHTML=cards.map(c=>`<button class="mc" data-k="${c.k}" aria-label="カード"><div class="in"><div class="f">？</div><div class="b ${c.mk?"mk":""}">${c.t}</div></div></button>`).join("");$("#memoMoves").textContent="0手";
+  $$(".mc").forEach(b=>b.onclick=()=>{if(lock||b.classList.contains("flip")||b.classList.contains("done"))return;b.classList.add("flip");beep(700,.05,"triangle",.05);flipped.push(b);
+    if(flipped.length===2){moves++;$("#memoMoves").textContent=moves+"手";const[a,c]=flipped;
+      if(a.dataset.k===c.dataset.k){a.classList.add("done");c.classList.add("done");flipped=[];matched++;ding();award(4,c);if(matched===PAIRS.length){const bonus=moves<=20?30:0;if(bonus)award(bonus,$("#memoMoves"));toast(`${moves}手でクリア！${bonus?"ボーナス+30":""}`);stamp("memory")}}
+      else{lock=true;setTimeout(()=>{a.classList.remove("flip");c.classList.remove("flip");flipped=[];lock=false},800)}}})}
+$("#memoReset").onclick=memoSetup;memoSetup();
+
+/* =====================================================================
+   収蔵庫（要復習）
+   ===================================================================== */
+function renderReview(){$("#revCount").textContent=`${st.review.length}点を保管中`;const L=$("#revList");
+  if(!st.review.length){L.innerHTML=`<div class="empty">収蔵庫はからっぽ。まちがえた問題がここに並びます。</div>`;return}
+  L.innerHTML=st.review.map((r,i)=>`<div class="rev" data-i="${i}"><div class="src">${r.src}</div><p>${r.q}</p><div class="opts">${shuffle(r.opts).map(o=>`<button class="opt" data-o="${o.replace(/"/g,"&quot;")}">${o}</button>`).join("")}</div></div>`).join("");
+  $$("#revList .rev").forEach(el=>{const r=st.review[+el.dataset.i];el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    if(b.dataset.o===r.ans){b.classList.add("right");ding();award(5,b);setTimeout(()=>{st.review=st.review.filter(x=>x.id!==r.id);save();renderReview();hudUpdate();toast("退館！")},500)}
+    else{b.classList.add("wrong");boo()}})})}
+renderReview();
+
+/* ================= card / certificate ================= */
+const dlg=$("#cardDlg");
+function openCard(){const all=STAMPS.every(([k])=>st.stamps[k]);
+  $("#stampGrid").innerHTML=STAMPS.map(([k,n])=>`<div class="${st.stamps[k]?"on":""}">${st.stamps[k]?n+"<br>済":n}</div>`).join("");
+  $("#certTitle").textContent=all?"修了証":"スタンプカード";$("#certRank").textContent=`${rank()}　XP ${st.xp}　コイン ${st.coins}`;
+  $("#certBody").innerHTML=all?`<p style="margin:0 0 8px;font-weight:800">あなたは肝胆膵ホールの全展示を制覇しました。</p><input id="certName" placeholder="名前を書いてね" aria-label="名前"><p class="disp" style="margin:10px 0 0;font-size:13px;color:var(--sub)">病気博物館 館長</p>`:`<p style="margin:0;font-weight:800">あと${STAMPS.filter(([k])=>!st.stamps[k]).length}個。展示で遊んで集めよう。</p>`;
+  if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");if(all){confetti(160);yay()}}
+$("#stampPill").onclick=openCard;$("#rankPill").onclick=openCard;$("#openCard").onclick=openCard;$("#closeDlg").onclick=()=>dlg.close();
+$("#resetAll").onclick=()=>{if(!confirm("コイン・スタンプ・収蔵庫をすべて消しますか？"))return;try{localStorage.removeItem(KEY)}catch(e){}location.reload()};
+
+/* ================= confetti ================= */
+const cv=$("#confetti"),cx=cv.getContext("2d");let parts=[],raf=0;
+function size(){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio}size();addEventListener("resize",size);
+function confetti(n){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const cols=["#FF5A36","#FFC933","#22C1A0","#3D5AFE","#FF7AB6","#8BD450"];
+  for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*120,y:innerHeight*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*12-4,r:Math.random()*Math.PI,vr:(Math.random()-.5)*.3,c:cols[i%cols.length],s:6+Math.random()*6,life:0});
+  if(!raf)raf=requestAnimationFrame(tick)}
+function tick(){cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);cx.clearRect(0,0,innerWidth,innerHeight);
+  parts=parts.filter(p=>p.life<160&&p.y<innerHeight+40);for(const p of parts){p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.life++;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore()}
+  raf=parts.length?requestAnimationFrame(tick):0;if(!raf)cx.clearRect(0,0,innerWidth,innerHeight)}
+
+hudUpdate();
+})();
+
+</script>
+</body>
+</html>
