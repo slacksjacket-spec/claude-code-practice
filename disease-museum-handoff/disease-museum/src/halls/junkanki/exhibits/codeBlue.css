@@ -1,0 +1,6 @@
+.cbMon{border:3px solid var(--line);border-radius:14px;background:#0B1A14;overflow:hidden;box-shadow:var(--shadow)}
+.cbMon svg{display:block;width:100%!important;height:auto}
+.cbVitals{font-family:ui-monospace,Menlo,monospace;color:#5CFF9D;background:#0B1A14;padding:4px 10px 8px;font-size:13px;font-weight:800}
+.cbSteps{display:flex;gap:4px;margin:8px 0}
+.cbSteps i{flex:1;height:10px;border-radius:5px;border:2px solid var(--line);background:var(--card)}
+.cbSteps i.ok{background:var(--mint)}.cbSteps i.ng{background:var(--pink)}.cbSteps i.cur{background:var(--sun)}

@@ -1,0 +1,4 @@
+.dojoTop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.dojoTimer{font-family:"Dela Gothic One",sans-serif;background:var(--ink);color:var(--bg);border-radius:10px;padding:2px 10px;font-size:13px}
+.dojoTimer.low{background:var(--tomato);color:#fff}
+.clueLine{font-size:13px;font-weight:800;margin-top:6px}

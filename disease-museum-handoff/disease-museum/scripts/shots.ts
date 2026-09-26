@@ -110,6 +110,15 @@ const PLAY: Record<string, (page: Page, ex: string) => Promise<void>> = {
   versus: async (p, ex) => { await p.click(`${ex} .pick .btn`); await p.waitForTimeout(200); await p.click(`${ex} .pick .btn >> nth=0`); },
   food: async (p, ex) => { await p.locator(`${ex} .rewind input`).fill("70"); await p.click(`${ex} .mb >> nth=0`); await p.click(`${ex} .opt >> nth=0`); },
   race: async (p, ex) => { await p.click(`${ex} .more`); await p.click(`${ex} .opt >> nth=0`); },
+  // 循環器ホール
+  dojo: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); },
+  calipers: async (p, ex) => { await p.click(`${ex} .nudge button[data-d="0.04"]`); await p.click(`${ex} .go`); await p.click(`${ex} .opt >> nth=0`); },
+  twelve: async (p, ex) => { await p.click(`${ex} .leadChips button >> nth=1`); await p.click(`${ex} .leadChips button >> nth=2`); await p.click(`${ex} .go`); await p.click(`${ex} .opt >> nth=2`); },
+  axis: async (p, ex) => { const dial = p.locator(`${ex} .dial`); const b = (await dial.boundingBox())!; await dial.click({ position: { x: b.width * 0.72, y: b.height * 0.72 } }); await p.click(`${ex} .opt >> nth=0`); },
+  sounds: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); await p.click(`${ex} .spot >> nth=4`); },
+  codeblue: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); },
+  chest: async (p, ex) => { await p.click(`${ex} .test >> nth=0`); await p.click(`${ex} .opt >> nth=0`); },
+  hf: async (p, ex) => { await p.click(`${ex} .quad button >> nth=1`); await p.click(`${ex} .opt >> nth=1`); },
 };
 
 async function shootPlayed(page: Page, dir: string, ids: string[]) {
