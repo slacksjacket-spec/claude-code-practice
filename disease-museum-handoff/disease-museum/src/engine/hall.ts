@@ -1,7 +1,7 @@
 // ホールのページをデータから組み立てる：トップバー → 入口 → 館内図 → ウィング（＋ガチャ）→ 収蔵庫 → フッター
 import "./styles.css";
 import type { Exhibit, Hall, ReviewItem, Wing } from "./schema";
-import type { Ctx } from "./context";
+import type { Ctx, HallHooks } from "./context";
 import { $, $$, color, esc } from "./dom";
 import { load, save as saveState } from "./storage";
 import { beep, boo, ding, isSoundOn, toggleSound, yay } from "./sound";
@@ -13,10 +13,6 @@ import { dialogHTML as cardDialogHTML, mountStampCard, stampList } from "./stamp
 import { mountReview, sectionHTML as reviewHTML } from "./review";
 import { exhibitHTML as gachaHTML, mountGacha } from "./gacha";
 import { MODULES } from "./exhibits";
-
-/** 保存キー。コイン・XP・ランクを館全体で共有するかは Phase 1 で決める（ROADMAP）。
- *  試作（diseaseMuseum.hall03.v2）とは中身の形がちがうので、別のキーにしておく。 */
-export const storageKey = (hall: Hall) => `diseaseMuseum.${hall.id}.v3`;
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -93,14 +89,14 @@ function footerHTML(h: Hall) {
   return `<footer><div class="wrap">
   <button class="btn" id="openCard">スタンプカードを見る</button>
   <p>${lead}${h.footerNote ? `<br>${esc(h.footerNote)}` : ""}</p>
+  ${__SINGLE__ ? "" : `<p><a href="../../" style="color:inherit">← 館の入口へ</a></p>`}
 </div></footer>`;
 }
 
 /* ================= mount ================= */
 
-export function mountHall(hall: Hall) {
+export function mountHall(hall: Hall, hooks: HallHooks = {}) {
   document.title = `病気博物館 ${hall.title}`;
-  const key = storageKey(hall);
   const exhibits = hall.wings.flatMap((w) => w.exhibits);
   const gachaWing = hall.gacha.wing;
 
@@ -119,14 +115,14 @@ export function mountHall(hall: Hall) {
   mountToast();
 
   /* ---------- context ---------- */
-  const st = load(key);
+  const st = load(hall.id);
   const listeners: (() => void)[] = [];
   let lastRank = rankOf(st.xp);
-  const save = () => saveState(key, st);
+  const save = () => saveState(hall.id, st);
   let card: { open(): void };
 
   const ctx: Ctx = {
-    hall, st, save,
+    hall, hooks, st, save,
     prog(k, inc = 1) {
       const v = (typeof st.prog[k] === "number" ? (st.prog[k] as number) : 0) + inc;
       st.prog[k] = v;
@@ -200,7 +196,7 @@ export function mountHall(hall: Hall) {
   });
 
   /* ---------- common features ---------- */
-  card = mountStampCard(ctx, key);
+  card = mountStampCard(ctx);
   mountReview(ctx);
   mountGacha(ctx);
 

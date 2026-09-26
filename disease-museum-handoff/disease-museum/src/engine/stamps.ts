@@ -2,7 +2,7 @@
 import type { Ctx } from "./context";
 import { $, esc } from "./dom";
 import { rankOf } from "./economy";
-import { clear } from "./storage";
+import { clearHall } from "./storage";
 
 export function dialogHTML(hallTitle: string) {
   return `<dialog id="cardDlg"><div class="cert">
@@ -13,7 +13,7 @@ export function dialogHTML(hallTitle: string) {
     <div class="stampGrid" id="stampGrid"></div>
     <div id="certBody"></div>
   </div>
-  <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn alt" id="resetAll">データを消して最初から</button><button class="btn" id="closeDlg">とじる</button></div>
+  <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn alt" id="resetAll">このホールを最初から</button><button class="btn" id="closeDlg">とじる</button></div>
 </div></dialog>`;
 }
 
@@ -23,7 +23,7 @@ export const stampList = (ctx: Pick<Ctx, "hall">) => {
   return ctx.hall.stampOrder.map((id) => [id, ex.find((e) => e.id === id)!.stampLabel] as const);
 };
 
-export function mountStampCard(ctx: Ctx, storageKey: string) {
+export function mountStampCard(ctx: Ctx) {
   const dlg = $<HTMLDialogElement>("#cardDlg");
   const S = stampList(ctx);
   function open() {
@@ -40,8 +40,8 @@ export function mountStampCard(ctx: Ctx, storageKey: string) {
   for (const id of ["#stampPill", "#rankPill", "#openCard"]) $(id).onclick = open;
   $("#closeDlg").onclick = () => dlg.close();
   $("#resetAll").onclick = () => {
-    if (!confirm("コイン・スタンプ・収蔵庫をすべて消しますか？")) return;
-    clear(storageKey);
+    if (!confirm("このホールのスタンプ・収蔵庫・図鑑を消しますか？（コインとXPは館全体のものなので残ります）")) return;
+    clearHall(ctx.hall.id);
     location.reload();
   };
   return { open };

@@ -1,0 +1,14 @@
+/* PathoSim（reference/kantansui_hall_v2.html から抽出） */
+input[type=range]{width:100%;accent-color:var(--tomato);height:30px}
+.readout{font-family:"Dela Gothic One",sans-serif;font-size:34px}
+.portalFig svg{width:100%;max-width:420px;display:block;margin:auto}
+.flowing{stroke-dasharray:6 10;animation:dash 1s linear infinite}
+.flowing.slow{animation-duration:3.2s}
+@keyframes dash{to{stroke-dashoffset:-32}}
+.cvl{transition:opacity .4s}
+.gauge{display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--sub)}
+.mission{border:3px solid var(--line);border-radius:16px;padding:10px 12px;background:var(--bg);margin-top:10px}
+.mission b{font-family:"Dela Gothic One",sans-serif;font-weight:400}
+.mdots{display:flex;gap:6px;margin-top:8px}
+.mdots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
+.mdots i.on{background:var(--mint)}

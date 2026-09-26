@@ -3,8 +3,12 @@ import type { Hall, ReviewItem } from "./schema";
 import type { SaveState } from "./storage";
 import type { beep, yay, ding, boo } from "./sound";
 
+/** ホール固有の演出（型の共通処理でまかなえない分）。exhibit.id → 関数。src/halls/<hall>/hooks.ts に書く */
+export type HallHooks = Record<string, (el: HTMLElement, value: number) => void>;
+
 export interface Ctx {
   hall: Hall;
+  hooks: HallHooks;
   st: SaveState;
   save(): void;
   /** 通算カウンタを進めて新しい値を返す（スタンプ条件などに使う） */

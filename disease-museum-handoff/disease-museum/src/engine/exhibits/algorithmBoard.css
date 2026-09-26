@@ -1,0 +1,11 @@
+/* AlgorithmBoard（reference/kantansui_hall_v2.html から抽出） */
+.board{display:flex;gap:6px;overflow-x:auto;padding:10px 4px 14px;position:relative}
+.tile{flex:none;width:92px;min-height:70px;border:3px solid var(--line);border-radius:14px;background:var(--card);padding:6px;font-size:12px;font-weight:800;text-align:center;display:grid;place-items:center;position:relative;transition:background .3s,opacity .3s}
+.tile.cur{background:var(--sun);color:#1C1537}
+.tile.past{background:var(--mint);color:#1C1537}
+.tile.skip{opacity:.35;text-decoration:line-through}
+.tile.goal{background:var(--pink);color:#1C1537}
+.pawn{position:absolute;top:-16px;left:50%;width:26px;height:26px;margin-left:-13px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--cobalt);border:3px solid #1C1537;animation:hop .6s ease-in-out infinite}
+@keyframes hop{50%{transform:translateY(-6px)}}
+.pcard{border:3px solid var(--line);border-radius:18px;background:var(--bg);padding:10px 12px;font-weight:800;font-size:14px}
+.pcard .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}

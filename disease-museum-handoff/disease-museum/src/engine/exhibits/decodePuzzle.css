@@ -1,0 +1,7 @@
+/* DecodePuzzle（reference/kantansui_hall_v2.html から抽出） */
+.lamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.lamp{border:3px solid var(--line);border-radius:14px;padding:8px 10px;font-weight:800;font-size:13px;background:var(--card);display:flex;justify-content:space-between;align-items:center;gap:6px}
+.lamp .bulb{width:22px;height:22px;border-radius:50%;border:3px solid var(--line);background:#ccc;flex:none;display:grid;place-items:center;font-size:12px;color:#1C1537}
+.lamp.on .bulb{background:var(--tomato);box-shadow:0 0 12px var(--tomato);color:#fff}
+.lamp.off .bulb{background:#8ea0c0}
+button.lamp{cursor:pointer;text-align:left}

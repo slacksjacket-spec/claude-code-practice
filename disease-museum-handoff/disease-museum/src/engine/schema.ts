@@ -27,11 +27,17 @@ export const Color = z.string().refine((c) => (TOKENS as readonly string[]).incl
 });
 
 /* ================= 型ごとのデータ ================= */
+// 検証で見つけた食い違いを報告する小道具
+type Issue = { addIssue(i: { code: "custom"; message: string; path?: (string | number)[] }): void };
+const bad = (ctx: Issue, message: string, path: (string | number)[] = []) => ctx.addIssue({ code: "custom", message, path });
+const QA = z.object({ q: z.string(), opts: z.array(z.string()).min(2).max(4), ans: z.string() })
+  .refine((r) => r.opts.includes(r.ans), { message: "ans は opts のどれか" });
 
 const Probs = z.array(z.number().nonnegative());
 
 export const DiagnosisLabData = z.object({
   budget: z.number().int().positive(),
+  stampAt: z.number().int().positive(),              // 通算この人数を正解でスタンプ
   tests: z.array(z.object({ id: z.string(), name: z.string(), cost: z.number().int().positive() })),
   diagnoses: z.array(z.object({ name: z.string(), short: z.string() })),
   cases: z.array(Meta.extend({
@@ -47,41 +53,79 @@ export const DiagnosisLabData = z.object({
       steps: z.array(z.object({ test: z.string(), finding: z.string(), why: z.string(), probs: Probs })),
       note: z.string(),
     }),
-  })),
+  })).min(1),
+}).superRefine((d, ctx) => {
+  const ids = d.tests.map((t) => t.id), n = d.diagnoses.length;
+  d.cases.forEach((c, i) => {
+    const p = ["cases", i];
+    if (c.answer >= n) bad(ctx, "answer が diagnoses の範囲外", [...p, "answer"]);
+    for (const id of ids) if (!c.results[id]) bad(ctx, `検査 ${id} の結果がない`, [...p, "results"]);
+    for (const id of Object.keys(c.results)) if (!ids.includes(id)) bad(ctx, `存在しない検査 ${id}`, [...p, "results"]);
+    if (c.flow.prior.length !== n) bad(ctx, "prior の長さが diagnoses と違う", [...p, "flow", "prior"]);
+    c.flow.steps.forEach((s, j) => {
+      if (!ids.includes(s.test)) bad(ctx, `存在しない検査 ${s.test}`, [...p, "flow", "steps", j]);
+      if (s.probs.length !== n) bad(ctx, "probs の長さが diagnoses と違う", [...p, "flow", "steps", j]);
+    });
+  });
 });
 
 export const PathoSimData = z.object({
-  slider: z.object({ label: z.string(), unit: z.string(), min: z.number(), max: z.number(), step: z.number(), initial: z.number() }),
+  slider: z.object({
+    label: z.string(), unit: z.string(), min: z.number(), max: z.number(), step: z.number(), initial: z.number(),
+    gauge: z.array(z.string()).optional(),           // スライダーの下の目盛りの字
+    bonus: z.object({ at: z.number(), coins: z.number().int().positive() }).optional(), // 初めてここまで上げたらコイン
+  }),
   svg: z.string(),
-  thresholds: z.array(z.object({ at: z.number(), show: z.array(z.string()).optional(), text: z.string() })),
-  missions: z.array(Meta.extend({ text: z.string(), answer: z.number().int(), alt: z.array(z.number().int()).optional(), explanation: z.string() })),
+  // 値が at 以上のうち一番大きい at の text を出す。show の id は at 以上で表示、未満で非表示
+  thresholds: z.array(z.object({ at: z.number(), show: z.array(z.string()).optional(), text: z.string() })).min(1),
+  missions: z.array(Meta.extend({
+    text: z.string(), answer: z.number().int(), alt: z.array(z.number().int()).optional(),
+    altNote: z.string().optional(),                  // alt で正解したときの一言
+    explanation: z.string(),
+  })).min(1),
   tools: z.array(z.string()),
+}).superRefine((d, ctx) => {
+  d.missions.forEach((m, i) => {
+    for (const a of [m.answer, ...(m.alt ?? [])]) if (a < 0 || a >= d.tools.length) bad(ctx, "tools の範囲外", ["missions", i]);
+  });
+  const ats = d.thresholds.map((t) => t.at);
+  if (ats.some((a, i) => i && a <= ats[i - 1])) bad(ctx, "thresholds は at の小さい順に", ["thresholds"]);
 });
 
 const Pattern = z.array(z.union([z.literal(0), z.literal(1)]));
 export const DecodePuzzleData = z.object({
+  modeLabels: z.tuple([z.string(), z.string()]).optional(), // ["解読モード", "ランプを点けろ"]
+  question: z.string().optional(),                           // 既定「この人は？」
   markers: z.array(z.string()),
   states: z.array(Meta.extend({
     name: z.string(),
     pattern: Pattern,
-    labelOverride: z.record(z.string(), z.string()).optional(),
+    labelOverride: z.record(z.string(), z.string()).optional(), // markers の添字 → この状態でだけ使う表示名
     explanation: z.string(),
   })),
-  reverse: z.object({
+  reverse: Meta.extend({
     markers: z.array(z.string()),
     targets: z.array(z.object({ name: z.string(), pattern: Pattern })),
     lesson: z.string(),
   }).optional(),
   roundSize: z.number().int().positive(),
   passScore: z.number().int().positive(),
+}).superRefine((d, ctx) => {
+  d.states.forEach((s, i) => { if (s.pattern.length !== d.markers.length) bad(ctx, "pattern の長さが markers と違う", ["states", i]); });
+  d.reverse?.targets.forEach((t, i) => { if (t.pattern.length !== d.reverse!.markers.length) bad(ctx, "pattern の長さが markers と違う", ["reverse", "targets", i]); });
+  if (d.roundSize > d.states.length) bad(ctx, "roundSize が states より多い", ["roundSize"]);
+  if (d.passScore > d.roundSize) bad(ctx, "passScore が roundSize より多い", ["passScore"]);
+  const names = d.states.map((s) => s.name);
+  if (new Set(names).size !== names.length) bad(ctx, "states の name が重複", ["states"]);
 });
 
 export const AlgorithmBoardData = z.object({
+  stampAt: z.number().int().positive(),              // 通算この人数ゴールでスタンプ
   nodes: z.array(z.object({
     id: z.string(),
     label: z.string(),
     question: z.string(),
-    options: z.array(z.object({ value: z.string(), label: z.string() })),
+    options: z.array(z.object({ value: z.string(), label: z.string() })).min(2),
   })),
   goalLabel: z.string(),
   treatments: z.array(z.string()),
@@ -91,42 +135,76 @@ export const AlgorithmBoardData = z.object({
     answers: z.record(z.string(), z.string()),
     treatments: z.array(z.number().int()).min(1),
     explanation: z.string(),
-  })),
+  })).min(1),
+}).superRefine((d, ctx) => {
+  const ids = d.nodes.map((n) => n.id);
+  if (ids.includes("goal")) bad(ctx, "goal は予約語（ゴールはエンジンが足す）", ["nodes"]);
+  d.patients.forEach((p, i) => {
+    const at = ["patients", i];
+    if (p.path.at(-1) !== "goal") bad(ctx, "path の最後は goal", [...at, "path"]);
+    for (const n of p.path.slice(0, -1)) {
+      const node = d.nodes.find((x) => x.id === n);
+      if (!node) { bad(ctx, `存在しないノード ${n}`, [...at, "path"]); continue; }
+      if (!node.options.some((o) => o.value === p.answers[n])) bad(ctx, `ノード ${n} の答え ${p.answers[n]} が選択肢にない`, [...at, "answers"]);
+    }
+    for (const t of p.treatments) if (t < 0 || t >= d.treatments.length) bad(ctx, "treatments の範囲外", [...at, "treatments"]);
+  });
 });
 
 const Vitals = z.object({ BP: z.string(), HR: z.number(), SpO2: z.number(), T: z.number(), 意識: z.string() });
 export const EmergencySimData = z.object({
+  condition: z.string(),                             // "急性胆管炎"（収蔵庫の問題文に使う）
+  gradeQuestion: z.string(),                         // "重症度は？（TG18）"
+  stampAt: z.number().int().positive(),              // 通算この人数成功でスタンプ
   gradeLabels: z.array(z.string()),
   orders: z.array(z.object({ name: z.string(), kind: z.enum(["core", "severe", "wrong"]) })),
   timingLabel: z.string(),
   timings: z.array(z.string()),
   patients: z.array(Meta.extend({
-    who: z.string(),
-    complaint: z.string(),
-    labs: z.string(),
+    who: z.string(), complaint: z.string(), labs: z.string(),
     vitals: Vitals,
     vitalsAfter: Vitals,
     grade: z.number().int().nonnegative(),
     requiredOrders: z.array(z.string()),
     timing: z.number().int().nonnegative(),
     explanation: z.string(),
-  })),
+  })).min(1),
   penaltyMinutes: z.number().int().positive(),
+}).superRefine((d, ctx) => {
+  const names = d.orders.map((o) => o.name);
+  d.patients.forEach((p, i) => {
+    if (p.grade >= d.gradeLabels.length) bad(ctx, "grade が gradeLabels の範囲外", ["patients", i]);
+    if (p.timing >= d.timings.length) bad(ctx, "timing が timings の範囲外", ["patients", i]);
+    for (const o of p.requiredOrders) if (!names.includes(o)) bad(ctx, `orders にない指示 ${o}`, ["patients", i]);
+  });
 });
 
 const GenSpec = z.object({ min: z.number(), max: z.number(), digits: z.number().int().nonnegative() });
 export const ScoreAttackData = z.object({
+  modeLabels: z.tuple([z.string(), z.string()]).optional(), // 画像種目があるときのタブ名
+  scoreName: z.string(),                             // "予後因子"
+  instructions: z.string(),                          // HUD の一文
   timeLimitSec: z.number().positive(),
-  items: z.array(z.object({
+  stampAt: z.number().int().positive(),              // 種目ごとにこの回数正解でスタンプ
+  items: z.array(z.object({                          // 1項目＝1タイル。値は毎回生成
     name: z.string(),
     positive: z.object({ gen: GenSpec, display: z.string() }),
     negative: z.object({ gen: GenSpec, display: z.string() }),
+    // SIRS：gen は満たす項目の数。display は {t} {hr} {rr} {wbc} を埋める
     compound: z.literal("SIRS").optional(),
-  })),
+  })).min(1),
   positiveRate: z.number().min(0).max(1),
   severeAt: z.number().int().positive(),
-  imageMode: z.object({ kind: z.literal("PancCT") }).optional(),
   explanation: z.string(),
+  missQuestion: QA,                                  // まちがえたとき収蔵庫に送る問題
+  imageMode: Meta.extend({
+    kind: z.literal("PancCT"),
+    prompt: z.string(),
+    extent: z.object({ label: z.string(), options: z.array(z.string()).length(3) }),
+    poor: z.object({ label: z.string(), options: z.array(z.string()).length(3) }),
+    explanation: z.string(),
+    missQuestion: QA,
+  }).optional(),
 });
 
 const Fighter = z.object({ name: z.string(), color: Color, traits: z.array(z.string()) });
@@ -137,12 +215,14 @@ export const VersusQuizData = z.object({
     a: Fighter,
     b: Fighter,
     clues: z.array(z.object({ text: z.string(), side: z.enum(["a", "b"]) })),
-  })),
+  })).min(1),
   passScore: z.number().int().positive(),
+}).superRefine((d, ctx) => {
+  d.matches.forEach((m, i) => { if (m.clues.length < d.passScore) bad(ctx, "clues が passScore より少ない", ["matches", i]); });
 });
 
 export const MemoryMatchData = z.object({
-  pairs: z.array(Meta.extend({ marker: z.string(), disease: z.string() })),
+  pairs: z.array(Meta.extend({ marker: z.string(), disease: z.string() })).min(2),
   bonusMoves: z.number().int().positive(),
 });
 
@@ -179,8 +259,6 @@ export const Exhibit = z.discriminatedUnion("type", [
   ExhibitBase.extend({ type: z.literal("VersusQuiz"), data: VersusQuizData }),
   ExhibitBase.extend({ type: z.literal("MemoryMatch"), data: MemoryMatchData }),
   ExhibitBase.extend({ type: z.literal("BodyHotspot"), data: BodyHotspotData }),
-  // Phase 0 の仮置き。展示の型を移植したら消す（Phase 1）。
-  ExhibitBase.extend({ type: z.literal("Placeholder"), plannedType: z.enum(EXHIBIT_TYPES) }),
 ]);
 
 /* ================= ホール ================= */
@@ -256,6 +334,7 @@ export type Meta = z.infer<typeof Meta>;
 export type ReviewItem = z.infer<typeof ReviewItem>;
 export type Exhibit = z.infer<typeof Exhibit>;
 export type ExhibitType = Exhibit["type"];
+export type ExhibitOf<T extends ExhibitType> = Extract<Exhibit, { type: T }>;
 export type Wing = z.infer<typeof Wing>;
 export type MapSpec = z.infer<typeof MapSpec>;
 export type GachaSpec = z.infer<typeof GachaSpec>;

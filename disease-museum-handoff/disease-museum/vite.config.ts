@@ -9,11 +9,16 @@ const hallIds = readdirSync(resolve(__dirname, "halls")).filter((d) =>
 
 export default defineConfig({
   base: "./",
-  server: { open: "/halls/kantansui/" },
+  server: { open: "/" },
+  // 単一HTML（artifact）では館の入口へのリンクを出さない。scripts/build-single.ts で true にする
+  define: { __SINGLE__: "false" },
   build: {
     outDir: "dist",
     rollupOptions: {
-      input: Object.fromEntries(hallIds.map((id) => [id, resolve(__dirname, "halls", id, "index.html")])),
+      input: {
+        index: resolve(__dirname, "index.html"),
+        ...Object.fromEntries(hallIds.map((id) => [id, resolve(__dirname, "halls", id, "index.html")])),
+      },
     },
   },
 });

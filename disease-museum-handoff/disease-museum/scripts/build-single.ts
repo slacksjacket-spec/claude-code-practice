@@ -25,6 +25,7 @@ await build({
   configFile: false,
   logLevel: "warn",
   plugins: [viteSingleFile()],
+  define: { __SINGLE__: "true" },
   build: { outDir: tmp, emptyOutDir: true, rollupOptions: { input: entry } },
 });
 
