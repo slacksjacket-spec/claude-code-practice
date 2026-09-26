@@ -9,12 +9,9 @@ export interface HallEntry {
 }
 
 export const HALLS: HallEntry[] = [
+  { id: "shokakan", no: 2, title: "消化管ホール", catch: "のぞいて、見つけて、切って、ときどき早押し。", stamps: 8 },
   { id: "kantansui", no: 3, title: "肝胆膵ホール", catch: "診断して、治療して、ときどきガチャを回す。", stamps: 8 },
 ];
 
-// ROADMAP Phase 2 の予定。オーナーの了承を得て作り始めたら HALLS に移す
-export const PLANNED: { title: string }[] = [
-  { title: "食道・胃ホール" },
-  { title: "腸ホール" },
-  { title: "急性腹症ホール" },
-];
+// 準備中のホール。オーナーの了承を得て作り始めたら HALLS に移す
+export const PLANNED: { title: string }[] = [];

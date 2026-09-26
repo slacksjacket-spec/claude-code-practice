@@ -1,0 +1,15 @@
+/* 食中毒の犯人さがし */
+.story{border:3px solid var(--line);border-radius:16px;background:var(--bg);padding:10px 12px;font-weight:800;font-size:14px}
+.tl{display:block;width:100%;margin-top:8px}
+.tl .meal{cursor:pointer}
+.tl .meal circle{fill:var(--card);stroke:var(--line);stroke-width:3}
+.tl .meal.focus circle{fill:var(--sun)}
+.tl .meal.pick circle{fill:var(--cobalt)}
+.tl .meal.right circle{fill:var(--mint)}
+.tl .meal.wrong circle{fill:var(--pink)}
+.tl .meal text{font-size:12px;font-weight:800;fill:var(--ink)}
+.tl .axis text{font-size:10px;fill:var(--sub);font-weight:800}
+.rewind{display:flex;gap:10px;align-items:center;margin-top:4px}
+.rewind input{flex:1}
+.rewind .ago{font-family:"Dela Gothic One",sans-serif;font-size:15px;min-width:84px;text-align:right}
+.mealBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}

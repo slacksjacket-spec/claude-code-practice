@@ -50,6 +50,23 @@ for (const id of readdirSync(hallsDir)) {
     continue;
   }
   const h = res.data;
+  // ホール専用のゲームのデータを、それぞれの schema で検証する
+  const schemaFile = resolve(hallsDir, id, "exhibits", "schemas.ts");
+  const custom: Record<string, { safeParse(d: unknown): { success: boolean; error?: { issues: { path: PropertyKey[]; message: string }[] } } }> =
+    existsSync(schemaFile) ? (await import(pathToFileURL(schemaFile).href)).CUSTOM_SCHEMAS : {};
+  let customBad = false;
+  for (const ex of h.wings.flatMap((w) => w.exhibits)) {
+    if (ex.type !== "Custom") continue;
+    const sc = custom[ex.kind];
+    if (!sc) { customBad = true; console.error(`✗ ${id}: 展示 ${ex.id} のゲーム「${ex.kind}」の schema が exhibits/schemas.ts にない`); continue; }
+    const r = sc.safeParse(ex.data);
+    if (!r.success) {
+      customBad = true;
+      console.error(`✗ ${id}: 展示 ${ex.id}（${ex.kind}）のデータ検証に失敗`);
+      for (const i of r.error!.issues) console.error(`   ${i.path.map(String).join(".")}: ${i.message}`);
+    }
+  }
+  if (customBad) { failed = true; continue; }
   if (h.id !== id) { failed = true; console.error(`✗ ${id}: hall.id（${h.id}）がフォルダ名と違う`); continue; }
   const exhibits = h.wings.flatMap((w) => w.exhibits);
   const reg = HALLS.find((r) => r.id === id);

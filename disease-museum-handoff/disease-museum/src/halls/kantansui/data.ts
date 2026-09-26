@@ -672,6 +672,8 @@ export const hall: Hall = {
               },
             ],
             penaltyMinutes: 30,
+            // モニターが警告する範囲。演出用のイメージ値（臨床のアラーム設定の基準ではない）
+            normalRanges: { SBP: [90, 160], HR: [50, 100], SpO2: [94, 100], T: [36, 37.9] },
           },
         },
       ],

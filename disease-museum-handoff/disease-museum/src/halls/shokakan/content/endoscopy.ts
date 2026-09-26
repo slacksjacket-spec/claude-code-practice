@@ -1,0 +1,46 @@
+// 内視鏡ラン。TODO(review) Forrest分類ごとの止血の適応、Mallory-Weiss・GIST疑いの対応は未照合
+import type { EndoscopyData } from "../exhibits/endoscopy.schema";
+
+const M = { review: "draft" as const, sources: [] as string[] };
+
+export const endoscopyContent: EndoscopyData = {
+  segments: ["食道", "胃", "十二指腸"],
+  actions: ["経過観察（治療は不要）", "薬で治療する", "生検して組織を調べる", "内視鏡的に止血・結紮する", "内視鏡的に切除する（ESD）", "外科手術・精査へ"],
+  runLength: 5,
+  passScore: 4,
+  lesions: [
+    { ...M, id: "gerd", segment: "食道", look: "linearErosion", answer: 1,
+      finding: "下部食道に縦に長いびらんが数本。胸やけが続いている。",
+      explanation: "逆流性食道炎。まずはPPI（またはP-CAB）で酸を抑える。内視鏡の治療は要らない。" },
+    { ...M, id: "varix", segment: "食道", look: "varixRed", answer: 3, alt: [1],
+      finding: "青く太い食道静脈瘤。表面に赤い斑点（発赤所見）。出血したことはない。",
+      explanation: "発赤所見のある静脈瘤は出血しやすい。予防的に内視鏡で結紮（EVL）する。非選択的β遮断薬の内服も選択肢。" },
+    { ...M, id: "mw", segment: "食道", look: "tear", answer: 3,
+      finding: "飲酒後に嘔吐をくり返し、吐血。食道と胃の境目に縦の裂け目があり、いまもにじむように出血している。",
+      explanation: "Mallory-Weiss症候群。多くは自然に止まるが、出血が続いていればクリップなどで内視鏡的に止血する。" },
+    { ...M, id: "fIa", segment: "十二指腸", look: "spurting", answer: 3,
+      finding: "十二指腸球部の潰瘍から、噴き出すような出血。",
+      explanation: "Forrest Ia（噴出性出血）。内視鏡的止血の適応。止めたあとはPPIとピロリ菌の検査。" },
+    { ...M, id: "fIIa", segment: "胃", look: "ulcerVessel", answer: 3,
+      finding: "胃角部の潰瘍。底に盛り上がった露出血管があるが、いまは出血していない。",
+      explanation: "Forrest IIa（露出血管）。いま止まっていても再出血しやすいので、内視鏡的止血の適応。" },
+    { ...M, id: "fIII", segment: "胃", look: "ulcerClean", answer: 1,
+      finding: "胃体部の潰瘍。底はきれいな白苔だけで、血管も凝血塊もない。",
+      explanation: "Forrest III。再出血の危険は低く、内視鏡の止血は要らない。PPIで治療し、ピロリ菌を調べる。" },
+    { ...M, id: "fgp", segment: "胃", look: "polyps", answer: 0,
+      finding: "ピロリ菌のいない胃の胃底腺領域に、表面がなめらかな小さいポリープが多発。",
+      explanation: "胃底腺ポリープ。ピロリ陰性の胃に多く、癌になることはまれ。経過観察でよい。" },
+    { ...M, id: "depressed", segment: "胃", look: "depressed", answer: 2,
+      finding: "胃前庭部に、境目がくっきりした赤い浅いくぼみ（1cm）。まだ組織は分からない。",
+      explanation: "早期胃癌を疑う。治療を決める前に、まず生検で組織を確かめる。" },
+    { ...M, id: "earlyCa", segment: "胃", look: "earlyCa", answer: 4,
+      finding: "生検で分化型腺癌と分かった病変。2cm、潰瘍なし、粘膜内にとどまる所見。",
+      explanation: "内視鏡的切除（ESD）の適応。リンパ節転移の危険がとても低い条件をみたす。適応は深達度タップのカンペで。" },
+    { ...M, id: "advanced", segment: "胃", look: "advancedCa", answer: 5,
+      finding: "胃体部に、周りが土手のように盛り上がった大きな潰瘍性の腫瘍。",
+      explanation: "進行胃癌（3型の見た目）。内視鏡では切れない。CTなどで広がりを調べて外科手術へ。" },
+    { ...M, id: "smt", segment: "胃", look: "smt", answer: 5,
+      finding: "胃体上部に、正常な粘膜におおわれた5cmの盛り上がり。まん中にくぼみ。",
+      explanation: "粘膜の下の腫瘍（GISTを疑う）。表面の生検では届かないので、超音波内視鏡下の穿刺（EUS-FNA）などで調べ、大きければ手術。" },
+  ],
+};

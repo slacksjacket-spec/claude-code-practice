@@ -13,6 +13,7 @@ import { dialogHTML as cardDialogHTML, mountStampCard, stampList } from "./stamp
 import { mountReview, sectionHTML as reviewHTML } from "./review";
 import { exhibitHTML as gachaHTML, mountGacha } from "./gacha";
 import { MODULES } from "./exhibits";
+import type { CustomModules } from "./exhibits/types";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -95,7 +96,8 @@ function footerHTML(h: Hall) {
 
 /* ================= mount ================= */
 
-export function mountHall(hall: Hall, hooks: HallHooks = {}) {
+export function mountHall(hall: Hall, opts: { hooks?: HallHooks; custom?: CustomModules } = {}) {
+  const hooks = opts.hooks ?? {}, custom = opts.custom ?? {};
   document.title = `病気博物館 ${hall.title}`;
   const exhibits = hall.wings.flatMap((w) => w.exhibits);
   const gachaWing = hall.gacha.wing;
@@ -203,9 +205,9 @@ export function mountHall(hall: Hall, hooks: HallHooks = {}) {
   /* ---------- exhibits ---------- */
   for (const ex of exhibits) {
     const root = $(`#root-${ex.id}`);
-    const mod = MODULES[ex.type] as { mount(r: HTMLElement, e: Exhibit, c: Ctx): void } | undefined;
+    const mod = (ex.type === "Custom" ? custom[ex.kind] : MODULES[ex.type]) as { mount(r: HTMLElement, e: Exhibit, c: Ctx): void } | undefined;
     if (!mod) {
-      root.innerHTML = `<div class="placeholder">展示の型「${esc(ex.type)}」はまだ実装されていません。</div>`;
+      root.innerHTML = `<div class="placeholder">展示「${esc(ex.type === "Custom" ? ex.kind : ex.type)}」はまだ実装されていません。</div>`;
       continue;
     }
     try {

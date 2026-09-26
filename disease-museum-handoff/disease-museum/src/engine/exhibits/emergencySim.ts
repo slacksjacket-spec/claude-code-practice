@@ -8,18 +8,28 @@ const GRADE_COINS = 15, ORDER_COINS = 30; // SPEC 3.5
 const GRADE_MIN = 10, ORDER_MIN = 20;     // 正解で進む時間（試作の値）
 type Vitals = ExhibitOf<"EmergencySim">["data"]["patients"][number]["vitals"];
 
-const monitor = (v: Vitals, bad: boolean) => `<div class="monitor ${bad ? "bad" : ""}"><svg viewBox="0 0 200 46" preserveAspectRatio="none"><path class="ecg" d="M0 26 L40 26 L48 26 L54 8 L60 42 L66 26 L110 26 L118 26 L124 8 L130 42 L136 26 L200 26"/></svg>
- <div class="vitals"><span>BP</span><b>${esc(v.BP)}</b><span>HR</span><b>${v.HR}</b><span>SpO₂</span><b>${v.SpO2}</b><span>体温</span><b>${v.T}</b><span>意識</span><b>${esc(v.意識)}</b></div></div>`;
+type Ranges = ExhibitOf<"EmergencySim">["data"]["normalRanges"];
+
+/** 生体情報モニター。波形はいつも緑で、基準の外の値だけ赤く点滅する（実際のモニターのアラーム表示に近づける）。心電図の速さは HR に合わせる */
+function monitor(v: Vitals, r: Ranges) {
+  const out = (x: number, [lo, hi]: [number, number]) => x < lo || x > hi;
+  const sbp = parseInt(v.BP, 10);
+  const al = { BP: out(sbp, r.SBP), HR: out(v.HR, r.HR), SpO2: out(v.SpO2, r.SpO2), T: out(v.T, r.T), 意識: v.意識 !== "清明" };
+  const cell = (label: string, val: string | number, bad: boolean) => `<span class="${bad ? "alarm" : ""}">${label}</span><b class="${bad ? "alarm" : ""}">${esc(val)}</b>`;
+  const beat = (1.6 * 75) / Math.max(30, v.HR); // 試作の波形は 1.6 秒で2拍（およそ HR 75）
+  return `<div class="monitor"><svg viewBox="0 0 200 46" preserveAspectRatio="none"><path class="ecg" style="animation-duration:${beat.toFixed(2)}s" d="M0 26 L40 26 L48 26 L54 8 L60 42 L66 26 L110 26 L118 26 L124 8 L130 42 L136 26 L200 26"/></svg>
+ <div class="vitals">${cell("BP", v.BP, al.BP)}${cell("HR", v.HR, al.HR)}${cell("SpO₂", v.SpO2, al.SpO2)}${cell("体温", v.T, al.T)}${cell("意識", v.意識, al.意識)}</div></div>`;
+}
 
 export const EmergencySim: ExhibitModule<"EmergencySim"> = {
   mount(root, ex, ctx) {
-    const d = ex.data, N = d.patients.length, last = d.gradeLabels.length - 1;
+    const d = ex.data, N = d.patients.length;
     let pi = 0, stage = 0, min = 0, err = 0, sel = new Set<string>(), timing: number | null = null;
     let vitals = d.patients[0].vitals;
 
     function render() {
-      const c = d.patients[pi], bad = c.grade === last || err >= 2;
-      let h = `<div class="hud"><span class="tagk">患者 ${pi + 1} / ${N}</span><span class="clock">経過 ${min}分</span><span class="small" style="font-weight:800">${esc(c.who)}</span></div>${monitor(vitals, bad)}<div class="erText">${esc(c.complaint)}<br><span style="color:var(--sub)">${esc(c.labs)}</span></div>`;
+      const c = d.patients[pi];
+      let h = `<div class="hud"><span class="tagk">患者 ${pi + 1} / ${N}</span><span class="clock${err ? " late" : ""}">経過 ${min}分</span><span class="small" style="font-weight:800">${esc(c.who)}</span></div>${monitor(vitals, d.normalRanges)}<div class="erText">${esc(c.complaint)}<br><span style="color:var(--sub)">${esc(c.labs)}</span></div>`;
       if (stage === 0) {
         h += `<div class="stepLabel">STEP 1　${esc(d.gradeQuestion)}</div><div class="opts grades">${d.gradeLabels.map((g, i) => `<button class="opt" data-g="${i}">${esc(g)}</button>`).join("")}</div><div class="fbBox"></div>`;
         root.innerHTML = h;
@@ -64,7 +74,7 @@ export const EmergencySim: ExhibitModule<"EmergencySim"> = {
             const fb = $(".fbBox", root);
             ctx.feedback(fb, false, `容体が悪化…${d.penaltyMinutes}分経過`, `${lack.length ? `足りない指示：${esc(lack.join("、"))}<br>` : ""}${extra.length ? `不要な指示：${esc(extra.join("、"))}<br>` : ""}${tOk ? "" : `${esc(d.timingLabel)}を見直そう。`}<div style="margin-top:8px"><button class="btn retry">指示をやり直す</button></div>`);
             $(".retry", fb).onclick = render;
-            $(".monitor", root).classList.add("bad");
+            $(".clock", root).classList.add("late");
           }
         };
       } else {

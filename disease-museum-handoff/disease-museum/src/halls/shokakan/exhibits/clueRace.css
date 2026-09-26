@@ -1,0 +1,11 @@
+/* 早押し問診 */
+.clues{display:grid;gap:8px}
+.clueCard{border:3px solid var(--line);border-radius:14px;background:var(--card);padding:10px 12px;font-weight:800;font-size:14px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;box-shadow:3px 3px 0 var(--line)}
+.clueCard.hidden{background:repeating-linear-gradient(45deg,var(--cobalt) 0 10px,#5A73FF 10px 20px);color:#fff;box-shadow:none}
+.clueCard .tagk{white-space:nowrap}
+.belly{width:150px;display:block}
+.belly .r{fill:var(--card);stroke:var(--line);stroke-width:1.5}
+.belly .r.on{fill:var(--tomato)}
+.belly .r.was{fill:#FFC7B8}
+.raceBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.raceBar .worth{font-family:"Dela Gothic One",sans-serif}
