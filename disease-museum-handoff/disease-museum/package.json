@@ -1,0 +1,22 @@
+{
+  "name": "disease-museum",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run check && vite build",
+    "build:single": "npm run check && tsx scripts/build-single.ts",
+    "check": "tsc --noEmit && tsx scripts/validate.ts",
+    "shots": "tsx scripts/shots.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "playwright": "^1.56.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6",
+    "vite-plugin-singlefile": "^2.3.3",
+    "zod": "^4.6.5"
+  }
+}

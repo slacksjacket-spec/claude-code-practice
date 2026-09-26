@@ -1,0 +1,182 @@
+/* 病気博物館 共通スタイル（reference/kantansui_hall_v2.html から抽出。値は勝手に変えない）
+   展示の型ごとのスタイルは src/engine/exhibits/ の各モジュールに置く。 */
+
+:root{
+  --bg:#F5EFFF;--card:#FFFFFF;--ink:#1C1537;--sub:#5E567E;--line:#1C1537;
+  --tomato:#FF5A36;--sun:#FFC933;--mint:#22C1A0;--cobalt:#3D5AFE;--pink:#FF7AB6;--bile:#8BD450;--liver:#C8453B;
+  --shadow:4px 4px 0 var(--line);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17122E;--card:#241C47;--ink:#FFF6E8;--sub:#BDB4E0;--line:#0B0819;--shadow:4px 4px 0 #0B0819}}
+:root[data-theme="dark"]{--bg:#17122E;--card:#241C47;--ink:#FFF6E8;--sub:#BDB4E0;--line:#0B0819;--shadow:4px 4px 0 #0B0819}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth;overflow-x:clip}
+body{overflow-x:clip}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",system-ui,sans-serif;font-weight:500;line-height:1.7;
+  background-image:radial-gradient(color-mix(in srgb,var(--ink) 9%,transparent) 1.4px,transparent 1.6px);background-size:22px 22px}
+h1,h2,h3,.disp{font-family:"Dela Gothic One","Hiragino Sans",sans-serif;font-weight:400;line-height:1.2;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--cobalt);outline-offset:3px}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.pop{background:var(--card);border:3px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.btn{border:3px solid var(--line);border-radius:999px;background:var(--sun);color:#1C1537;padding:10px 20px;font-weight:800;box-shadow:3px 3px 0 var(--line);transition:transform .08s,box-shadow .08s;min-height:44px}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--line)}
+.btn.alt{background:var(--card);color:var(--ink)}
+.chip{display:inline-block;border:2px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:800;background:var(--card)}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;padding:10px 0}
+.topbar .wrap{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.logo{font-family:"Dela Gothic One",sans-serif;font-size:15px;background:var(--ink);color:var(--bg);padding:6px 12px;border-radius:999px}
+.stampPill{display:flex;align-items:center;gap:6px;border:3px solid var(--line);background:var(--card);border-radius:999px;padding:4px 12px 4px 6px;font-weight:800;box-shadow:3px 3px 0 var(--line)}
+.stampPill .dots{display:flex;gap:3px}
+.stampPill .dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:transparent}
+.stampPill .dots i.on{background:var(--tomato)}
+.snd{width:44px;height:44px;border-radius:50%;border:3px solid var(--line);background:var(--card);box-shadow:3px 3px 0 var(--line);font-weight:800}
+
+/* entrance */
+.entrance{padding:26px 0 10px;text-align:center}
+.entrance h1{font-size:clamp(40px,11vw,96px);letter-spacing:.02em;line-height:1.05}
+.entrance h1 span{display:inline-block;animation:bob 2.4s ease-in-out infinite}
+.entrance h1 span:nth-child(2){animation-delay:.2s;color:var(--tomato)}
+.entrance h1 span:nth-child(3){animation-delay:.4s;color:var(--mint)}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-3deg)}}
+.entrance .sub{font-weight:800;color:var(--sub);margin-top:8px}
+.ticket{position:relative;display:flex;max-width:520px;margin:22px auto 0;text-align:left}
+.ticket .main{flex:1;background:var(--sun);color:#1C1537;border:3px solid var(--line);border-right:0;border-radius:20px 0 0 20px;padding:16px 18px;box-shadow:var(--shadow)}
+.ticket .stub{width:128px;background:var(--pink);color:#1C1537;border:3px dashed var(--line);border-left-style:dashed;border-radius:0 20px 20px 0;display:grid;place-items:center;text-align:center;padding:10px;box-shadow:var(--shadow);transition:transform .7s cubic-bezier(.5,-0.4,.7,1.4),opacity .7s}
+.ticket.torn .stub{transform:translate(40px,140px) rotate(38deg);opacity:0}
+.ticket .main b{font-family:"Dela Gothic One",sans-serif;font-size:24px;display:block}
+.ticket small{font-weight:800}
+
+/* map */
+.mapWrap{padding:26px 0}
+.sectionTitle{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.sectionTitle h2{font-size:clamp(24px,5.6vw,38px)}
+.sectionTitle .no{font-family:"Dela Gothic One",sans-serif;background:var(--ink);color:var(--bg);border-radius:12px;padding:2px 10px;font-size:14px}
+.map svg{width:100%;height:auto;display:block}
+.organ{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.organ:hover,.organ:focus-visible{transform:scale(1.06) rotate(-2deg)}
+.organ:focus{outline:none}
+.eye{transform-box:fill-box;transform-origin:center;animation:blink 4.6s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.mapHint{text-align:center;font-weight:800;color:var(--sub);font-size:14px}
+
+/* wings */
+.wing{padding:34px 0 10px}
+.wingHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.wingHead h2{font-size:clamp(28px,7vw,52px)}
+.wingHead p{margin:0;font-weight:800;color:var(--sub)}
+.wingLabel{display:inline-block;font-family:"Dela Gothic One",sans-serif;font-size:13px;padding:3px 12px;border-radius:999px;border:2px solid var(--line);margin-bottom:6px;color:#1C1537}
+.exhibit{padding:18px;margin-bottom:22px;position:relative}
+.exhibit h3{font-size:clamp(20px,4.8vw,28px);margin-bottom:4px}
+.exhibit h3,.exhibit .how{padding-right:66px}
+.exhibit .how{font-size:14px;color:var(--sub);font-weight:800;margin:0 0 12px}
+.plaque{position:absolute;top:-14px;right:14px;background:var(--ink);color:var(--bg);font-family:"Dela Gothic One",sans-serif;font-size:12px;padding:4px 10px;border-radius:999px}
+.stampMark{position:absolute;top:10px;right:14px;width:64px;height:64px;border-radius:50%;border:4px solid var(--tomato);color:var(--tomato);display:grid;place-items:center;font-family:"Dela Gothic One",sans-serif;font-size:13px;transform:rotate(-14deg) scale(0);opacity:0;transition:transform .45s cubic-bezier(.3,1.8,.5,1),opacity .2s;pointer-events:none;background:color-mix(in srgb,var(--card) 70%,transparent)}
+.exhibit.stamped .stampMark{transform:rotate(-14deg) scale(1);opacity:1}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+
+/* segmented buttons / bubble（複数の型で使う） */
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.seg button{border:3px solid var(--line);border-radius:999px;background:var(--card);padding:6px 12px;font-weight:800;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.bubble{border:3px solid var(--line);border-radius:16px;padding:10px 12px;background:var(--bg);font-size:14px;margin-top:10px}
+.card-pop{animation:popin .35s cubic-bezier(.3,1.7,.5,1)}
+@keyframes popin{from{transform:scale(.6) rotate(-4deg);opacity:0}}
+
+/* gacha */
+.gacha{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:center}
+@media (max-width:640px){.gacha{grid-template-columns:1fr}}
+.machine{width:220px;margin:0 auto;display:block}
+.machine.shake .dome{animation:shake .5s}
+@keyframes shake{25%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}75%{transform:rotate(-2deg)}}
+.knob{transform-box:fill-box;transform-origin:center;transition:transform .6s cubic-bezier(.5,0,.3,1.4)}
+.prize{min-height:170px;padding:14px;border-radius:18px;border:3px solid var(--line);background:var(--bg)}
+.prize .rar{font-family:"Dela Gothic One",sans-serif;color:var(--tomato)}
+.prize h4{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:24px;margin:2px 0 6px}
+.coll{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.coll span{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;font-size:11px;font-weight:800;text-align:center;line-height:1.1;background:var(--card);opacity:.35}
+.coll span.got{opacity:1}
+
+/* shake-no（不正解の揺れ） */
+@keyframes no{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* toast & modal */
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,calc(100% + 40px + env(safe-area-inset-bottom,0px)));visibility:hidden;z-index:50;background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 18px;font-weight:800;transition:transform .35s cubic-bezier(.3,1.6,.5,1),visibility 0s .35s;white-space:nowrap}
+.toast.show{transform:translate(-50%,0);visibility:visible;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+/* 試作からの変更（オーナー了承済み）：隠れているトーストが画面下に少しのぞいていたので、完全に画面外へ下げて非表示にする */
+dialog{border:3px solid var(--line);border-radius:24px;box-shadow:6px 6px 0 var(--line);padding:0;max-width:min(520px,92vw);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(20,14,40,.55)}
+.cert{padding:22px;text-align:center}
+.cert .frame{border:4px double var(--line);border-radius:16px;padding:18px;background:var(--bg)}
+.cert h3{font-size:28px;margin:6px 0}
+.stampGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.stampGrid div{aspect-ratio:1;border-radius:50%;border:3px dashed var(--line);display:grid;place-items:center;font-size:12px;font-weight:800;padding:6px;line-height:1.2}
+.stampGrid div.on{border:4px solid var(--tomato);color:var(--tomato);background:color-mix(in srgb,var(--tomato) 10%,var(--card));transform:rotate(-8deg);font-family:"Dela Gothic One",sans-serif;font-weight:400}
+.cert input{border:3px solid var(--line);border-radius:12px;padding:8px 12px;font:inherit;font-weight:800;text-align:center;width:100%;max-width:260px;background:var(--card);color:var(--ink)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+footer{padding:30px 0 60px;text-align:center;font-size:13px;color:var(--sub);font-weight:800}
+
+/* ===== v2 additions ===== */
+.rankPill{white-space:nowrap;display:flex;flex-direction:column;align-items:flex-start;line-height:1.1;border:3px solid var(--line);background:var(--card);border-radius:14px;padding:4px 10px;box-shadow:3px 3px 0 var(--line);font-weight:800;font-size:11px}
+.rankPill b{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:13px}
+.coinPill{display:flex;align-items:center;gap:5px;border:3px solid var(--line);background:var(--sun);color:#1C1537;border-radius:999px;padding:4px 10px;font-weight:800;box-shadow:3px 3px 0 var(--line)}
+.coin{display:inline-block;width:16px;height:16px;border-radius:50%;background:#FFE27A;border:2px solid #1C1537;box-shadow:inset -2px -2px 0 #E0A800}
+.coinPill.bump{animation:bump .4s}
+@keyframes bump{40%{transform:scale(1.25) rotate(-6deg)}}
+.float{position:fixed;z-index:70;font-family:"Dela Gothic One",sans-serif;color:#1C1537;background:var(--sun);border:2px solid #1C1537;border-radius:999px;padding:2px 10px;pointer-events:none;animation:floatup 1s forwards}
+@keyframes floatup{to{transform:translateY(-60px);opacity:0}}
+.guide{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.guide a{display:block;text-decoration:none;color:var(--ink);border:3px solid var(--line);border-radius:14px;padding:8px 10px;background:var(--card);font-weight:800;font-size:13px;box-shadow:3px 3px 0 var(--line)}
+.guide a small{display:block;color:var(--sub);font-size:11px}
+.guide a.done{background:var(--mint);color:#1C1537}
+.guide a.done small{color:#1C1537}
+
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:10px}
+.opt{border:3px solid var(--line);border-radius:14px;background:var(--card);padding:10px 12px;font-weight:800;text-align:left;box-shadow:3px 3px 0 var(--line);font-size:14px;line-height:1.4;min-height:48px}
+.opt:disabled{cursor:default}
+.opt.right{background:var(--mint);color:#1C1537}
+.opt.wrong{background:var(--pink);color:#1C1537;animation:no .4s}
+.opt.sel{background:var(--sun);color:#1C1537;transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.feedback{margin-top:12px;border:3px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg);font-size:14px}
+.feedback b.t{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:18px;display:block;margin-bottom:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.small{font-size:13px}
+.hud{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.tagk{font-family:"Dela Gothic One",sans-serif;font-size:12px;border:2px solid var(--line);border-radius:8px;padding:1px 8px;background:var(--ink);color:var(--bg)}
+.modeTabs{margin-bottom:10px}
+.stepLabel{font-family:"Dela Gothic One",sans-serif;font-size:14px;margin-top:12px}
+
+/* review */
+.revList{display:grid;gap:10px}
+.rev{border:3px solid var(--line);border-radius:16px;background:var(--card);padding:10px 12px}
+.rev .src{font-size:11px;color:var(--sub);font-weight:800}
+.rev p{margin:2px 0 6px;font-weight:800}
+.empty{text-align:center;color:var(--sub);font-weight:800;padding:16px}
+
+.stampPill .dots i{width:9px!important;height:9px!important}
+.stampPill{padding:4px 8px 4px 6px!important}
+@media (max-width:420px){.rankPill{font-size:10px;padding:3px 7px}.rankPill b{font-size:11px}.coinPill{padding:3px 8px}.snd{width:38px;height:38px}}
+
+.peek{display:inline-flex;align-items:center;gap:6px;border:2px dashed var(--line);border-radius:999px;background:transparent;padding:5px 12px;font-weight:800;font-size:13px;color:var(--sub);margin:-4px 0 12px;min-height:36px}
+.peek::before{content:"";width:14px;height:10px;border:2px solid currentColor;border-radius:2px 2px 4px 4px}
+dialog#peekDlg{max-width:min(560px,94vw);width:100%}
+.peekIn{padding:16px 18px;max-height:80vh;overflow:auto}
+.peekHead{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:-16px;background:var(--card);padding:6px 0 10px}
+.peekHead b{font-size:18px;line-height:1.3}
+#peekBody{font-size:14px;line-height:1.65}
+#peekBody h4{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:15px;margin:14px 0 4px}
+#peekBody table{width:100%;border-collapse:collapse}
+#peekBody th,#peekBody td{border:2px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+#peekBody th{background:var(--bg);white-space:nowrap;font-size:13px}
+#peekBody ul,#peekBody ol{margin:4px 0;padding-left:1.3em}
+#peekBody p{margin:6px 0}
+
+#peekClose{white-space:nowrap;flex:none}
+
+/* ===== engine additions ===== */
+.placeholder{border:3px dashed var(--line);border-radius:16px;padding:14px;background:var(--bg);font-weight:800;color:var(--sub);font-size:14px}
+.placeholder .tagk{margin-right:6px}
