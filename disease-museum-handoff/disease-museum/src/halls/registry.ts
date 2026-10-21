@@ -9,6 +9,7 @@ export interface HallEntry {
 }
 
 export const HALLS: HallEntry[] = [
+  { id: "ganka", no: 15, title: "眼ホール", catch: "x", stamps: 8 },
   { id: "hifu", no: 14, title: "皮膚ホール", catch: "x", stamps: 8 },
   { id: "seishin", no: 13, title: "精神ホール", catch: "x", stamps: 8 },
   { id: "shoni", no: 12, title: "小児ホール", catch: "x", stamps: 8 },
