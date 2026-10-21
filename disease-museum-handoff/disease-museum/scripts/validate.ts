@@ -6,6 +6,7 @@ import { pathToFileURL } from "node:url";
 import { Hall } from "../src/engine/schema";
 import { draw } from "../src/engine/gacha";
 import { HALLS } from "../src/halls/registry";
+import { SHARED_SCHEMAS } from "../src/engine/games/schemas";
 
 const hallsDir = resolve(import.meta.dirname, "../src/halls");
 let failed = false;
@@ -52,13 +53,14 @@ for (const id of readdirSync(hallsDir)) {
   const h = res.data;
   // ホール専用のゲームのデータを、それぞれの schema で検証する
   const schemaFile = resolve(hallsDir, id, "exhibits", "schemas.ts");
+  // 共通ゲーム（src/engine/games）＋ホール専用（src/halls/<id>/exhibits）
   const custom: Record<string, { safeParse(d: unknown): { success: boolean; error?: { issues: { path: PropertyKey[]; message: string }[] } } }> =
-    existsSync(schemaFile) ? (await import(pathToFileURL(schemaFile).href)).CUSTOM_SCHEMAS : {};
+    { ...SHARED_SCHEMAS, ...(existsSync(schemaFile) ? (await import(pathToFileURL(schemaFile).href)).CUSTOM_SCHEMAS : {}) };
   let customBad = false;
   for (const ex of h.wings.flatMap((w) => w.exhibits)) {
     if (ex.type !== "Custom") continue;
     const sc = custom[ex.kind];
-    if (!sc) { customBad = true; console.error(`✗ ${id}: 展示 ${ex.id} のゲーム「${ex.kind}」の schema が exhibits/schemas.ts にない`); continue; }
+    if (!sc) { customBad = true; console.error(`✗ ${id}: 展示 ${ex.id} のゲーム「${ex.kind}」の schema が共通ゲームにも exhibits/schemas.ts にもない`); continue; }
     const r = sc.safeParse(ex.data);
     if (!r.success) {
       customBad = true;

@@ -1,6 +1,6 @@
 // 影絵当て：造影・X線の模式図。実際の画像ではなく、所見の形だけを誇張して描いたもの。
 // TODO(review) 各所見の説明文は未レビュー
-import type { RevealData } from "../exhibits/reveal.schema";
+import type { RevealData } from "../../../engine/games/reveal.schema";
 
 const BG = "#1B1E26", BA = "#EDE8DC"; // 背景とバリウム
 const frame = (inner: string, bg = BG) =>

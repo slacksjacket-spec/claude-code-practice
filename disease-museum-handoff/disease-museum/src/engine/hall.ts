@@ -14,6 +14,7 @@ import { mountReview, sectionHTML as reviewHTML } from "./review";
 import { exhibitHTML as gachaHTML, mountGacha } from "./gacha";
 import { MODULES } from "./exhibits";
 import type { CustomModules } from "./exhibits/types";
+import { SHARED_GAMES } from "./games";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -97,7 +98,7 @@ function footerHTML(h: Hall) {
 /* ================= mount ================= */
 
 export function mountHall(hall: Hall, opts: { hooks?: HallHooks; custom?: CustomModules } = {}) {
-  const hooks = opts.hooks ?? {}, custom = opts.custom ?? {};
+  const hooks = opts.hooks ?? {}, custom: CustomModules = { ...SHARED_GAMES, ...opts.custom }; // 共通ゲーム＋ホール専用
   document.title = `病気博物館 ${hall.title}`;
   const exhibits = hall.wings.flatMap((w) => w.exhibits);
   const gachaWing = hall.gacha.wing;

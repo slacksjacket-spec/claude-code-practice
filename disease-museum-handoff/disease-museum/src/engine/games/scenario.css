@@ -1,0 +1,5 @@
+/* シナリオ判断 */
+.scVitals{font-family:ui-monospace,Menlo,monospace;color:#5CFF9D;background:#0B1A14;border:3px solid var(--line);border-radius:14px;padding:8px 12px;font-size:14px;font-weight:800;margin-top:8px;box-shadow:var(--shadow)}
+.scSteps{display:flex;gap:4px;margin:8px 0}
+.scSteps i{flex:1;height:10px;border-radius:5px;border:2px solid var(--line);background:var(--card)}
+.scSteps i.ok{background:var(--mint)}.scSteps i.ng{background:var(--pink)}.scSteps i.cur{background:var(--sun)}

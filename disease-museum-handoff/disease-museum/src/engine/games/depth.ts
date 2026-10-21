@@ -1,8 +1,8 @@
 // 深達度タップ：壁の断面図で、がんがどの層まで届いているかをタップ → 治療を選ぶ
 import "./depth.css";
-import type { CustomModule } from "../../../engine/exhibits/types";
+import type { CustomModule } from "../exhibits/types";
 import type { DepthData } from "./depth.schema";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { $, $$, esc, shuffle } from "../dom";
 
 const DEPTH_COINS = 10, TX_COINS = 15;
 const FILLS = ["#F7B8B0", "#FBE3C4", "#E8A0A0", "#FFF1D6", "#F3D1C0", "#E7E0F5"];

@@ -1,6 +1,6 @@
 // 深達度タップのデータの形
 import { z } from "zod";
-import { Meta } from "../../../engine/schema";
+import { Meta } from "../schema";
 
 export const DepthData = z.object({
   organs: z.record(z.string(), z.object({

@@ -1,6 +1,6 @@
 // 影絵当て（造影シルエット早押し）のデータの形
 import { z } from "zod";
-import { Meta } from "../../../engine/schema";
+import { Meta } from "../schema";
 
 export const RevealData = z.object({
   levels: z.array(z.number().nonnegative()).min(2),  // 段階ごとのぼかし（px）。最後は 0（くっきり）

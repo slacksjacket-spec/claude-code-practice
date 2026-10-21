@@ -1,6 +1,6 @@
 // 深達度タップ。
 // TODO(review) 胃癌の内視鏡的切除の適応（胃癌治療ガイドライン第6版の条件）と、大腸 T1 癌の SM 浸潤 1000μm の扱いは、記憶から書いたので原文と照合が必要
-import type { DepthData } from "../exhibits/depth.schema";
+import type { DepthData } from "../../../engine/games/depth.schema";
 
 const M = { review: "draft" as const, sources: ["胃癌治療ガイドライン 第6版（2021）", "大腸癌治療ガイドライン"] };
 const LAYERS = [

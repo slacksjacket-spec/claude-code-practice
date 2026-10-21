@@ -1,10 +1,10 @@
 // 早押し問診：問診・所見・検査のカードが1枚ずつめくれる。少ないカードで当てるほど高得点。まちがえると1枚めくれてしまう
 import "./clueRace.css";
-import type { CustomModule } from "../../../engine/exhibits/types";
+import type { CustomModule } from "../exhibits/types";
 import type { ClueRaceData } from "./clueRace.schema";
 import type { Region } from "./clueRace.consts";
 import { REGIONS } from "./clueRace.consts";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { $, $$, esc, shuffle } from "../dom";
 
 const worth = (opened: number) => Math.max(5, 35 - opened * 5);
 

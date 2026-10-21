@@ -118,14 +118,29 @@ const PLAY: Record<string, (page: Page, ex: string) => Promise<void>> = {
   sounds: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); await p.click(`${ex} .spot >> nth=4`); },
   codeblue: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); },
   chest: async (p, ex) => { await p.click(`${ex} .test >> nth=0`); await p.click(`${ex} .opt >> nth=0`); },
-  hf: async (p, ex) => { await p.click(`${ex} .quad button >> nth=1`); await p.click(`${ex} .opt >> nth=1`); },
 };
+
+/** 個別の手順がない展示は、画面の部品から遊び方を見分けて1手だけ遊ぶ（新しいホールでも撮れるように） */
+async function genericPlay(p: Page, ex: string) {
+  const has = async (sel: string) => (await p.locator(`${ex} ${sel}`).count()) > 0;
+  const clickIf = async (sel: string) => { if (await has(sel)) { await p.locator(`${ex} ${sel}`).first().click(); return true; } return false; };
+  if (await has(".gridQ button")) { await clickIf(".gridQ button"); await clickIf(".opt"); return; }
+  if (await has(".tapChips button")) { await clickIf(".tapChips button"); await clickIf(".go"); await clickIf(".step2 .opt"); return; }
+  if (await has(".orderPool .opt")) { await clickIf(".orderPool .opt"); return; }
+  if (await has(".more")) { await clickIf(".more"); await clickIf(".opt"); return; }
+  if (await has(".test")) { await clickIf(".test"); await clickIf(".opt"); return; }
+  if (await has(".pick .btn")) { await clickIf(".pick .btn"); await p.waitForTimeout(200); await clickIf(".pick .btn"); return; }
+  if (await has(".labt")) { await clickIf(".labt"); await clickIf(".row .btn"); return; }
+  if (await has(".mc")) { await p.locator(`${ex} .mc`).nth(0).click(); await p.locator(`${ex} .mc`).nth(1).click(); return; }
+  if (await has(".go") && !(await has(".opt"))) { await clickIf(".go"); return; }
+  await clickIf(".opt");
+}
 
 async function shootPlayed(page: Page, dir: string, ids: string[]) {
   const style = await page.addStyleTag({ content: HIDE_TOPBAR + ".toast{display:none!important}" });
   for (const id of ids) {
-    const play = PLAY[id.replace(/^ex-/, "")];
-    if (!play) continue;
+    if (id === "ex-gacha" || id === "ex-review") continue;
+    const play = PLAY[id.replace(/^ex-/, "")] ?? genericPlay;
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await play(page, `#${id}`);
     await page.waitForTimeout(700);
@@ -161,7 +176,7 @@ for (const hall of halls) {
     const ids = await shootExhibits(page, dir);
     for (const id of ids) sheet.push({ hall, vp: vp.name, label: id, mine: relative(outRoot, resolve(dir, `${id}.png`)) });
     await shootPlayed(page, dir, ids);
-    for (const id of ids.filter((i) => PLAY[i.replace(/^ex-/, "")])) sheet.push({ hall, vp: vp.name, label: `play-${id}`, mine: relative(outRoot, resolve(dir, `play-${id}.png`)) });
+    for (const id of ids.filter((i) => i !== "ex-gacha" && i !== "ex-review")) sheet.push({ hall, vp: vp.name, label: `play-${id}`, mine: relative(outRoot, resolve(dir, `play-${id}.png`)) });
     await page.reload();
     await settle(page);
 

@@ -1,6 +1,6 @@
 // 早押し問診（急性腹症）。症例はすべて架空。
 // TODO(review) 各疾患の典型像として書いた。カードの順番（どこで決め手が出るか）がゲームの難しさを決めるので、遊んで調整する
-import type { ClueRaceData } from "../exhibits/clueRace.schema";
+import type { ClueRaceData } from "../../../engine/games/clueRace.schema";
 
 const M = { review: "draft" as const, sources: [] as string[] };
 const opts = (ans: string, ...others: string[]) => [ans, ...others];

@@ -1,8 +1,8 @@
 // 影絵当て：造影の模式図がぼかしから少しずつくっきりする。早く当てるほどコインが多い。まちがえると1段見えてしまう
 import "./reveal.css";
-import type { CustomModule } from "../../../engine/exhibits/types";
+import type { CustomModule } from "../exhibits/types";
 import type { RevealData } from "./reveal.schema";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { $, $$, esc, shuffle } from "../dom";
 
 const coinsAt = (level: number) => Math.max(4, 20 - level * 4);
 

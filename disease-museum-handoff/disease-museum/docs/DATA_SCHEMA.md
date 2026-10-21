@@ -308,7 +308,9 @@ interface GachaSpec {
 
 型に加えて次を確かめる：展示・ウィング・景品の id の重複、`stampOrder` と展示の過不足、館内図とガチャの行き先の wing が存在すること、型ごとの添字や id の参照（answer が選択肢の範囲内か、path のノードが存在し答えが選択肢にあるか、pattern の長さが markers と同じか、など）、`src/halls/registry.ts`（館の入口の一覧）と data.ts が一致すること。ガチャはコンプリートまでの回数をシミュレーションして表示する。
 
-## ホール専用のゲーム
+## 共通ゲームとホール専用のゲーム
+
+共通ゲームのデータの形は `src/engine/games/<kind>.schema.ts`（reveal, clueRace, depth, grid, order, tapMap, scenario）。ホール専用は下のとおり。
 
 `src/halls/<hall>/exhibits/<kind>.schema.ts` に zod で書く（`Meta` は `src/engine/schema.ts` から使う）。ブラウザ側のモジュールは schema から**型だけ**を import する。定数が要るときは `<kind>.consts.ts` に分ける（schema から値を import すると zod がバンドルに入る。`npm run build:single` が検出して失敗する）。
 

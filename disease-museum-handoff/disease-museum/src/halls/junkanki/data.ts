@@ -105,7 +105,7 @@ export const hall: Hall = {
         { id: "chest", no: 7, type: "DiagnosisLab", title: "胸痛ラボ", stampLabel: "胸痛",
           how: "胸が痛い患者が次々やってくる。予算内で検査を選んで、見逃してはいけない胸痛を診断しよう。4人正解でスタンプ。",
           data: chestLabContent },
-        { id: "hf", no: 8, type: "Custom", kind: "hfProfile", title: "心不全の4分類", stampLabel: "心不全",
+        { id: "hf", no: 8, type: "Custom", kind: "grid", title: "心不全の4分類", stampLabel: "心不全",
           how: "所見から、うっ血（wet/dry）と低灌流（cold/warm）を見きわめてマスをタップし、治療を選ぼう。両方正解を通算4人でスタンプ。",
           // TODO(review)
           cheatSheet: { ...D, sources: ["急性・慢性心不全診療ガイドライン"], title: "Nohria-Stevenson分類",

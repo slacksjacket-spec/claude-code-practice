@@ -1,6 +1,6 @@
 // 早押し問診のデータの形
 import { z } from "zod";
-import { Meta } from "../../../engine/schema";
+import { Meta } from "../schema";
 import { REGIONS } from "./clueRace.consts";
 export { REGIONS };
 

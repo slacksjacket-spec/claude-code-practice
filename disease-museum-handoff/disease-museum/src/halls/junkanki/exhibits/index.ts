@@ -6,6 +6,5 @@ import { twelve } from "./twelve";
 import { axisDarts } from "./axisDarts";
 import { heartSounds } from "./heartSounds";
 import { codeBlue } from "./codeBlue";
-import { hfProfile } from "./hfProfile";
 
-export const custom: CustomModules = { ecgDojo, calipers, twelve, axisDarts, heartSounds, codeBlue, hfProfile };
+export const custom: CustomModules = { ecgDojo, calipers, twelve, axisDarts, heartSounds, codeBlue };
