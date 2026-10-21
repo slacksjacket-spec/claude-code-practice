@@ -9,6 +9,7 @@ export interface HallEntry {
 }
 
 export const HALLS: HallEntry[] = [
+  { id: "jinzo", no: 5, title: "腎・泌尿器ホール", catch: "尿を見て、ネフロンをたどって、塩と水をあやつる。", stamps: 8 },
   { id: "kokyuki", no: 4, title: "呼吸器ホール", catch: "聴いて、測って、読み解いて、息を取り戻す。", stamps: 8 },
   { id: "junkanki", no: 1, title: "循環器ホール", catch: "波を読んで、音を聴いて、止まった心臓を動かす。", stamps: 8 },
   { id: "shokakan", no: 2, title: "消化管ホール", catch: "のぞいて、見つけて、切って、ときどき早押し。", stamps: 8 },

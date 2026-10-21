@@ -124,6 +124,10 @@ const PLAY: Record<string, (page: Page, ex: string) => Promise<void>> = {
 async function genericPlay(p: Page, ex: string) {
   const has = async (sel: string) => (await p.locator(`${ex} ${sel}`).count()) > 0;
   const clickIf = async (sel: string) => { if (await has(sel)) { await p.locator(`${ex} ${sel}`).first().click(); return true; } return false; };
+  if (await has('.scope .obj[data-t="1"]')) { // microscope：目標を全部タップ → 設問
+    for (const g of await p.locator(`${ex} .scope .obj[data-t="1"]`).all()) await g.dispatchEvent("click");
+    await clickIf(".step2 .opt"); return;
+  }
   if (await has(".gridQ button")) { await clickIf(".gridQ button"); await clickIf(".opt"); return; }
   if (await has(".tapChips button")) { await clickIf(".tapChips button"); await clickIf(".go"); await clickIf(".step2 .opt"); return; }
   if (await has(".orderPool .opt")) { await clickIf(".orderPool .opt"); return; }

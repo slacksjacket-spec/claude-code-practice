@@ -1,0 +1,8 @@
+/* 顕微鏡で探せ */
+.scope{display:block;width:min(340px,90vw);margin:8px auto 0;border-radius:50%;border:8px solid #1C1537;box-shadow:var(--shadow);touch-action:manipulation}
+.scope .obj{cursor:pointer}
+.scope .obj.found .hit{fill:var(--mint);fill-opacity:.35;stroke:var(--mint);stroke-width:2}
+.scope .obj.oops .hit{fill:var(--pink);fill-opacity:.35}
+.scope .obj.hint .hit{stroke:var(--sun);stroke-width:3;stroke-dasharray:3 2}
+.scopeBar{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:8px;font-weight:800}
+.scopeBar .cnt{font-family:"Dela Gothic One",sans-serif;font-size:18px}

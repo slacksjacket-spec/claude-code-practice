@@ -9,5 +9,6 @@ import { order } from "./order";
 import { tapMap } from "./tapMap";
 import { scenario } from "./scenario";
 import { abg } from "./abg";
+import { microscope } from "./microscope";
 
-export const SHARED_GAMES: CustomModules = { reveal, clueRace, depth, grid, order, tapMap, scenario, abg };
+export const SHARED_GAMES: CustomModules = { reveal, clueRace, depth, grid, order, tapMap, scenario, abg, microscope };

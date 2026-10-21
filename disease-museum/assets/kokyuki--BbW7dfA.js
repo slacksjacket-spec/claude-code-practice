@@ -1,4 +1,4 @@
-import{s as M,e as k,$ as q,a as S}from"./economy-CFKDFCG_.js";import{m as U}from"./hall-BgnNO4UG.js";const L={review:"draft",sources:[]},Z=`<rect width="300" height="300" fill="#1B1E26"/>
+import{s as M,e as k,$ as q,a as S}from"./economy-CFKDFCG_.js";import{m as U}from"./hall-Bcf5gC8c.js";const L={review:"draft",sources:[]},Z=`<rect width="300" height="300" fill="#1B1E26"/>
   <path d="M30 40 C40 20 260 20 270 40 L285 290 L15 290Z" fill="#3A3D47"/>
   <path d="M42 70 C44 46 136 40 140 60 L142 250 C110 262 60 262 38 252Z" fill="#11131A"/>
   <path d="M258 70 C256 46 164 40 160 60 L158 250 C190 262 240 262 262 252Z" fill="#11131A"/>

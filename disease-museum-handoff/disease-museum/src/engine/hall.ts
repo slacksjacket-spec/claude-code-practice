@@ -40,7 +40,7 @@ function topbarHTML(total: number) {
 }
 
 function entranceHTML(h: Hall) {
-  const parts = h.headingParts ?? [...h.title.replace(/ホール$/, "")];
+  const parts = h.headingParts ?? [...h.title.replace(/ホール$/, "").replace(/・/g, "")];
   return `<header class="entrance"><div class="wrap">
   <h1>${parts.map((p) => `<span>${esc(p)}</span>`).join("")}<br>ホール</h1>
   <p class="sub">${esc(h.catch)}</p>
