@@ -9,5 +9,7 @@ import { ScenarioData } from "./scenario.schema";
 import { AbgData } from "./abg.schema";
 import { MicroscopeData } from "./microscope.schema";
 import { AxisData } from "./axis.schema";
+import { VisualFieldData } from "./visualField.schema";
+import { GcsData } from "./gcs.schema";
 
-export const SHARED_SCHEMAS = { reveal: RevealData, clueRace: ClueRaceData, depth: DepthData, grid: GridData, order: OrderData, tapMap: TapMapData, scenario: ScenarioData, abg: AbgData, microscope: MicroscopeData, axis: AxisData };
+export const SHARED_SCHEMAS = { reveal: RevealData, clueRace: ClueRaceData, depth: DepthData, grid: GridData, order: OrderData, tapMap: TapMapData, scenario: ScenarioData, abg: AbgData, microscope: MicroscopeData, axis: AxisData, visualField: VisualFieldData, gcs: GcsData };

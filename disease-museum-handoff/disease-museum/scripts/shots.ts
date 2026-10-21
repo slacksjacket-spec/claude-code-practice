@@ -132,6 +132,11 @@ async function genericPlay(p: Page, ex: string) {
     for (const b of await p.locator(`${ex} .axisLv .dir:not([disabled])`).all()) await b.click();
     await clickIf(".go"); await clickIf(".step2 .opt"); return;
   }
+  if (await has(".vfPath .les")) { await p.locator(`${ex} .vfPath .les`).nth(2).dispatchEvent("click"); await clickIf(".step2 .opt"); return; }
+  if (await has(".gcsRow")) {
+    for (const k of ["E", "V", "M"]) await p.locator(`${ex} .gcsRow[data-k="${k}"] button`).nth(1).click();
+    await clickIf(".go"); await clickIf(".step2 .opt"); return;
+  }
   if (await has(".bags .bag")) { await p.locator(`${ex} .bag`).nth(0).click(); await p.locator(`${ex} .bag`).nth(3).click(); await clickIf(".go"); return; }
   if (await has(".ogttTypes .opt")) { await clickIf(".ogttTypes .opt"); await clickIf(".step2 .opt"); return; }
   if (await has(".gridQ button")) { await clickIf(".gridQ button"); await clickIf(".opt"); return; }
