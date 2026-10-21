@@ -10,5 +10,6 @@ import { tapMap } from "./tapMap";
 import { scenario } from "./scenario";
 import { abg } from "./abg";
 import { microscope } from "./microscope";
+import { axis } from "./axis";
 
-export const SHARED_GAMES: CustomModules = { reveal, clueRace, depth, grid, order, tapMap, scenario, abg, microscope };
+export const SHARED_GAMES: CustomModules = { reveal, clueRace, depth, grid, order, tapMap, scenario, abg, microscope, axis };
