@@ -10,7 +10,8 @@
     "check": "tsc --noEmit && tsx scripts/validate.ts",
     "shots": "tsx scripts/shots.ts",
     "publish:pages": "tsx scripts/publish-pages.ts",
-    "ecg:preview": "tsx scripts/ecg-preview.ts"
+    "ecg:preview": "tsx scripts/ecg-preview.ts",
+    "new:hall": "tsx scripts/new-hall.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
