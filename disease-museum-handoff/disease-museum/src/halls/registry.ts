@@ -9,6 +9,8 @@ export interface HallEntry {
 }
 
 export const HALLS: HallEntry[] = [
+  { id: "koshu", no: 20, title: "公衆衛生ホール", catch: "表とカットオフで、集団の健康を考える。", stamps: 8 },
+  { id: "masui", no: 19, title: "麻酔・輸液ホール", catch: "水と塩を計算し、気道を守り、波形で見張る。", stamps: 8 },
   { id: "kyukyu", no: 18, title: "救急・中毒ホール", catch: "見抜いて、色を付けて、命をつなぐ順番を守る。", stamps: 8 },
   { id: "undoki", no: 17, title: "運動器ホール", catch: "しびれの地図で神経を追い、骨の影を読む。", stamps: 8 },
   { id: "jibi", no: 16, title: "耳鼻咽喉ホール", catch: "聞こえを見える形にして、めまいの正体を探る。", stamps: 8 },
