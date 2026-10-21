@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>OSCEステーション</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#14161f">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@500;600&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap">
+<style>
+  /* 1画面アプリ。ステーションは「会話ログ｜操作パネル｜カルテ」（スマホでは縦積み＋カルテはシート）。
+     課題文は試験の掲示用紙、カルテは左端に OPQRST／かきくけこ の見出し文字を立てた記録用紙として描く。 */
+  :root {
+    --bg: #14161f;
+    --bg-glow: #23283f;
+    --panel: #1e2130;
+    --panel-2: #262a3d;
+    --line: #2f3350;
+    --text: #e9ebf5;
+    --dim: #9aa0b8;
+    --accent: #7c9dff;
+    --accent-ink: #10121b;
+    --accent-soft: rgba(124, 157, 255, 0.14);
+    --pink: #ff9ecf;
+    --good: #6fd598;
+    --warn: #ffd27c;
+    --bad: #ff8a8a;
+    --pos-soft: rgba(255, 138, 138, 0.12);
+    --paper: #f1ede3;
+    --paper-ink: #24242c;
+    --paper-line: #c9c2b1;
+    --font-body: "BIZ UDPGothic", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+    --font-display: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f3f4f9; --bg-glow: #e3e7f7; --panel: #ffffff; --panel-2: #eceef6; --line: #d6d9e6;
+      --text: #1b1e2b; --dim: #596079; --accent: #3a57d0; --accent-ink: #ffffff; --accent-soft: rgba(58, 87, 208, 0.10);
+      --pink: #b83c77; --good: #1b7c46; --warn: #8a5a00; --bad: #c23838; --pos-soft: rgba(194, 56, 56, 0.08);
+      --paper: #fbf8f1; --paper-ink: #24242c; --paper-line: #d5ccb8;
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f3f4f9; --bg-glow: #e3e7f7; --panel: #ffffff; --panel-2: #eceef6; --line: #d6d9e6;
+    --text: #1b1e2b; --dim: #596079; --accent: #3a57d0; --accent-ink: #ffffff; --accent-soft: rgba(58, 87, 208, 0.10);
+    --pink: #b83c77; --good: #1b7c46; --warn: #8a5a00; --bad: #c23838; --pos-soft: rgba(194, 56, 56, 0.08);
+    --paper: #fbf8f1; --paper-ink: #24242c; --paper-line: #d5ccb8;
+    color-scheme: light;
+  }
+  [hidden] { display: none !important; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 15% -10%, var(--bg-glow), var(--bg) 55%) fixed, var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-text-size-adjust: 100%;
+  }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 700; line-height: 1.35; text-wrap: balance; margin: 0; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .dim { color: var(--dim); }
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 18px 48px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+  .page > * { min-width: 0; }
+  .topnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 0.85rem; }
+  .topnav a, .linkbtn { color: var(--dim); text-decoration: none; background: none; border: 0; padding: 4px 0; }
+  .topnav a:hover, .linkbtn:hover { color: var(--accent); }
+  .eyebrow { font-size: 0.75rem; letter-spacing: 0.12em; color: var(--dim); text-transform: uppercase; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px;
+    padding: 10px 16px; font-weight: 700; min-height: 44px; text-decoration: none;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn.ghost { background: transparent; }
+  .btn.small { min-height: 34px; padding: 6px 12px; font-size: 0.85rem; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .section-title h2 { font-size: 1.1rem; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel);
+    border-radius: 999px; padding: 6px 12px; font-size: 0.85rem; min-height: 34px;
+  }
+  .chip[aria-pressed="true"], .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+  .tag {
+    display: inline-grid; place-items: center; min-width: 1.6em; height: 1.6em; padding: 0 4px; border-radius: 6px;
+    font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; background: var(--panel-2); color: var(--dim);
+  }
+
+  /* ---- ホーム ---- */
+  .hero { display: grid; gap: 14px; }
+  .hero h1 { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.7rem, 5vw, 2.5rem); letter-spacing: 0.01em; }
+  .hero p { margin: 0; color: var(--dim); max-width: 60ch; }
+  .hero .row .btn { flex: 1 1 220px; }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat b { display: block; font-family: var(--font-mono); font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 0.75rem; color: var(--dim); }
+  @media (max-width: 560px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .grid-sym { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .sym {
+    text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 9px 11px;
+    display: grid; gap: 2px; min-height: 58px;
+  }
+  .sym:hover { border-color: var(--accent); }
+  .sym .code { font-family: var(--font-mono); font-size: 0.68rem; color: var(--dim); }
+  .sym .nm { font-weight: 700; font-size: 0.9rem; line-height: 1.35; }
+  .sym .best { font-family: var(--font-mono); font-size: 0.72rem; color: var(--dim); }
+  .sym[data-rank="S"] { border-color: color-mix(in srgb, var(--good) 70%, var(--line)); }
+  .sym[data-rank="S"] .best, .sym[data-rank="A"] .best { color: var(--good); }
+  .sym[data-rank="B"] .best { color: var(--accent); }
+  .sym[data-rank="C"] .best, .sym[data-rank="D"] .best { color: var(--warn); }
+  .resume { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-color: var(--accent); }
+  .tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .tool { text-align: left; display: grid; gap: 4px; }
+  .tool b { font-size: 1rem; }
+  .tool span { font-size: 0.8rem; color: var(--dim); }
+  .hist { display: grid; gap: 6px; }
+  .hist-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; font-size: 0.85rem; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  .rank { font-family: var(--font-display); font-weight: 900; width: 2em; text-align: center; }
+  .rank.S, .rank.A { color: var(--good); } .rank.B { color: var(--accent); } .rank.C, .rank.D { color: var(--warn); }
+  .settings { display: grid; gap: 14px; }
+  .opt { display: grid; gap: 8px; }
+  .opt > span { font-size: 0.8rem; color: var(--dim); }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg .chip { min-height: 40px; }
+  footer.note { font-size: 0.75rem; color: var(--dim); border-top: 1px solid var(--line); padding-top: 14px; line-height: 1.8; }
+
+  /* ---- 課題文（掲示用紙）---- */
+  .door { display: grid; place-items: center; min-height: 70vh; }
+  .sheet {
+    width: min(560px, 100%); background: var(--paper); color: var(--paper-ink); border-radius: 4px;
+    padding: 26px 24px 22px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); display: grid; gap: 16px;
+    border-top: 6px solid var(--paper-ink);
+  }
+  .sheet .st-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-bottom: 1px solid var(--paper-line); padding-bottom: 10px; }
+  .sheet .st-head b { font-family: var(--font-mono); letter-spacing: 0.08em; }
+  .sheet h2 { font-size: 1.25rem; }
+  .sheet p { margin: 0; line-height: 1.9; }
+  .sheet dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 0.9rem; }
+  .sheet dt { color: #6d6757; }
+  .sheet dd { margin: 0; font-family: var(--font-mono); }
+  .sheet .btn.primary { background: var(--paper-ink); border-color: var(--paper-ink); color: var(--paper); }
+
+  /* ---- ステーション ---- */
+  .station {
+    position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; background: var(--bg);
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .st-bar {
+    display: grid; gap: 6px; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
+    border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  .st-bar .top { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+  .st-bar .who { min-width: 0; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .st-bar .who b { font-size: 0.95rem; }
+  .clock { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.15rem; font-weight: 600; white-space: nowrap; }
+  .clock small { font-size: 0.75rem; color: var(--dim); font-weight: 500; }
+  .clock.warn { color: var(--warn); } .clock.over { color: var(--bad); }
+  .bar { height: 4px; background: var(--panel-2); border-radius: 4px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.25s ease; }
+  .bar.warn i { background: var(--warn); } .bar.over i { background: var(--bad); }
+  .tabs { display: flex; gap: 4px; }
+  .tabs button { flex: 1; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 7px 8px; font-weight: 700; font-size: 0.85rem; min-height: 38px; }
+  .tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .tabs .chartbtn { flex: 0 0 auto; }
+  .st-main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .st-main > * { min-width: 0; }
+  .log {
+    overflow-y: auto; min-height: 0; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 14px max(16px, env(safe-area-inset-left, 0px));
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .msg { display: grid; gap: 3px; max-width: min(620px, 88%); }
+  .msg .who { font-size: 0.7rem; color: var(--dim); }
+  .msg .bubble { padding: 9px 13px; border-radius: 14px; line-height: 1.6; }
+  .msg.me { align-self: flex-end; justify-items: end; }
+  .msg.me .bubble { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-bottom-right-radius: 4px; }
+  .msg.pt .bubble { background: var(--panel); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .msg.pt .bubble.reveal { border-color: color-mix(in srgb, var(--pink) 55%, var(--line)); }
+  .finding { align-self: stretch; border: 1px dashed var(--line); border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; display: grid; gap: 2px; background: color-mix(in srgb, var(--panel) 70%, transparent); }
+  .finding .lbl { font-size: 0.75rem; color: var(--dim); }
+  .finding.pos { border-style: solid; border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); background: var(--pos-soft); }
+  .finding .vit { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .finding .vit .hi { color: var(--bad); font-weight: 600; }
+  .sys { align-self: center; font-size: 0.78rem; color: var(--dim); background: var(--panel-2); border-radius: 999px; padding: 4px 12px; text-align: center; }
+  .sys.alert { color: var(--warn); }
+  .panel {
+    border-top: 1px solid var(--line); background: var(--panel); max-height: 48vh; display: flex; flex-direction: column; min-height: 0;
+  }
+  .panel-head { padding: 10px max(16px, env(safe-area-inset-right, 0px)) 6px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 8px; }
+  .search { width: 100%; border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 9px 12px; min-height: 42px; }
+  .cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .cats::-webkit-scrollbar { display: none; }
+  .cats .chip { white-space: nowrap; flex: 0 0 auto; }
+  .panel-body { overflow-y: auto; min-height: 0; padding: 4px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); }
+  .qgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+  .qbtn {
+    text-align: left; border: 1px solid var(--line); background: var(--panel-2); border-radius: 9px; padding: 7px 9px;
+    font-size: 0.85rem; line-height: 1.35; display: flex; gap: 7px; align-items: flex-start; min-height: 42px;
+  }
+  .qbtn:hover { border-color: var(--accent); }
+  .qbtn.done { opacity: 0.5; }
+  .qbtn.done::after { content: "済"; margin-left: auto; font-size: 0.7rem; color: var(--dim); }
+  .qbtn .tag { flex: 0 0 auto; }
+  .subhead { font-size: 0.75rem; color: var(--dim); margin: 10px 0 6px; letter-spacing: 0.04em; }
+  .exam-wrap { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; align-items: start; }
+  .body-map svg { width: 100%; height: auto; display: block; }
+  .body-map .zone { fill: var(--panel-2); stroke: var(--line); stroke-width: 1.5; cursor: pointer; transition: fill 0.15s; }
+  .body-map .zone:hover { fill: var(--accent-soft); }
+  .body-map .zone.on { fill: var(--accent); fill-opacity: 0.55; stroke: var(--accent); }
+  @media (max-width: 420px) { .exam-wrap { grid-template-columns: 84px minmax(0, 1fr); } }
+  .manner { display: flex; gap: 6px; flex-wrap: wrap; }
+  .manner .chip.done { opacity: 0.55; }
+  .st-foot {
+    display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;
+    padding: 8px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+    border-top: 1px solid var(--line); background: var(--panel);
+  }
+  .st-foot .hint { margin-right: auto; }
+  .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 0.85rem; }
+  .chart-col { display: none; }
+  .sheet-wrap { position: fixed; inset: 0; z-index: 20; background: rgba(0, 0, 0, 0.45); display: flex; justify-content: flex-end; }
+  .chart-sheet {
+    width: min(440px, 100%); height: 100%; background: var(--paper); color: var(--paper-ink); overflow-y: auto;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) 16px;
+  }
+  .modal { background: var(--panel); color: var(--text); width: min(520px, 100%); margin: auto; border-radius: 14px; padding: 18px; display: grid; gap: 12px; max-height: 86vh; overflow-y: auto; }
+  .sheet-wrap.center { justify-content: center; align-items: center; padding: 16px; }
+
+  /* カルテ（記録用紙） */
+  .karte { display: grid; gap: 14px; font-size: 0.86rem; }
+  .karte h3 { font-size: 0.95rem; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--paper-ink); padding-bottom: 4px; }
+  .karte h4 { margin: 0 0 4px; font-size: 0.78rem; letter-spacing: 0.08em; color: #6d6757; }
+  .k-sec { display: grid; gap: 2px; }
+  .k-row { display: grid; grid-template-columns: 1.8em 7.2em minmax(0, 1fr); gap: 6px; align-items: baseline; padding: 3px 0; border-bottom: 1px dotted var(--paper-line); }
+  .k-row .l { font-family: var(--font-mono); font-weight: 600; color: #6d6757; text-align: center; }
+  .k-row .n { color: #4a4638; font-size: 0.78rem; }
+  .k-row .v.pos { font-weight: 700; color: #a3262f; }
+  .k-row .v.neg { color: #7b7565; }
+  .k-empty { color: #7b7565; font-size: 0.8rem; }
+
+  /* ---- 報告 ---- */
+  .report { display: grid; gap: 18px; }
+  .step { display: grid; gap: 10px; }
+  .step h2 { font-size: 1rem; display: flex; gap: 10px; align-items: baseline; }
+  .step h2 .num { font-family: var(--font-mono); color: var(--accent); }
+  .choices { display: flex; flex-wrap: wrap; gap: 6px; }
+  .choices .chip { min-height: 38px; }
+  .pairs { display: grid; gap: 8px; }
+  .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 8px; }
+  @media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+  select { width: 100%; min-height: 42px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 8px 10px; }
+  details.ref { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--panel); }
+  details.ref summary { cursor: pointer; font-weight: 700; }
+  .flow { display: grid; gap: 6px; margin-top: 10px; font-size: 0.86rem; }
+  .flow div { display: grid; grid-template-columns: 3.4em 6.5em minmax(0, 1fr); gap: 8px; }
+  .flow b { font-family: var(--font-mono); color: var(--accent); }
+
+  /* ---- 結果 ---- */
+  .score-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+  .big-rank { font-family: var(--font-display); font-weight: 900; font-size: 4.2rem; line-height: 1; width: 1.2em; text-align: center; }
+  .big-rank.S, .big-rank.A { color: var(--good); } .big-rank.B { color: var(--accent); } .big-rank.C, .big-rank.D { color: var(--warn); }
+  .score-head .pts { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 600; }
+  .verdict { margin: 4px 0 0; color: var(--dim); }
+  .answer { display: grid; gap: 4px; }
+  .answer .ok { color: var(--good); font-weight: 700; } .answer .ng { color: var(--bad); font-weight: 700; }
+  .parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .part h3 { font-size: 0.95rem; display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .part h3 .mono { color: var(--accent); }
+  .pi { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; font-size: 0.82rem; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .pi .m { height: 3px; grid-column: 1 / -1; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+  .pi .m i { display: block; height: 100%; background: var(--accent); }
+  .pi .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--dim); }
+  .checks { display: grid; gap: 4px; font-size: 0.86rem; }
+  .chk { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; align-items: baseline; }
+  .chk .mk { font-weight: 700; text-align: center; }
+  .chk .mk.y { color: var(--good); } .chk .mk.n { color: var(--bad); }
+  .chk .c { color: var(--dim); font-size: 0.8rem; }
+  .first { display: grid; gap: 8px; }
+  .first .fi { display: grid; gap: 4px; border-left: 3px solid var(--pink); padding-left: 10px; }
+  .first .fi b { font-size: 0.9rem; }
+  .first .br { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; font-size: 0.85rem; }
+  .first .br span:nth-child(odd) { color: var(--pink); }
+  .rf-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rfds { display: grid; gap: 6px; }
+  details.rfd { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; background: var(--panel-2); }
+  details.rfd summary { cursor: pointer; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; list-style: none; }
+  details.rfd summary::-webkit-details-marker { display: none; }
+  details.rfd summary b::before { content: "▸ "; color: var(--dim); }
+  details.rfd[open] summary b::before { content: "▾ "; }
+  details.rfd[open] summary { margin-bottom: 8px; }
+  .rf-list .chip { border-color: color-mix(in srgb, var(--bad) 55%, var(--line)); }
+  .present { display: grid; gap: 10px; }
+  .present .sec { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 10px; }
+  .present .sec .t { font-family: var(--font-mono); font-size: 0.75rem; color: var(--dim); }
+  .present .sec .t b { display: block; font-family: var(--font-body); font-size: 0.85rem; color: var(--text); }
+  .present .sec p { margin: 0; line-height: 1.85; }
+  .timer4 { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 600; }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+  table.cato { border-collapse: collapse; font-size: 0.75rem; min-width: 640px; }
+  table.cato th, table.cato td { border: 1px solid var(--line); padding: 5px 7px; text-align: left; vertical-align: top; }
+  table.cato thead th { background: var(--panel-2); position: sticky; top: 0; font-weight: 700; min-width: 7.5em; }
+  table.cato th.rowh { background: var(--panel-2); white-space: nowrap; position: sticky; left: 0; z-index: 1; }
+  table.cato tr.sec th { background: var(--accent-soft); text-align: left; }
+  table.cato .hl { background: var(--accent-soft); }
+  table.cato thead th.hl { background: var(--accent); color: var(--accent-ink); }
+  table.cato td.got { box-shadow: inset 0 0 0 2px var(--good); }
+  table.cato td.miss { box-shadow: inset 0 0 0 2px var(--bad); }
+  .unc { color: var(--warn); font-size: 0.68rem; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.75rem; color: var(--dim); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
+
+  /* ---- ノート・クイズ ---- */
+  .notes-head { display: grid; gap: 6px; }
+  .notes-head h1 { font-size: 1.5rem; }
+  .nlist { display: grid; gap: 4px; }
+  .nline { display: grid; grid-template-columns: 1.8em minmax(0, 1fr); gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+  .nline .arrow { color: var(--dim); }
+  .nline .dx { color: var(--accent); }
+  .quiz { display: grid; gap: 14px; }
+  .qcard { display: grid; gap: 12px; }
+  .qcard .q { font-size: 1.15rem; font-weight: 700; line-height: 1.6; }
+  .opts { display: grid; gap: 8px; }
+  .opts .btn { justify-content: flex-start; text-align: left; font-weight: 400; }
+  .opts .btn.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 14%, var(--panel-2)); }
+  .opts .btn.wrong { border-color: var(--bad); background: var(--pos-soft); }
+  .opts .btn.pick { border-color: var(--accent); background: var(--accent-soft); }
+  .explain { font-size: 0.88rem; color: var(--dim); }
+  .bls-steps { display: grid; gap: 8px; }
+  .bls-steps .btn { justify-content: flex-start; text-align: left; font-weight: 400; }
+  .bls-done { display: grid; gap: 10px; }
+  .bls-done ol { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; }
+  .bls-done li ul { margin: 4px 0 0; padding-left: 1.1em; color: var(--dim); font-size: 0.86rem; }
+
+  @media (min-width: 920px) {
+    .st-main { grid-template-columns: minmax(0, 1fr) minmax(360px, 430px); grid-template-rows: minmax(0, 1fr); }
+    .panel { border-top: 0; border-left: 1px solid var(--line); max-height: none; }
+    .panel .cats { flex-wrap: wrap; overflow: visible; }
+    .log { padding-left: 24px; padding-right: 24px; }
+  }
+  @media (min-width: 1240px) {
+    .st-main { grid-template-columns: minmax(0, 1fr) 420px 340px; }
+    .chart-col { display: block; overflow-y: auto; background: var(--paper); color: var(--paper-ink); padding: 16px; border-left: 1px solid var(--line); }
+    .tabs .chartbtn { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script src="data-cato.js"></script>
+<script src="data-notes.js"></script>
+<script src="data-sim.js"></script>
+<script src="data-say.js"></script>
+<script src="engine.js"></script>
+<script>
+'use strict';
+(function () {
+  const E = window.OSCE_ENGINE, SIM = window.OSCE_SIM, NOTES = window.OSCE_NOTES, CATO = window.OSCE_CATO;
+  const KEY = 'osce-sim-v1';
+  const EXAM_LIMIT = 720;
+  const app = document.getElementById('app');
+  // CATO表（data-cato.js）と暗記用ノート（data-notes.js）は公開リポジトリに置いていない。ないときは案内だけ出す
+  if (!CATO || !NOTES || !E) {
+    app.innerHTML = '<div class="page"><nav class="topnav"><a href="../medical.html">← 国試ツールキット</a></nav>' +
+      '<section class="card" style="display:grid;gap:10px"><h1 style="font-size:1.4rem">OSCEステーション</h1>' +
+      '<p style="margin:0">症例のもとになるCATO表と暗記用ノートのデータが見つかりません。これらは公開しないため、リポジトリには含めていません。</p>' +
+      '<p class="dim" style="margin:0;font-size:0.85rem">このフォルダに data-cato.js と data-notes.js を置くと動きます。</p></section></div>';
+    return;
+  }
+  const esc = s => String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const fmt = sec => { const s = Math.max(0, Math.round(sec)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const SYMS = E.symptomList();
+  const rnd = E.mulberry32(Date.now() % 2147483647);
+
+  // ---- 保存（この端末のブラウザだけに残る）----
+  function load() {
+    try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && typeof d === 'object') return d; } catch (e) {}
+    return {};
+  }
+  const store = Object.assign({ cfg: { mode: 'exam', input: 'list' }, history: [], best: {}, quiz: { n: 0, ok: 0 }, days: [], bls: null, current: null }, load());
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+  let view = 'home';
+  let G = null;           // 進行中のステーション
+  let notesSym = null, notesTab = 'anki';
+  let quiz = null;
+  let bls = null;
+
+  // ---- 画面切り替え ----
+  function go(v) {
+    view = v;
+    stopTimer4();
+    if (v !== 'station') document.body.style.overflow = '';
+    render();
+    if (v !== 'station') window.scrollTo(0, 0);
+  }
+  function render() {
+    ({ home: renderHome, setup: renderSetup, door: renderDoor, station: renderStation, report: renderReport,
+      result: renderResult, notes: renderNotes, quiz: renderQuiz, bls: renderBls })[view]();
+  }
+
+  // ---- ホーム ----
+  function stats() {
+    const h = store.history;
+    const avg = h.length ? Math.round(h.reduce((s, x) => s + x.total, 0) / h.length) : null;
+    // 連続日数（今日か昨日まで続いている日数）
+    const days = store.days.slice().sort();
+    let streak = 0;
+    const d = new Date();
+    if (days.indexOf(today()) < 0) d.setDate(d.getDate() - 1);
+    for (;;) {
+      const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      if (days.indexOf(k) < 0) break;
+      streak++; d.setDate(d.getDate() - 1);
+    }
+    const done = Object.keys(store.best).length;
+    return { plays: h.length, avg, streak, done };
+  }
+  const rankOf = t => t >= 90 ? 'S' : t >= 80 ? 'A' : t >= 70 ? 'B' : t >= 60 ? 'C' : 'D';
+  function symTiles(act) {
+    return SYMS.map(s => {
+      const b = store.best[s.name];
+      return '<button class="sym" data-act="' + act + '" data-sym="' + esc(s.name) + '"' + (b !== undefined ? ' data-rank="' + rankOf(b) + '"' : '') + '>' +
+        '<span class="code">' + esc(s.id) + '</span><span class="nm">' + esc(s.name) + '</span>' +
+        '<span class="best">' + (b !== undefined ? '最高 ' + b + '点・' + rankOf(b) : s.diseases.length + '疾患') + '</span></button>';
+    }).join('');
+  }
+  function renderHome() {
+    const st = stats();
+    const cur = store.current;
+    const modeText = store.cfg.mode === 'exam' ? '本番モード（面接・診察 12分、ヒントなし）' : '練習モード（時間制限なし、ヒントあり）';
+    app.innerHTML =
+      '<div class="page">' +
+      '<nav class="topnav"><a href="../medical.html">← 国試ツールキット</a><button class="linkbtn" data-act="go" data-v="setup">設定</button></nav>' +
+      '<section class="hero">' +
+      '<div class="eyebrow">臨床実習後OSCE ・ 症候別ステーション</div>' +
+      '<h1>OSCEステーション</h1>' +
+      '<p>課題文を読んで入室し、医療面接と身体診察で情報を集め、指導医に報告するまでを1ステーションとして練習します。症例はCATO表の「想定疾患」から作られ、患者さんは普段の言葉で答えます。</p>' +
+      '<div class="row"><button class="btn primary" data-act="random">ランダムな症例ではじめる</button><button class="btn" data-act="go" data-v="setup">症候を選んではじめる</button></div>' +
+      '<div class="dim" style="font-size:0.8rem">' + esc(modeText) + '</div>' +
+      '</section>' +
+      (cur ? '<section class="card resume"><div><div class="eyebrow">中断中のステーション</div><b>' + esc(cur.sym) + '</b> <span class="dim">（' + esc(cur.label || '') + '）</span></div>' +
+        '<div class="row"><button class="btn small ghost" data-act="discard">破棄</button><button class="btn small primary" data-act="resume">続きから</button></div></section>' : '') +
+      '<section class="stats">' +
+      '<div class="stat"><b>' + st.plays + '</b><span>ステーション</span></div>' +
+      '<div class="stat"><b>' + (st.avg === null ? '—' : st.avg) + '</b><span>平均点</span></div>' +
+      '<div class="stat"><b>' + st.done + '<small class="dim" style="font-size:0.8rem"> / ' + SYMS.length + '</small></b><span>挑戦した症候</span></div>' +
+      '<div class="stat"><b>' + st.streak + '</b><span>連続日数</span></div>' +
+      '</section>' +
+      '<section><div class="section-title"><h2>症候から選ぶ</h2><span class="dim" style="font-size:0.8rem">タップするとその症候の症例がランダムに出ます</span></div>' +
+      '<div class="grid-sym">' + symTiles('startSym') + '</div></section>' +
+      '<section class="tools">' +
+      '<button class="card tool" data-act="go" data-v="notes"><b>症候別ノート</b><span>暗記用の「→」と First・Red Flag、CATO表を見返す</span></button>' +
+      '<button class="card tool" data-act="go" data-v="quiz"><b>クイズ</b><span>所見→疾患、Red Flag、Firstの分岐を4択で</span></button>' +
+      '<button class="card tool" data-act="go" data-v="bls"><b>BLS 並べ替え</b><span>心停止の対応を正しい順に並べる（JRC 2020）</span></button>' +
+      '</section>' +
+      (store.history.length ? '<section><div class="section-title"><h2>最近のステーション</h2></div><div class="hist">' +
+        store.history.slice(-8).reverse().map(x => '<div class="hist-row"><span class="rank ' + x.rank + '">' + x.rank + '</span><span>' + esc(x.sym) + '<span class="dim"> ／ ' + esc(x.dis) + '</span></span><span class="mono">' + x.total + '点</span></div>').join('') +
+        '</div></section>' : '') +
+      '<footer class="note">症候・想定疾患・医療面接と身体診察のポイントは、CATO 学生配付資料（医療系大学間共用試験実施評価機構 2024, p.90〜130）をもとにした自作ノートから作っています。患者のセリフや所見の数値は練習用に作ったもので、実際の試験の評価基準ではありません。成績はこの端末のブラウザにだけ保存されます。</footer>' +
+      '</div>';
+  }
+
+  // ---- 設定・症候の選択 ----
+  function renderSetup() {
+    const c = store.cfg;
+    const seg = (key, val, label) => '<button class="chip" data-act="cfg" data-k="' + key + '" data-val="' + val + '" aria-pressed="' + (c[key] === val) + '">' + label + '</button>';
+    app.innerHTML =
+      '<div class="page">' +
+      '<nav class="topnav"><button class="linkbtn" data-act="go" data-v="home">← ホーム</button></nav>' +
+      '<section class="card settings">' +
+      '<h2>ステーションの設定</h2>' +
+      '<div class="opt"><span>モード</span><div class="seg">' + seg('mode', 'exam', '本番：面接・診察 12分、ヒントなし') + seg('mode', 'practice', '練習：時間制限なし、First のヒントあり') + '</div></div>' +
+      '<div class="opt"><span>質問の選び方</span><div class="seg">' + seg('input', 'list', '一覧から選ぶ') + seg('input', 'search', 'キーワードで探す（思い出す練習）') + '</div></div>' +
+      '<p class="dim" style="margin:0;font-size:0.8rem">質問・診察はそれぞれ時間を消費します（質問 15秒、バイタル 60秒など）。本番モードでは12分を使い切ると、自動で報告に移ります。</p>' +
+      '</section>' +
+      '<section><div class="section-title"><h2>症候を選ぶ</h2><button class="btn small" data-act="random">ランダム</button></div>' +
+      '<div class="grid-sym">' + symTiles('startSym') + '</div></section>' +
+      '</div>';
+  }
+
+  // ---- ステーションの開始 ----
+  function newGame(sym, dis, seed) {
+    if (!sym) sym = SYMS[Math.floor(rnd() * SYMS.length)].name;
+    const S = SYMS.find(s => s.name === sym);
+    if (!dis) {
+      // 最近やった疾患は、なるべく続けて出さない
+      const recent = store.history.slice(-12).filter(x => x.sym === sym).map(x => x.dis);
+      const fresh = S.diseases.filter(d => recent.indexOf(d) < 0);
+      const pool = fresh.length ? fresh : S.diseases;
+      dis = pool[Math.floor(rnd() * pool.length)];
+    }
+    const c = E.buildCase(sym, dis, seed);
+    const limit = store.cfg.mode === 'exam' ? EXAM_LIMIT : 0;
+    G = { c, st: E.newState(c, { limit }), log: [], tab: 'interview', qcat: 'hpi', ros: SIM.rosGroups[0], region: 'general', search: '',
+      mode: store.cfg.mode, input: store.cfg.input, rep: { dx: null, ev: [], dd: [{}, {}], rf: {} }, warned: false, timeUp: false, confirmEnd: false, chartOpen: false, res: null };
+    go('door');
+  }
+  function persist() {
+    if (!G || G.res) { store.current = null; save(); return; }
+    store.current = { sym: G.c.sym, dis: G.c.dis, seed: G.c.seed, st: G.st, log: G.log, tab: G.tab, mode: G.mode, input: G.input, rep: G.rep,
+      warned: G.warned, timeUp: G.timeUp, phase: view === 'report' ? 'report' : 'station', label: G.c.p.ageLabel + '・' + G.c.p.sexLabel + '・経過 ' + fmt(G.st.t) };
+    save();
+  }
+  function resume() {
+    const cur = store.current;
+    if (!cur) return;
+    try {
+      const c = E.buildCase(cur.sym, cur.dis, cur.seed);
+      G = { c, st: cur.st, log: cur.log || [], tab: cur.tab || 'interview', qcat: 'hpi', ros: SIM.rosGroups[0], region: 'general', search: '',
+        mode: cur.mode, input: cur.input, rep: cur.rep || { dx: null, ev: [], dd: [{}, {}], rf: {} }, warned: !!cur.warned, timeUp: !!cur.timeUp, confirmEnd: false, chartOpen: false, res: null };
+      go(cur.phase === 'report' ? 'report' : 'station');
+    } catch (e) {
+      store.current = null; save(); go('home');
+    }
+  }
+
+  function speaker() {
+    const p = G.c.p;
+    if (p.informant === 'parent') return '母親（' + p.first + (p.sex === 'M' ? 'くん' : 'ちゃん') + 'に代わって）';
+    if (p.informant === 'family') return p.relation + '（付き添い）';
+    if (p.informant === 'both') return p.last + 'さん・付き添いの' + p.relation;
+    return p.last + 'さん';
+  }
+
+  // ---- 課題文 ----
+  function renderDoor() {
+    const c = G.c, p = c.p;
+    const who = p.informant === 'parent' ? p.ageLabel + 'の' + p.sexLabel + '（' + p.name + '）。' + p.relation + 'に連れられて来院した。'
+      : p.ageLabel + 'の' + p.sexLabel + '（' + p.name + 'さん）。' + (p.informant === 'family' || p.informant === 'both' ? p.relation + 'が付き添っている。' : '');
+    app.innerHTML =
+      '<div class="page door"><div class="sheet" role="dialog" aria-labelledby="door-title">' +
+      '<div class="st-head"><b>STATION ' + esc(c.sm.cc ? SYMS.find(s => s.name === c.sym).id : '') + '</b><span>臨床実習後OSCE</span></div>' +
+      '<h2 id="door-title">課題</h2>' +
+      '<p>' + esc(who) + '「' + esc(c.sm.cc) + '」を主訴に来院した。<br>医療面接と必要な身体診察を行い、その後、指導医に報告しなさい。</p>' +
+      '<dl><dt>面接・診察</dt><dd>' + (G.mode === 'exam' ? '12:00' : '制限なし（目安 12:00）') + '</dd>' +
+      '<dt>報告</dt><dd>4:00（最も考えられる疾患・根拠・鑑別・Red Flag）</dd>' +
+      '<dt>質問の選び方</dt><dd>' + (G.input === 'search' ? 'キーワードで探す' : '一覧から選ぶ') + '</dd></dl>' +
+      '<div class="row" style="justify-content:space-between"><button class="btn ghost small" style="color:inherit;border-color:var(--paper-line)" data-act="go" data-v="home">やめる</button>' +
+      '<button class="btn primary" data-act="enter">ノックして入室する</button></div>' +
+      '</div></div>';
+  }
+
+  // ---- ステーション ----
+  function remaining() { return G.st.limit ? G.st.limit - G.st.t : null; }
+  function clockHtml() {
+    const rem = remaining();
+    if (rem === null) return '<span class="clock">' + fmt(G.st.t) + ' <small>経過（目安 12:00）</small></span>';
+    const cls = rem <= 0 ? ' over' : rem <= 180 ? ' warn' : '';
+    return '<span class="clock' + cls + '">' + fmt(rem) + ' <small>残り</small></span>';
+  }
+  function barHtml() {
+    const lim = G.st.limit || EXAM_LIMIT;
+    const pct = Math.min(100, G.st.t / lim * 100);
+    const rem = lim - G.st.t;
+    return '<div class="bar' + (rem <= 0 ? ' over' : rem <= 180 ? ' warn' : '') + '"><i style="width:' + pct.toFixed(1) + '%"></i></div>';
+  }
+  function renderStation() {
+    document.body.style.overflow = 'hidden';
+    const c = G.c, p = c.p;
+    app.innerHTML =
+      '<div class="station">' +
+      '<header class="st-bar">' +
+      '<div class="top"><div class="who"><b>' + esc(c.sm.cc) + '</b> <span class="dim">' + esc(p.ageLabel + '・' + p.sexLabel + '・' + p.name) + '</span></div>' +
+      '<div id="clock">' + clockHtml() + '</div></div>' +
+      '<div id="bar">' + barHtml() + '</div>' +
+      '<div class="tabs" role="tablist">' +
+      '<button role="tab" data-act="tab" data-t="interview" aria-selected="' + (G.tab === 'interview') + '">医療面接</button>' +
+      '<button role="tab" data-act="tab" data-t="exam" aria-selected="' + (G.tab === 'exam') + '">身体診察</button>' +
+      '<button class="chartbtn" data-act="chart">カルテ</button>' +
+      '</div></header>' +
+      '<div class="st-main">' +
+      '<div class="log" id="log" aria-live="polite"></div>' +
+      '<section class="panel" id="panel"></section>' +
+      '<aside class="chart-col" id="chartcol"></aside>' +
+      '</div>' +
+      '<footer class="st-foot" id="foot"></footer>' +
+      (G.chartOpen ? '<div class="sheet-wrap" data-act="chartclose"><div class="chart-sheet" data-stop="1">' + karteHtml(true) + '</div></div>' : '') +
+      '</div>';
+    const log = document.getElementById('log');
+    log.innerHTML = G.log.map(logItemHtml).join('') || '<div class="sys">ノックして入室しました。まずはあいさつと本人確認から。</div>';
+    log.scrollTop = log.scrollHeight;
+    renderPanel();
+    renderFoot();
+    const col = document.getElementById('chartcol');
+    if (col) col.innerHTML = karteHtml(false);
+  }
+  function refreshStation(newItems) {
+    const log = document.getElementById('log');
+    if (!log) return renderStation();
+    if (G.log.length === newItems.length) log.innerHTML = '';
+    newItems.forEach(it => log.insertAdjacentHTML('beforeend', logItemHtml(it)));
+    log.scrollTop = log.scrollHeight;
+    document.getElementById('clock').innerHTML = clockHtml();
+    document.getElementById('bar').innerHTML = barHtml();
+    if (G.tab === 'interview' && document.getElementById('pbody')) renderQBody(); else renderPanel();
+    renderFoot();
+    const col = document.getElementById('chartcol');
+    if (col) col.innerHTML = karteHtml(false);
+  }
+  function logItemHtml(it) {
+    if (it.k === 'q') {
+      return '<div class="msg me"><span class="who">あなた</span><div class="bubble">' + esc(it.q) + '</div></div>' +
+        '<div class="msg pt"><span class="who">' + esc(it.who) + '</span><div class="bubble' + (it.reveal ? ' reveal' : '') + '">' + esc(it.a) + '</div></div>';
+    }
+    if (it.k === 'say') {
+      return '<div class="msg me"><span class="who">あなた</span><div class="bubble">' + esc(it.q) + '</div></div>' +
+        (it.a ? '<div class="msg pt"><span class="who">' + esc(it.who) + '</span><div class="bubble">' + esc(it.a) + '</div></div>' : '');
+    }
+    if (it.k === 'e') {
+      let body;
+      if (it.eid === 'vitals') {
+        const v = G.c.vitals, f = E.vitalsFlags(G.c, v);
+        const cell = (hi, txt) => '<span class="' + (hi ? 'hi' : '') + '">' + txt + '</span>';
+        body = '<div class="vit">' + cell(f.bp, '血圧 ' + v.sbp + '/' + v.dbp + ' mmHg') + cell(f.hr, '脈拍 ' + v.hr + '/分・' + (v.irregular ? '不整' : '整')) +
+          cell(f.rr, '呼吸数 ' + v.rr + '/分') + cell(f.bt, '体温 ' + v.bt.toFixed(1) + '℃') + cell(f.spo2, 'SpO2 ' + v.spo2 + '%（室内気）') + '</div>' +
+          (v.notes.length ? '<div>' + esc(v.notes.join('、')) + '</div>' : '');
+      } else body = '<div>' + esc(it.text) + '</div>';
+      return '<div class="finding' + (it.pos ? ' pos' : '') + '"><span class="lbl">' + esc(it.label) + (it.sens ? '（模擬患者には行わず、所見を口頭で受け取った）' : '') + '</span>' + body + '</div>';
+    }
+    return '<div class="sys' + (it.alert ? ' alert' : '') + '">' + esc(it.text) + '</div>';
+  }
+
+  // 質問パネル
+  function qButtons(list) {
+    const asked = G.st.asked;
+    return '<div class="qgrid">' + list.map(q => '<button class="qbtn' + (asked.indexOf(q.id) >= 0 ? ' done' : '') + '" data-act="ask" data-q="' + q.id + '"' +
+      (G.timeUp ? ' disabled' : '') + ' title="' + esc(q.q) + '">' + (q.tag ? '<span class="tag">' + esc(q.tag) + '</span>' : '') + '<span>' + esc(q.l) + '</span></button>').join('') + '</div>';
+  }
+  // カタカナはひらがなにそろえて比べる（「タバコ」でも「たばこ」でも当たるように）
+  const kana = s => s.toLowerCase().replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+  function searchHits(list, term) {
+    const t = kana(term.trim());
+    if (!t) return [];
+    return list.filter(q => kana(q.l + ' ' + q.q + ' ' + (q.kw || []).join(' ') + ' ' + (SIM.yomi[q.id] || '')).indexOf(t) >= 0);
+  }
+  // 入力欄は作り直さない（日本語入力の変換中に要素を差し替えると、変換が途切れるため）。
+  // キーワードが変わったときは一覧の部分だけを描き直す
+  function renderQBody() {
+    const pb = document.getElementById('pbody');
+    if (!pb) return;
+    const list = E.questionList(G.c);
+    const term = G.search;
+    let body;
+    if (G.input === 'search' || term) {
+      const hits = searchHits(list, term);
+      body = term ? (hits.length ? qButtons(hits) : '<p class="dim" style="font-size:0.85rem">「' + esc(term) + '」に合う質問がありません。別の言い方で探してみてください。</p>')
+        : '<p class="dim" style="font-size:0.85rem">聞きたいことをキーワードで入力します（例：いつから、タバコ、生理、薬、心配）。一覧は出ないので、何を聞くべきかを思い出す練習になります。</p>';
+    } else if (G.qcat === 'ros') {
+      const sub = SIM.rosGroups.map(g => '<button class="chip" data-act="ros" data-g="' + esc(g) + '" aria-pressed="' + (G.ros === g) + '">' + esc(g) + '</button>').join('');
+      body = '<div class="cats" style="margin:4px 0 8px">' + sub + '</div>' + qButtons(list.filter(q => q.g === 'ros' && q.sg === G.ros));
+    } else {
+      body = qButtons(list.filter(q => q.g === G.qcat));
+    }
+    pb.innerHTML = body;
+  }
+  function renderPanel() {
+    const panel = document.getElementById('panel');
+    if (!panel) return;
+    if (G.tab === 'interview') {
+      const cats = SIM.qGroups.map(g => '<button class="chip" data-act="qcat" data-c="' + g.id + '" aria-pressed="' + (G.qcat === g.id) + '">' + esc(g.label) + '</button>').join('');
+      panel.innerHTML =
+        '<div class="panel-head"><input id="qsearch" class="search" type="search" enterkeyhint="send" placeholder="' + (G.input === 'search' ? 'キーワードで質問を探す' : '質問を探す（一覧から選んでもOK）') + '" value="' + esc(G.search) + '" autocomplete="off" aria-label="質問を探す">' +
+        (G.input === 'search' ? '' : '<div class="cats">' + cats + '</div>') + '</div>' +
+        '<div class="panel-body" id="pbody"></div>';
+      const inp = document.getElementById('qsearch');
+      inp.addEventListener('input', () => { G.search = inp.value; renderQBody(); });
+      renderQBody();
+    } else {
+      const ex = E.examList();
+      const regions = SIM.regions.filter(r => r.id !== 'manner');
+      const chips = regions.map(r => '<button class="chip" data-act="region" data-r="' + r.id + '" aria-pressed="' + (G.region === r.id) + '">' + esc(r.label) + '</button>').join('');
+      const done = id => G.st.examined.indexOf(id) >= 0;
+      const manner = ex.filter(e => e.r === 'manner').map(e => '<button class="chip' + (done(e.id) ? ' done' : '') + '" data-act="exam" data-e="' + e.id + '"' + (G.timeUp ? ' disabled' : '') + '>' + esc(e.l) + (done(e.id) ? ' ✓' : '') + '</button>').join('');
+      const items = ex.filter(e => e.r === G.region);
+      panel.innerHTML =
+        '<div class="panel-head"><div class="manner">' + manner + '</div><div class="cats">' + chips + '</div></div>' +
+        '<div class="panel-body"><div class="exam-wrap"><div class="body-map">' + bodySvg() + '</div>' +
+        '<div class="qgrid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">' + items.map(e => '<button class="qbtn' + (done(e.id) ? ' done' : '') + '" data-act="exam" data-e="' + e.id + '"' + (G.timeUp ? ' disabled' : '') + '><span>' + esc(e.l) + '</span></button>').join('') + '</div></div></div>';
+    }
+  }
+  function bodySvg() {
+    const on = r => 'zone' + (G.region === r ? ' on' : '');
+    return '<svg viewBox="0 0 100 220" role="img" aria-label="診察する部位を選ぶ">' +
+      '<g data-act="region" data-r="head"><title>頭部・顔面</title><circle class="' + on('head') + '" cx="50" cy="20" r="15"/></g>' +
+      '<g data-act="region" data-r="neck"><title>頸部</title><rect class="' + on('neck') + '" x="43" y="35" width="14" height="10" rx="3"/></g>' +
+      '<g data-act="region" data-r="chest"><title>胸部</title><path class="' + on('chest') + '" d="M26 48 Q50 42 74 48 L72 92 L28 92 Z"/></g>' +
+      '<g data-act="region" data-r="abd"><title>腹部・背部</title><path class="' + on('abd') + '" d="M28 94 L72 94 L74 128 Q50 136 26 128 Z"/></g>' +
+      '<g data-act="region" data-r="limb"><title>四肢</title>' +
+      '<path class="' + on('limb') + '" d="M24 50 L14 104 L20 106 L30 62 Z"/><path class="' + on('limb') + '" d="M76 50 L86 104 L80 106 L70 62 Z"/>' +
+      '<path class="' + on('limb') + '" d="M30 132 L48 136 L46 210 L36 210 Z"/><path class="' + on('limb') + '" d="M70 132 L52 136 L54 210 L64 210 Z"/></g>' +
+      '</svg>';
+  }
+  function renderFoot() {
+    const foot = document.getElementById('foot');
+    if (!foot) return;
+    if (G.confirmEnd) {
+      foot.innerHTML = '<div class="confirm"><span>面接・診察を終えて、指導医への報告に進みますか？</span><button class="btn small ghost" data-act="endno">続ける</button><button class="btn small primary" data-act="report">報告へ進む</button></div>';
+      return;
+    }
+    const hint = G.mode === 'practice' ? '<button class="btn small ghost hint" data-act="hint" title="First（最初にやること）を見る。30秒かかります">ヒント（+30秒）</button>' : '<span class="hint"></span>';
+    foot.innerHTML = hint + '<button class="btn small ghost" data-act="pause" title="中断してホームへ（続きから再開できます）">中断</button>' +
+      (G.timeUp ? '<button class="btn small primary" data-act="report">報告へ進む</button>' : '<button class="btn small primary" data-act="endask">報告へ</button>');
+  }
+
+  // カルテ（記録用紙）
+  function karteHtml(withClose) {
+    const ents = E.chartEntries(G.c, G.st);
+    const row = e => '<div class="k-row"><span class="l">' + esc(e.tag || '') + '</span><span class="n">' + esc(e.label.replace(/（.*）/, '')) + '</span><span class="v ' + (e.pos ? 'pos' : 'neg') + '">' + esc(e.pos ? e.text : (e.text === 'なし' ? '（−）' : e.text)) + '</span></div>';
+    const hpi = ents.filter(e => e.group === 'hpi');
+    const ros = ents.filter(e => e.group === 'ros').map(e => Object.assign({}, e, { tag: 'S' }));
+    const bg = ents.filter(e => e.group === 'bg' || e.id === 'ice');
+    const ex = ents.filter(e => e.group === 'exam');
+    const sec = (title, list, empty) => '<div class="k-sec"><h4>' + title + '</h4>' + (list.length ? list.map(row).join('') : '<div class="k-empty">' + empty + '</div>') + '</div>';
+    return '<div class="karte"><h3><span>カルテ</span>' + (withClose ? '<button class="btn small ghost" style="color:inherit;border-color:var(--paper-line);min-height:30px" data-act="chartclose">閉じる</button>' : '<span class="mono" style="font-size:0.75rem">' + esc(G.c.p.name) + '</span>') + '</h3>' +
+      sec('現病歴（OPQRST）', hpi.concat(ros), 'まだ聞いていません') +
+      sec('背景（かきくけこさしすせそたち）', bg, 'まだ聞いていません') +
+      sec('身体所見', ex.map(e => Object.assign({}, e, { tag: '', text: e.text })), 'まだ診察していません') +
+      '</div>';
+  }
+
+  function checkTime() {
+    const items = [];
+    const rem = remaining();
+    if (rem !== null && rem <= 180 && rem > 0 && !G.warned) { G.warned = true; items.push({ k: 'sys', text: '残り3分です。', alert: true }); }
+    if (rem !== null && rem <= 0 && !G.timeUp) { G.timeUp = true; items.push({ k: 'sys', text: '時間です。面接・診察を終了し、指導医への報告に移ってください。', alert: true }); }
+    return items;
+  }
+  function doAsk(qid) {
+    if (G.timeUp) return;
+    const r = E.ask(G.c, G.st, qid);
+    const keyHit = r.newly.some(id => G.c.keyQ.indexOf(id) >= 0 || (G.c.q[id] || []).some(i => i.src !== 'cc' && !i.neg));
+    const item = { k: 'q', qid, q: r.q, a: r.a, who: speaker(), reveal: keyHit && G.mode === 'practice' };
+    G.log.push(item);
+    const more = checkTime();
+    more.forEach(x => G.log.push(x));
+    refreshStation([item].concat(more));
+    persist();
+  }
+  function doExam(eid) {
+    if (G.timeUp) return;
+    const E0 = SIM.E[eid];
+    const r = E.examine(G.c, G.st, eid);
+    let item;
+    if (eid === 'hygiene') item = { k: 'sys', text: '手指消毒をしました。' };
+    else if (r.say) item = { k: 'say', q: r.say, a: r.a, who: speaker() };
+    else item = { k: 'e', eid, label: E0.l, text: r.text, pos: r.pos, sens: r.sens };
+    G.log.push(item);
+    const more = checkTime();
+    more.forEach(x => G.log.push(x));
+    refreshStation([item].concat(more));
+    persist();
+  }
+  function showHint() {
+    const N = NOTES.symptoms[G.c.sym];
+    G.st.t += 30;
+    G.st.hints = (G.st.hints || 0) + 1;
+    const html = N.first.map(f => '<div class="fi"><b>' + esc(f.ask) + ' →</b><div class="br">' + f.br.map(b => '<span>' + esc(b[0] || '') + '</span><span>' + esc(b[1]) + '</span>').join('') + '</div></div>').join('');
+    const item = { k: 'sys', text: 'ヒントを見ました（+30秒）' };
+    G.log.push(item);
+    checkTime().forEach(x => G.log.push(x));
+    refreshStation([item]);
+    persist();
+    openModal('<h2>First：' + esc(G.c.sym) + 'で最初にやること</h2><div class="first">' + html + '</div><button class="btn primary" data-act="modalclose">閉じる</button>');
+  }
+  function openModal(inner) {
+    closeModal();
+    const w = document.createElement('div');
+    w.className = 'sheet-wrap center';
+    w.id = 'modal';
+    w.dataset.act = 'modalclose';
+    w.innerHTML = '<div class="modal" data-stop="1" role="dialog">' + inner + '</div>';
+    document.body.appendChild(w);
+  }
+  function closeModal() { const m = document.getElementById('modal'); if (m) m.remove(); }
+
+  // ---- 報告 ----
+  function renderReport() {
+    const c = G.c, rep = G.rep;
+    const ents = E.chartEntries(c, G.st);
+    const evOpts = ents.filter(e => e.pos && e.src !== 'cc');
+    const optLabel = e => e.label.replace(/（.*）/, '') + '：' + e.text;
+    const dxChips = SYMS.find(s => s.name === c.sym).diseases.map(d => '<button class="chip" data-act="dx" data-d="' + esc(d) + '" aria-pressed="' + (rep.dx === d) + '">' + esc(d) + '</button>').join('');
+    const evChips = evOpts.length ? evOpts.map(e => '<button class="chip" data-act="ev" data-ref="' + e.ref + '" aria-pressed="' + (rep.ev.indexOf(e.ref) >= 0) + '">' + esc(optLabel(e)) + '</button>').join('')
+      : '<p class="dim" style="margin:0;font-size:0.85rem">カルテに陽性所見がありません。根拠は空欄のまま報告できます。</p>';
+    const diseases = SYMS.find(s => s.name === c.sym).diseases;
+    const reasonSel = (name, cur) => '<select data-act-change="' + name + '" aria-label="考えにくい根拠"><option value="">考えにくい根拠（カルテから選ぶ）</option>' +
+      ents.map(e => '<option value="' + e.ref + '"' + (cur === e.ref ? ' selected' : '') + '>' + esc(optLabel(e)) + '</option>').join('') + '</select>';
+    const ddRows = [0, 1].map(i => {
+      const d = rep.dd[i] || {};
+      return '<div class="pair"><select data-act-change="dd' + i + 'd" aria-label="鑑別疾患' + (i + 1) + '"><option value="">鑑別疾患 ' + (i + 1) + '</option>' +
+        diseases.filter(x => x !== rep.dx).map(x => '<option' + (d.d === x ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select>' +
+        reasonSel('dd' + i + 'r', d.ref) + '</div>';
+    }).join('');
+    const rfs = c.rf.filter(x => x.cato);
+    const rfRow = '<div class="pair"><select data-act-change="rfd" aria-label="Red Flag"><option value="">見逃してはいけない疾患</option>' +
+      rfs.map(x => '<option value="' + esc(x.cato) + '"' + (rep.rf.d === x.cato ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>' + reasonSel('rfr', rep.rf.ref) + '</div>';
+    const P = NOTES.present;
+    app.innerHTML =
+      '<div class="page report">' +
+      '<nav class="topnav">' + (G.timeUp ? '<span></span>' : '<button class="linkbtn" data-act="backstation">← 面接・診察に戻る</button>') + '<button class="linkbtn" data-act="pause">中断してホームへ</button></nav>' +
+      '<header><div class="eyebrow">指導医への報告（4分）</div><h1 style="font-size:1.5rem">アセスメントを組み立てる</h1>' +
+      '<div class="dim" style="font-size:0.85rem;margin-top:4px">' + esc(c.sm.cc) + ' ／ ' + esc(c.p.ageLabel + '・' + c.p.sexLabel) + ' ／ 面接・診察 ' + fmt(G.st.t) + '</div></header>' +
+      '<section class="step card"><h2><span class="num">1</span>最も考えられる疾患</h2><div class="choices">' + dxChips + '</div></section>' +
+      '<section class="step card"><h2><span class="num">2</span>根拠を2つ <span class="dim" style="font-size:0.8rem;font-weight:400">カルテの陽性所見から</span></h2><div class="choices">' + evChips + '</div></section>' +
+      '<section class="step card"><h2><span class="num">3</span>鑑別を2つと、考えにくい根拠</h2><p class="dim" style="margin:0;font-size:0.82rem">その疾患なら見られるはずの所見が「なかった」ことを根拠にします。</p><div class="pairs">' + ddRows + '</div></section>' +
+      '<section class="step card"><h2><span class="num">4</span>Red Flag に触れる</h2><div class="pairs">' + rfRow + '</div></section>' +
+      '<details class="ref"><summary>4分プレゼンの型（暗記用ノート）</summary><div class="flow">' + P.flow.map(f => '<div><b>' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span><span class="dim">' + esc(f[2]) + '</span></div>').join('') + '</div>' +
+      '<div class="flow" style="margin-top:12px">' + P.assessment.map(a => '<div style="grid-template-columns:1fr"><span class="dim">' + esc(a) + '</span></div>').join('') + '</div></details>' +
+      '<div class="row" style="justify-content:flex-end"><button class="btn primary" data-act="submit"' + (rep.dx ? '' : ' disabled') + '>報告する（採点）</button></div>' +
+      '</div>';
+  }
+
+  // ---- 結果 ----
+  function verdictOf(rank) {
+    return { S: '合格レベルを大きく超えています。', A: '安定して合格できる出来です。', B: 'おおむね良好。落とした項目を確認しましょう。', C: 'もう一歩。決め手と除外の質問を見直しましょう。', D: 'まずは First と Red Flag の確認から。' }[rank];
+  }
+  function cellsList(c, kind, id, src) {
+    const items = kind === 'q' ? (c.q[id] || []) : (c.e[id] || []);
+    return items.filter(i => !src || i.src === src).map(i => i.cell).filter((x, i, a) => a.indexOf(x) === i).join('・');
+  }
+  function renderResult() {
+    const c = G.c, res = G.res, st = G.st;
+    const ex = st.examined;
+    const qMark = id => st.revealed[id] ? '<span class="mk y">✓</span>' : '<span class="mk n">✗</span>';
+    const eMark = id => ex.indexOf(id) >= 0 ? '<span class="mk y">✓</span>' : '<span class="mk n">✗</span>';
+    const keyQ = c.keyQ.map(id => '<div class="chk">' + qMark(id) + '<span>' + esc(SIM.Q[id].l) + '<br><span class="c">' + esc(cellsList(c, 'q', id, 'primary')) + '</span></span></div>').join('');
+    const keyE = c.keyE.map(id => '<div class="chk">' + eMark(id) + '<span>' + esc(SIM.E[id].l) + '<br><span class="c">' + esc(cellsList(c, 'e', id, 'primary')) + '</span></span></div>').join('');
+    // Red Flag ごとに、その疾患を除外するための質問・診察（たたんでおき、聞けた数だけ見せる）
+    const rfBlocks = c.rf.filter(x => x.cato && x.cato !== c.dis).map(x => {
+      const qids = Object.keys(c.dq[x.cato] || {}), eids = Object.keys(c.de[x.cato] || {});
+      const hit = qids.filter(id => st.revealed[id]).length + eids.filter(id => ex.indexOf(id) >= 0).length;
+      const qs = qids.map(id => '<div class="chk">' + qMark(id) + '<span>' + esc(SIM.Q[id].l) + '<span class="c">：' + esc(c.dq[x.cato][id].join('・')) + '</span></span></div>');
+      const es = eids.map(id => '<div class="chk">' + eMark(id) + '<span>' + esc(SIM.E[id].l) + '<span class="c">：' + esc(c.de[x.cato][id].join('・')) + '</span></span></div>');
+      return '<details class="rfd"><summary><b>' + esc(x.name) + '</b><span class="mono dim">' + hit + ' / ' + (qids.length + eids.length) + '</span></summary>' +
+        '<div class="checks">' + (qs.concat(es).join('') || '<span class="dim">表に記載なし</span>') + '</div></details>';
+    }).join('');
+    const N = NOTES.symptoms[c.sym];
+    const first = N.first.map(f => '<div class="fi"><b>' + esc(f.ask) + ' →</b><div class="br">' + f.br.map(b => '<span>' + esc(b[0] || '') + '</span><span>' + esc(b[1]) + '</span>').join('') + '</div></div>').join('');
+    const pres = E.presentation(c);
+    const refText = ref => {
+      if (!ref) return '（根拠なし）';
+      const e = E.chartEntries(c, st).find(x => x.ref === ref);
+      return e ? e.label.replace(/（.*）/, '') + '：' + e.text : ref;
+    };
+    const myReport = '<div class="checks">' +
+      '<div class="chk">' + (res.dxOk ? '<span class="mk y">✓</span>' : '<span class="mk n">✗</span>') + '<span>最も考えられる疾患：' + esc(G.rep.dx || '（未選択）') + '</span></div>' +
+      res.evDetail.map(x => '<div class="chk">' + (x.pts >= 5 ? '<span class="mk y">✓</span>' : x.pts > 0 ? '<span class="mk">△</span>' : '<span class="mk n">✗</span>') + '<span>根拠：' + esc(refText(x.ref)) + '</span></div>').join('') +
+      res.ddDetail.filter(x => x.d).map(x => '<div class="chk">' + (x.ok ? '<span class="mk y">✓</span>' : '<span class="mk n">✗</span>') + '<span>鑑別：' + esc(x.d) + '<span class="c"> ― ' + esc(refText(x.ref)) + '</span></span></div>').join('') +
+      '<div class="chk"><span class="mk">・</span><span>Red Flag：' + esc(res.rfNote) + '</span></div>' +
+      '</div>';
+    app.innerHTML =
+      '<div class="page">' +
+      '<nav class="topnav"><button class="linkbtn" data-act="go" data-v="home">← ホーム</button><span class="dim mono">' + esc(SYMS.find(s => s.name === c.sym).id) + '</span></nav>' +
+      '<section class="card score-head"><div class="big-rank ' + res.rank + '">' + res.rank + '</div><div><div class="pts">' + res.total + '<span class="dim" style="font-size:0.9rem"> / 100</span></div>' +
+      '<p class="verdict">' + esc(verdictOf(res.rank)) + (st.hints ? '（ヒント ' + st.hints + '回）' : '') + '</p></div></section>' +
+      '<section class="card answer"><div class="eyebrow">正解</div><div style="font-size:1.25rem;font-weight:700">' + esc(c.dis) + (c.isRF ? ' <span class="chip" style="border-color:var(--bad);font-size:0.75rem">Red Flag</span>' : '') + '</div>' +
+      '<div class="dim" style="font-size:0.85rem">' + esc(c.sym) + ' ／ ' + esc(c.p.ageLabel + '・' + c.p.sexLabel) + ' ／ 面接・診察 ' + fmt(st.t) + '</div>' + myReport + '</section>' +
+      '<section class="parts">' + res.parts.map(pt => '<div class="card part"><h3><span>' + esc(pt.label) + '</span><span class="mono">' + (Math.round(pt.got * 10) / 10) + ' / ' + pt.max + '</span></h3>' +
+        pt.items.map(it => '<div class="pi"><span>' + esc(it.label) + (it.of !== undefined ? ' <span class="dim">(' + it.hit + '/' + it.of + ')</span>' : '') + '</span><span class="v">' + (Math.round(it.got * 10) / 10) + '/' + it.max + '</span><span class="m"><i style="width:' + (it.max ? Math.min(100, it.got / it.max * 100) : 0) + '%"></i></span></div>').join('') + '</div>').join('') + '</section>' +
+      '<section class="parts">' +
+      '<div class="card"><h3 style="font-size:0.95rem;margin-bottom:8px">決め手になる質問</h3><div class="checks">' + (keyQ || '<span class="dim">なし</span>') + '</div></div>' +
+      '<div class="card"><h3 style="font-size:0.95rem;margin-bottom:8px">決め手になる診察</h3><div class="checks">' + (keyE || '<span class="dim">なし</span>') + '</div></div>' +
+      '</section>' +
+      '<section class="card"><div class="section-title"><h2>模範プレゼン（4分）</h2><div class="row"><span class="timer4" id="t4">04:00</span><button class="btn small" data-act="t4">音読タイマー</button></div></div>' +
+      '<div class="present">' + pres.sections.map(s => '<div class="sec"><div class="t"><b>' + esc(s.title) + '</b>' + esc(s.time) + '</div><p>' + esc(s.lines.join('')) + '</p></div>').join('') + '</div></section>' +
+      '<section class="card"><div class="section-title"><h2>First：' + esc(c.sym) + 'で最初にやること</h2></div><div class="first">' + first + '</div></section>' +
+      '<section class="card"><div class="section-title"><h2>Red Flag を除外する質問・診察</h2><span class="dim" style="font-size:0.8rem">緊急性の高い順・聞けた数 / 表の項目数</span></div>' +
+      '<div class="rfds">' + (rfBlocks || '<span class="dim">この症例で除外すべき Red Flag の項目はありません。</span>') + '</div></section>' +
+      '<section><div class="section-title"><h2>CATO表：' + esc(c.sym) + '</h2><div class="legend"><span><i style="background:var(--accent-soft)"></i>正解の列</span><span><i style="box-shadow:inset 0 0 0 2px var(--good)"></i>聞けた・診られた</span><span><i style="box-shadow:inset 0 0 0 2px var(--bad)"></i>落とした</span></div></div>' + catoTable(c.sym, c) + '</section>' +
+      '<div class="row" style="justify-content:flex-end"><button class="btn" data-act="go" data-v="home">ホーム</button><button class="btn" data-act="startSym" data-sym="' + esc(c.sym) + '">同じ症候で別の症例</button><button class="btn primary" data-act="random">次のステーション</button></div>' +
+      '</div>';
+  }
+
+  // CATO表（結果では正解の列と、聞けた／落としたセルを示す）
+  function catoTable(sym, c) {
+    const S = CATO.find(s => s.name === sym);
+    const unc = new Set(S.unc);
+    // 結果画面では、正解の列をいちばん左に置く（スマホで横にスクロールしなくても見えるように）
+    const cols = c ? [c.dis].concat(S.diseases.filter(d => d !== c.dis)) : S.diseases;
+    const head = '<thead><tr><th class="rowh">項目</th>' + cols.map(d => '<th' + (c && d === c.dis ? ' class="hl"' : '') + '>' + esc(d) + '</th>').join('') + '</tr></thead>';
+    const rows = (sec, list, label) => '<tr class="sec"><th colspan="' + (cols.length + 1) + '">' + label + '</th></tr>' + list.map(([item, cells]) =>
+      '<tr><th class="rowh">' + esc(item) + '</th>' + cols.map(d => {
+        const v = cells[d];
+        let cls = c && d === c.dis ? 'hl' : '';
+        if (c && d === c.dis && v) {
+          const ids = sec === 'q' ? E.routeInterview(item, v).map(x => x[0]) : E.routeExam(item, v).map(x => x[0]);
+          const got = sec === 'q' ? ids.some(id => G.st.revealed[id]) : ids.some(id => G.st.examined.indexOf(id) >= 0);
+          cls += got ? ' got' : ' miss';
+        }
+        return '<td class="' + cls + '">' + (v ? esc(v) + (unc.has(item + '|' + d) ? '<span class="unc">（要確認）</span>' : '') : '') + '</td>';
+      }).join('') + '</tr>').join('');
+    return '<div class="table-scroll"><table class="cato">' + head + '<tbody>' + rows('q', S.interview, '医療面接のポイント') + rows('e', S.exam, '身体診察のポイント') + '</tbody></table></div>';
+  }
+
+  let t4 = null;
+  function stopTimer4() { if (t4) { clearInterval(t4.id); t4 = null; } }
+  function toggleTimer4() {
+    const el = document.getElementById('t4');
+    if (!el) return;
+    if (t4) { stopTimer4(); el.textContent = '04:00'; return; }
+    const end = Date.now() + 240000;
+    t4 = { id: setInterval(() => {
+      const left = (end - Date.now()) / 1000;
+      const e2 = document.getElementById('t4');
+      if (!e2) return stopTimer4();
+      e2.textContent = fmt(left);
+      e2.style.color = left <= 30 ? 'var(--bad)' : '';
+      if (left <= 0) stopTimer4();
+    }, 250) };
+  }
+
+  function submitReport() {
+    const rep = G.rep;
+    const res = E.score(G.c, G.st, { dx: rep.dx, ev: rep.ev, dd: rep.dd.filter(x => x && x.d).map(x => ({ d: x.d, ref: x.ref })), rf: rep.rf });
+    G.res = res;
+    store.history.push({ date: today(), sym: G.c.sym, dis: G.c.dis, total: res.total, rank: res.rank, seed: G.c.seed });
+    if (store.history.length > 300) store.history = store.history.slice(-300);
+    if (store.best[G.c.sym] === undefined || res.total > store.best[G.c.sym]) store.best[G.c.sym] = res.total;
+    if (store.days.indexOf(today()) < 0) store.days.push(today());
+    store.current = null;
+    save();
+    go('result');
+  }
+
+  // ---- 症候別ノート ----
+  function renderNotes() {
+    if (!notesSym) {
+      app.innerHTML = '<div class="page"><nav class="topnav"><button class="linkbtn" data-act="go" data-v="home">← ホーム</button></nav>' +
+        '<header class="notes-head"><div class="eyebrow">暗記用ノート ＋ CATO表</div><h1>症候別ノート</h1><p class="dim" style="margin:0">問診・診察の「→」、First、Red Flag と、面接・診察のポイント×想定疾患の表。</p></header>' +
+        '<div class="grid-sym">' + SYMS.map(s => '<button class="sym" data-act="note" data-sym="' + esc(s.name) + '"><span class="code">' + esc(s.id) + '</span><span class="nm">' + esc(s.name) + '</span><span class="best">' + s.diseases.length + '疾患</span></button>').join('') +
+        '<button class="sym" data-act="go" data-v="bls"><span class="code">G-1-6</span><span class="nm">心停止（BLS）</span><span class="best">手順の並べ替え</span></button></div></div>';
+      return;
+    }
+    const N = NOTES.symptoms[notesSym];
+    const S = SYMS.find(s => s.name === notesSym);
+    const tabs = '<div class="seg"><button class="chip" data-act="ntab" data-t="anki" aria-pressed="' + (notesTab === 'anki') + '">暗記用</button><button class="chip" data-act="ntab" data-t="cato" aria-pressed="' + (notesTab === 'cato') + '">CATO表</button></div>';
+    let body;
+    if (notesTab === 'anki') {
+      const line = (lb, cue, dx) => '<div class="nline"><span class="tag">' + esc(lb || '') + '</span><span>' + esc(cue) + ' <span class="arrow">→</span> <span class="dx">' + esc(dx.join('、')) + '</span></span></div>';
+      body = '<section class="card"><h2 style="font-size:1rem;margin-bottom:6px">1. 問診</h2><div class="nlist">' + N.interview.map(x => line(x[0], x[1], x[2])).join('') + '</div></section>' +
+        '<section class="card"><h2 style="font-size:1rem;margin-bottom:6px">2. 診察</h2><div class="nlist">' + N.exam.map(x => line('', x[0], x[1])).join('') + '</div></section>' +
+        '<section class="card"><h2 style="font-size:1rem;margin-bottom:8px">3. First</h2><div class="first">' + N.first.map(f => '<div class="fi"><b>' + esc(f.ask) + ' →</b><div class="br">' + f.br.map(b => '<span>' + esc(b[0] || '') + '</span><span>' + esc(b[1]) + '</span>').join('') + '</div></div>').join('') + '</div></section>' +
+        '<section class="card"><h2 style="font-size:1rem;margin-bottom:8px">4. Red Flag <span class="dim" style="font-size:0.8rem;font-weight:400">緊急性の高い順</span></h2><div class="rf-list">' + N.redFlags.map((n, i) => '<span class="chip">' + '①②③④⑤⑥'[i] + ' ' + esc(n) + '</span>').join('') + '</div></section>';
+    } else body = catoTable(notesSym, null);
+    app.innerHTML = '<div class="page"><nav class="topnav"><button class="linkbtn" data-act="notesback">← 症候一覧</button><button class="btn small primary" data-act="startSym" data-sym="' + esc(notesSym) + '">この症候で練習</button></nav>' +
+      '<header class="notes-head"><div class="eyebrow mono">' + esc(S.id) + '</div><h1>' + esc(notesSym) + '</h1>' + tabs + '</header>' + body + '</div>';
+  }
+
+  // ---- クイズ ----
+  function newQuiz(type) {
+    const t = type || (quiz && quiz.type) || 'cue';
+    const sym = quiz ? quiz.sym : '';
+    const q = { cue: E.quizCue, rf: E.quizRF, first: E.quizFirst }[t](rnd, sym || null);
+    quiz = { type: t, sym, q, picked: [], done: false, n: quiz ? quiz.n : 0, ok: quiz ? quiz.ok : 0 };
+  }
+  function renderQuiz() {
+    if (!quiz) newQuiz('cue');
+    const z = quiz, q = z.q;
+    const type = (t, l) => '<button class="chip" data-act="qtype" data-t="' + t + '" aria-pressed="' + (z.type === t) + '">' + l + '</button>';
+    const symSel = '<select data-act-change="qsym" aria-label="症候"><option value="">すべての症候</option>' + SYMS.map(s => '<option' + (z.sym === s.name ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '</select>';
+    const head = '<nav class="topnav"><button class="linkbtn" data-act="go" data-v="home">← ホーム</button><span class="mono dim">' + z.ok + ' / ' + z.n + ' 正解</span></nav>' +
+      '<header class="notes-head"><div class="eyebrow">暗記用ノートから出題</div><h1>クイズ</h1><div class="seg">' + type('cue', '所見 → 疾患') + type('rf', 'Red Flag') + type('first', 'First の分岐') + '</div><div style="max-width:320px">' + symSel + '</div></header>';
+    if (!q) {
+      app.innerHTML = '<div class="page quiz">' + head + '<section class="card"><p style="margin:0">' + esc(z.sym) + 'のノートには、この形式で出題できる項目がありません。ほかの形式か症候を選んでください。</p></section></div>';
+      return;
+    }
+    let question, opts, explain = '';
+    if (q.type === 'cue') {
+      question = '【' + esc(q.sym) + '】' + esc(q.kind) + (q.label ? '（' + esc(q.label) + '）' : '') + '<br>' + esc(q.cue) + ' → ？';
+      opts = q.options.map(o => {
+        let cls = '';
+        if (z.done) cls = q.all.indexOf(o) >= 0 ? ' right' : (z.picked.indexOf(o) >= 0 ? ' wrong' : '');
+        return '<button class="btn' + cls + '" data-act="qpick" data-o="' + esc(o) + '"' + (z.done ? ' disabled' : '') + '>' + esc(o) + '</button>';
+      }).join('');
+      if (z.done) explain = '暗記用ノート：' + esc(q.cue) + ' → ' + esc(q.all.join('、'));
+    } else if (q.type === 'rf') {
+      question = '【' + esc(q.sym) + '】見逃してはいけない疾患（Red Flag）をすべて選んでください。';
+      opts = q.options.map(o => {
+        let cls = z.picked.indexOf(o) >= 0 ? ' pick' : '';
+        if (z.done) cls = q.answer.indexOf(o) >= 0 ? ' right' : (z.picked.indexOf(o) >= 0 ? ' wrong' : '');
+        return '<button class="btn' + cls + '" data-act="qtoggle" data-o="' + esc(o) + '"' + (z.done ? ' disabled' : '') + '>' + esc(o) + '</button>';
+      }).join('') + (z.done ? '' : '<button class="btn primary" data-act="qcheck">答え合わせ</button>');
+      if (z.done) explain = '緊急性の高い順：' + q.answer.map((n, i) => '①②③④⑤⑥'[i] + n).join(' ');
+    } else {
+      question = '【' + esc(q.sym) + '】First：' + esc(q.ask) + ' →<br>' + esc(q.cond || '') + '：？';
+      opts = q.options.map(o => {
+        let cls = '';
+        if (z.done) cls = o === q.answer ? ' right' : (z.picked.indexOf(o) >= 0 ? ' wrong' : '');
+        return '<button class="btn' + cls + '" data-act="qpick" data-o="' + esc(o) + '"' + (z.done ? ' disabled' : '') + '>' + esc(o) + '</button>';
+      }).join('');
+      if (z.done) explain = q.all.map(b => esc(b[0]) + '：' + esc(b[1])).join('<br>');
+    }
+    app.innerHTML = '<div class="page quiz">' + head +
+      '<section class="card qcard"><div class="q">' + question + '</div><div class="opts">' + opts + '</div>' +
+      (z.done ? '<div class="explain">' + (z.correct ? '<b style="color:var(--good)">正解</b>　' : '<b style="color:var(--bad)">不正解</b>　') + explain + '</div><div class="row" style="justify-content:flex-end"><button class="btn primary" data-act="qnext">次の問題</button></div>' : '') +
+      '</section></div>';
+  }
+  function quizAnswer(o) {
+    const z = quiz, q = z.q;
+    z.picked = [o];
+    z.correct = q.type === 'cue' ? q.all.indexOf(o) >= 0 : o === q.answer;
+    z.done = true; z.n++; if (z.correct) z.ok++;
+    store.quiz.n++; if (z.correct) store.quiz.ok++;
+    save(); renderQuiz();
+  }
+
+  // ---- BLS 並べ替え ----
+  function newBls() {
+    const steps = NOTES.bls.map((s, i) => ({ i, t: s.t }));
+    bls = { order: E.shuffle(rnd, steps), picked: [], miss: 0, start: Date.now(), done: false, time: 0 };
+  }
+  function renderBls() {
+    if (!bls) newBls();
+    const b = bls;
+    const next = b.picked.length;
+    let body;
+    if (!b.done) {
+      body = '<p class="dim" style="margin:0">心停止の傷病者を発見しました。行う順にタップしてください（' + next + ' / ' + NOTES.bls.length + '）。</p>' +
+        '<div class="bls-steps">' + b.order.map(s => {
+          const done = b.picked.indexOf(s.i) >= 0;
+          return '<button class="btn' + (done ? ' right' : '') + '" data-act="blspick" data-i="' + s.i + '"' + (done ? ' disabled' : '') + '>' + (done ? (b.picked.indexOf(s.i) + 1) + '. ' : '') + esc(s.t) + '</button>';
+        }).join('') + '</div>';
+    } else {
+      body = '<p style="margin:0"><b>' + (b.miss === 0 ? '全問正解！' : 'ミス ' + b.miss + ' 回') + '</b>　<span class="mono">' + (b.time / 1000).toFixed(1) + ' 秒</span>' + (store.bls ? '<span class="dim">（自己ベスト ' + (store.bls / 1000).toFixed(1) + ' 秒）</span>' : '') + '</p>' +
+        '<div class="bls-done"><ol>' + NOTES.bls.map(s => '<li><b>' + esc(s.t) + '</b>' + (s.sub.length ? '<ul>' + s.sub.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') + '</li>').join('') + '</ol></div>' +
+        '<div class="row" style="justify-content:flex-end"><button class="btn primary" data-act="blsagain">もう一度</button></div>';
+    }
+    app.innerHTML = '<div class="page"><nav class="topnav"><button class="linkbtn" data-act="go" data-v="home">← ホーム</button><span class="dim">JRC蘇生ガイドライン2020</span></nav>' +
+      '<header class="notes-head"><div class="eyebrow mono">G-1-6</div><h1>心停止：BLS の手順</h1></header><section class="card quiz">' + body + '</section></div>';
+  }
+
+  // ---- 操作 ----
+  const ACT = {
+    go: t => go(t.dataset.v),
+    random: () => newGame(),
+    startSym: t => newGame(t.dataset.sym),
+    resume: () => resume(),
+    discard: () => { store.current = null; save(); renderHome(); },
+    cfg: t => { store.cfg[t.dataset.k] = t.dataset.val; save(); renderSetup(); },
+    enter: () => { G.log.push({ k: 'sys', text: 'ノックして入室しました。まずはあいさつと本人確認から。' }); persist(); go('station'); },
+    tab: t => { G.tab = t.dataset.t; G.search = ''; renderStation(); },
+    qcat: t => { G.qcat = t.dataset.c; renderPanel(); },
+    ros: t => { G.ros = t.dataset.g; renderPanel(); },
+    region: t => { G.region = t.dataset.r; renderPanel(); },
+    ask: t => doAsk(t.dataset.q),
+    exam: t => doExam(t.dataset.e),
+    chart: () => { G.chartOpen = true; renderStation(); },
+    chartclose: () => { G.chartOpen = false; renderStation(); },
+    hint: () => showHint(),
+    modalclose: () => closeModal(),
+    pause: () => { persist(); G = null; go('home'); },
+    endask: () => { G.confirmEnd = true; renderFoot(); },
+    endno: () => { G.confirmEnd = false; renderFoot(); },
+    report: () => { G.confirmEnd = false; go('report'); persist(); },
+    backstation: () => go('station'),
+    dx: t => { G.rep.dx = t.dataset.d; G.rep.dd = G.rep.dd.map(x => x && x.d === G.rep.dx ? {} : x); persistReport(); renderReport(); },
+    ev: t => {
+      const ref = t.dataset.ref, ev = G.rep.ev;
+      const i = ev.indexOf(ref);
+      if (i >= 0) ev.splice(i, 1); else { ev.push(ref); if (ev.length > 2) ev.shift(); }
+      persistReport(); renderReport();
+    },
+    submit: () => submitReport(),
+    t4: () => toggleTimer4(),
+    note: t => { notesSym = t.dataset.sym; notesTab = 'anki'; renderNotes(); window.scrollTo(0, 0); },
+    notesback: () => { notesSym = null; renderNotes(); },
+    ntab: t => { notesTab = t.dataset.t; renderNotes(); },
+    qtype: t => { quiz.type = t.dataset.t; newQuiz(t.dataset.t); renderQuiz(); },
+    qpick: t => quizAnswer(t.dataset.o),
+    qtoggle: t => { const p = quiz.picked, o = t.dataset.o, i = p.indexOf(o); if (i >= 0) p.splice(i, 1); else p.push(o); renderQuiz(); },
+    qcheck: () => {
+      const z = quiz, a = z.q.answer;
+      z.correct = z.picked.length === a.length && a.every(x => z.picked.indexOf(x) >= 0);
+      z.done = true; z.n++; if (z.correct) z.ok++;
+      store.quiz.n++; if (z.correct) store.quiz.ok++;
+      save(); renderQuiz();
+    },
+    qnext: () => { newQuiz(); renderQuiz(); },
+    blspick: t => {
+      const i = +t.dataset.i;
+      if (i === bls.picked.length) {
+        bls.picked.push(i);
+        if (bls.picked.length === NOTES.bls.length) {
+          bls.done = true; bls.time = Date.now() - bls.start;
+          if (bls.miss === 0 && (!store.bls || bls.time < store.bls)) { store.bls = bls.time; save(); }
+        }
+      } else {
+        bls.miss++;
+        t.classList.add('wrong');
+        setTimeout(() => t.classList.remove('wrong'), 400);
+        return;
+      }
+      renderBls();
+    },
+    blsagain: () => { newBls(); renderBls(); }
+  };
+  function persistReport() { if (G) persist(); }
+
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-act]');
+    if (!t) return;
+    // シートやモーダルの中身をタップしても閉じない
+    const stop = e.target.closest('[data-stop]');
+    if (stop && (t.dataset.act === 'chartclose' || t.dataset.act === 'modalclose') && t.contains(stop)) return;
+    const fn = ACT[t.dataset.act];
+    if (fn && !t.disabled) fn(t, e);
+  });
+  document.addEventListener('change', e => {
+    const t = e.target.closest('[data-act-change]');
+    if (!t) return;
+    const k = t.dataset.actChange, v = t.value;
+    if (k === 'qsym') { quiz.sym = v; newQuiz(); renderQuiz(); return; }
+    if (!G) return;
+    const rep = G.rep;
+    if (k === 'dd0d') rep.dd[0] = Object.assign({}, rep.dd[0], { d: v });
+    if (k === 'dd1d') rep.dd[1] = Object.assign({}, rep.dd[1], { d: v });
+    if (k === 'dd0r') rep.dd[0] = Object.assign({}, rep.dd[0], { ref: v });
+    if (k === 'dd1r') rep.dd[1] = Object.assign({}, rep.dd[1], { ref: v });
+    if (k === 'rfd') rep.rf = Object.assign({}, rep.rf, { d: v });
+    if (k === 'rfr') rep.rf = Object.assign({}, rep.rf, { ref: v });
+    persistReport();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); if (G && G.chartOpen) { G.chartOpen = false; renderStation(); } }
+    // キーワード入力で Enter を押すと、いちばん上の候補を聞く（変換確定の Enter は除く）
+    if (e.key === 'Enter' && e.target && e.target.id === 'qsearch' && !e.isComposing && e.keyCode !== 229) {
+      e.preventDefault();
+      const first = G && G.search.trim() && document.querySelector('#pbody .qbtn:not(.done):not([disabled])');
+      if (first) { doAsk(first.dataset.q); G.search = ''; e.target.value = ''; renderQBody(); }
+    }
+  });
+
+  go('home');
+
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && /\/osce-sim\//.test(location.pathname)) {
+    navigator.serviceWorker.register('../sw.js').catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
