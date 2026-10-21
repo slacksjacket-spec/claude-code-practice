@@ -30,7 +30,7 @@ export const microscope: CustomModule<MicroscopeData> = {
       root.innerHTML = `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
         <div class="stepLabel">① 視野の中の「${esc(tgt.label)}」を全部タップ（${c.target.n}個）</div>
         <svg class="scope" viewBox="0 0 ${R * 2} ${R * 2}" role="group" aria-label="${esc(d.title)}">
-          <defs><clipPath id="scopeClip"><circle cx="${R}" cy="${R}" r="${R}"/></clipPath><radialGradient id="scopeVig" cx="50%" cy="50%" r="50%"><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient></defs>
+          <defs><clipPath id="scopeClip"><circle cx="${R}" cy="${R}" r="${R}"/></clipPath><radialGradient id="scopeVig" cx="50%" cy="50%" r="50%"><stop offset=".86" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></radialGradient></defs>
           <g clip-path="url(#scopeClip)"><rect width="${R * 2}" height="${R * 2}" fill="${esc(d.background ?? "#F3EEDF")}"/>
           ${items.map((it, i) => pts[i] ? `<g class="obj" data-i="${i}" data-t="${it.t ? 1 : 0}" transform="translate(${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)}) rotate(${Math.floor(Math.random() * 360)})" role="button" tabindex="0" aria-label="${esc(d.sprites[it.s].label)}">${d.sprites[it.s].svg}<circle class="hit" r="14" fill="transparent"/></g>` : "").join("")}
           <circle cx="${R}" cy="${R}" r="${R}" fill="url(#scopeVig)" pointer-events="none"/></g>
