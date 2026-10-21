@@ -7,6 +7,9 @@ export const DepthData = z.object({
     name: z.string(),                                            // "胃"
     layers: z.array(z.object({ id: z.string(), label: z.string() })).min(2), // 内腔側から順に
   })),
+  lesionLabel: z.string().optional(),                            // 既定「がん」（熱傷なら「損傷」など）
+  topLabel: z.string().optional(),
+  hideLesion: z.boolean().optional(),                            // true なら断面に病変を描かない（所見だけで深さを当てる）                               // 図の上の説明。既定「↑ 内腔（粘膜の表面）」
   treatments: z.array(z.string()).min(2),
   stampAt: z.number().int().positive(),                          // 通算この症例数を両方正解でスタンプ
   cases: z.array(Meta.extend({

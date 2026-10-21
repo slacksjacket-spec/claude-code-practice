@@ -8,15 +8,14 @@ const DEPTH_COINS = 10, TX_COINS = 15;
 const FILLS = ["#F7B8B0", "#FBE3C4", "#E8A0A0", "#FFF1D6", "#F3D1C0", "#E7E0F5"];
 
 /** 壁の断面：上が内腔。がんは上から target 層の中ほどまで届く */
-function wall(layers: { id: string; label: string }[], target: number) {
+function wall(layers: { id: string; label: string }[], target: number, lesion: string, top0: string, hide = false) {
   const W = 520, top = 40, h = 44, bottom = top + layers.length * h;
   const depthY = top + target * h + h * 0.55;
   const tumor = `<path d="M170 ${top - 14} C200 ${top - 26} 320 ${top - 26} 350 ${top - 14} C340 ${depthY - 30} 300 ${depthY} 260 ${depthY} C220 ${depthY} 180 ${depthY - 30} 170 ${top - 14}Z" fill="#8E3B6E" opacity=".85" stroke="#1C1537" stroke-width="3" pointer-events="none"/>`;
-  return `<svg class="wall" viewBox="0 0 ${W} ${bottom + 10}" role="group" aria-label="壁の断面図。上が内腔">
-    <text x="12" y="24">↑ 内腔（粘膜の表面）</text>
+  return `<svg class="wall" viewBox="0 0 ${W} ${bottom + 10}" role="group" aria-label="断面図。${esc(top0)}">
+    <text x="12" y="24">${esc(top0)}</text>
     ${layers.map((l, i) => `<g class="band" data-i="${i}" tabindex="0" role="button" aria-label="${esc(l.label)}"><rect class="l" x="4" y="${top + i * h}" width="${W - 8}" height="${h}" fill="${FILLS[i % FILLS.length]}" stroke="#1C1537" stroke-width="1.5"/><text x="14" y="${top + i * h + h / 2 + 5}">${esc(l.label)}</text></g>`).join("")}
-    ${tumor}
-    <text x="${W - 12}" y="${top - 10}" text-anchor="end">がん</text>
+    ${hide ? "" : `${tumor}<text x="${W - 12}" y="${top - 10}" text-anchor="end">${esc(lesion)}</text>`}
   </svg>`;
 }
 
@@ -26,12 +25,12 @@ export const depth: CustomModule<DepthData> = {
     let q = shuffle(d.cases), qi = 0;
 
     function render() {
-      const c = q[qi % q.length], organ = d.organs[c.organ], target = organ.layers.findIndex((l) => l.id === c.depth);
+      const lesion = d.lesionLabel ?? "がん", c = q[qi % q.length], organ = d.organs[c.organ], target = organ.layers.findIndex((l) => l.id === c.depth);
       let depthOk = false, stage = 0;
       ctx.cheat.reset(ex.id);
       root.innerHTML = `<div class="pcard"><span class="tagk">${esc(organ.name)}</span><div class="chips">${Object.entries(c.card).map(([k, v]) => `<span class="chip">${esc(k)}：${esc(v)}</span>`).join("")}</div></div>
-        <div class="stepLabel">① がんはどの層まで？（層をタップ）</div>
-        ${wall(organ.layers, target)}
+        <div class="stepLabel">① ${esc(lesion)}はどの層まで？（層をタップ）</div>
+        ${wall(organ.layers, target, lesion, d.topLabel ?? "↑ 内腔（粘膜の表面）", d.hideLesion)}
         <div class="fb1"></div>
         <div class="step2"></div>`;
       const bands = $$<SVGGElement>(".band", root);
@@ -43,7 +42,7 @@ export const depth: CustomModule<DepthData> = {
         bands[target].classList.add("right");
         if (!depthOk) { g.classList.add("wrong"); ctx.sound.boo(); }
         else { ctx.sound.ding(); ctx.award(DEPTH_COINS, g); }
-        $(".fb1", root).innerHTML = `<p class="small" style="font-weight:800;margin:8px 0 0">${depthOk ? "正解！" : "おしい。"}がんは「${esc(organ.layers[target].label)}」まで。</p>`;
+        $(".fb1", root).innerHTML = `<p class="small" style="font-weight:800;margin:8px 0 0">${depthOk ? "正解！" : "おしい。"}${esc(lesion)}は「${esc(organ.layers[target].label)}」まで。</p>`;
         treatment();
       };
       bands.forEach((g) => {
