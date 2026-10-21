@@ -141,6 +141,7 @@ async function genericPlay(p: Page, ex: string) {
   if (await has(".bags .bag")) { await p.locator(`${ex} .bag`).nth(0).click(); await p.locator(`${ex} .bag`).nth(3).click(); await clickIf(".go"); return; }
   if (await has(".ogttTypes .opt")) { await clickIf(".ogttTypes .opt"); await clickIf(".step2 .opt"); return; }
   if (await has(".ctgTypes .opt")) { await p.locator(`${ex} .ctgTypes .opt`).nth(2).click(); await clickIf(".step2 .opt"); return; }
+  if (await has(".roots .opt")) { await clickIf(".roots .opt"); await clickIf(".step2 .opt"); return; }
   if (await has(".hlTypes .opt")) { await clickIf(".hlTypes .opt"); await clickIf(".step2 .opt"); return; }
   if (await has(".pupBtns button")) { await p.locator(`${ex} .pupBtns button`).nth(2).click(); await clickIf(".s1 .opt"); await clickIf(".step2 .opt"); return; }
   if (await has(".abcde button")) { await p.locator(`${ex} .abcde button`).nth(0).click(); await clickIf(".go"); await clickIf(".step2 .opt"); return; }

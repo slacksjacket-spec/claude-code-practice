@@ -1,0 +1,8 @@
+/* 神経根レベル */
+.rootWrap{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:start;margin-top:8px}
+.rootFig{width:120px;border:3px solid var(--line);border-radius:14px;background:#FFF8F0}
+.rootCards{display:flex;flex-direction:column;gap:6px}
+.rootCards div{border:3px solid var(--line);border-radius:12px;background:var(--card);padding:6px 10px;font-weight:800;font-size:14px}
+.rootCards small{display:block;font-size:11px;opacity:.7}
+.roots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.roots .opt{text-align:center;font-family:"Dela Gothic One",sans-serif;font-size:18px;padding-left:4px;padding-right:4px}
