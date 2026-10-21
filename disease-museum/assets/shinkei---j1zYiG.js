@@ -1,4 +1,4 @@
-import"./economy-Dmq1voEE.js";import{m as f}from"./hall-CfxNpumQ.js";const t={review:"draft",sources:[]},m=`<rect width="320" height="240" fill="#FFF8F0"/>
+import"./economy-Dmq1voEE.js";import{m as f}from"./hall-Cs3S-Kwp.js";const t={review:"draft",sources:[]},m=`<rect width="320" height="240" fill="#FFF8F0"/>
   <path d="M38 128 C30 64 90 26 160 28 C230 30 282 70 280 140 C278 166 250 172 230 166 C200 176 120 180 84 166 C60 158 40 150 38 128Z" fill="#F7D3D0" stroke="#1C1537" stroke-width="3"/>
   <ellipse cx="236" cy="184" rx="38" ry="20" fill="#E8B8C8" stroke="#1C1537" stroke-width="3"/>
   <rect x="176" y="158" width="26" height="70" rx="10" fill="#E8C8B0" stroke="#1C1537" stroke-width="3"/>

@@ -1,4 +1,4 @@
-import{s as D,e as g,$ as A,a as w}from"./economy-Dmq1voEE.js";import{m as W}from"./hall-CfxNpumQ.js";const $={review:"draft",sources:[]},I=`<rect width="320" height="240" fill="#FFF8F0"/>
+import{s as D,e as g,$ as A,a as w}from"./economy-Dmq1voEE.js";import{m as W}from"./hall-Cs3S-Kwp.js";const $={review:"draft",sources:[]},I=`<rect width="320" height="240" fill="#FFF8F0"/>
   <circle cx="170" cy="120" r="96" fill="#fff" stroke="#1C1537" stroke-width="3"/>
   <circle cx="170" cy="120" r="88" fill="#FDF0E6"/>
   <path d="M80 120 A90 90 0 0 1 260 120 A90 90 0 0 1 80 120" fill="none" stroke="#D9622B" stroke-width="6" stroke-dasharray="0" opacity=".7" transform="rotate(0)"/>

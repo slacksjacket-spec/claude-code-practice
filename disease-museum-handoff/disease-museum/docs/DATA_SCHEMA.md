@@ -310,7 +310,7 @@ interface GachaSpec {
 
 ## 共通ゲームとホール専用のゲーム
 
-共通ゲームのデータの形は `src/engine/games/<kind>.schema.ts`（reveal, clueRace, depth, grid, order, tapMap, scenario, abg, microscope, axis, visualField, gcs, criteria）。ホール専用は下のとおり。
+共通ゲームのデータの形は `src/engine/games/<kind>.schema.ts`（reveal, clueRace, depth, grid, order, tapMap, scenario, abg, microscope, axis, visualField, gcs, criteria, triage）。ホール専用は下のとおり。
 
 `src/halls/<hall>/exhibits/<kind>.schema.ts` に zod で書く（`Meta` は `src/engine/schema.ts` から使う）。ブラウザ側のモジュールは schema から**型だけ**を import する。定数が要るときは `<kind>.consts.ts` に分ける（schema から値を import すると zod がバンドルに入る。`npm run build:single` が検出して失敗する）。
 
