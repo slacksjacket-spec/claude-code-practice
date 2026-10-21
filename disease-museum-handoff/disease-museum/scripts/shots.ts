@@ -141,6 +141,7 @@ async function genericPlay(p: Page, ex: string) {
   if (await has(".bags .bag")) { await p.locator(`${ex} .bag`).nth(0).click(); await p.locator(`${ex} .bag`).nth(3).click(); await clickIf(".go"); return; }
   if (await has(".ogttTypes .opt")) { await clickIf(".ogttTypes .opt"); await clickIf(".step2 .opt"); return; }
   if (await has(".ctgTypes .opt")) { await p.locator(`${ex} .ctgTypes .opt`).nth(2).click(); await clickIf(".step2 .opt"); return; }
+  if (await has(".chatOpts .opt")) { for (let i = 0; i < 6 && await has(".chatOpts .opt"); i++) { await clickIf(".chatOpts .opt"); await p.waitForTimeout(450); } await clickIf(".step2 .opt"); return; }
   if (await has(".s1 .opt")) { await clickIf(".s1 .opt"); await clickIf(".step2 .opt"); return; }
   if (await has(".critItems button")) { await p.locator(`${ex} .critItems button`).nth(0).click(); await p.locator(`${ex} .critItems button`).nth(1).click(); await clickIf(".go"); await clickIf(".step2 .opt"); return; }
   if (await has(".anaPats .opt")) { await clickIf(".anaPats .opt"); await clickIf(".step2 .opt"); return; }
