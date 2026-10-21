@@ -13,5 +13,6 @@ import { microscope } from "./microscope";
 import { axis } from "./axis";
 import { visualField } from "./visualField";
 import { gcs } from "./gcs";
+import { criteria } from "./criteria";
 
-export const SHARED_GAMES: CustomModules = { reveal, clueRace, depth, grid, order, tapMap, scenario, abg, microscope, axis, visualField, gcs };
+export const SHARED_GAMES: CustomModules = { reveal, clueRace, depth, grid, order, tapMap, scenario, abg, microscope, axis, visualField, gcs, criteria };

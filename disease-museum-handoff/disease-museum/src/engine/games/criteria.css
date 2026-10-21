@@ -1,0 +1,11 @@
+/* 診断基準チェック */
+.critItems{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.critItems button{min-height:44px;border:3px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-weight:800;font-size:14px;text-align:left;padding:6px 12px 6px 40px;position:relative;cursor:pointer}
+.critItems button::before{content:"";position:absolute;left:10px;top:50%;width:18px;height:18px;margin-top:-9px;border:3px solid var(--line);border-radius:5px;background:var(--bg)}
+.critItems button[aria-pressed="true"]::before{background:var(--mint)}
+.critItems button[aria-pressed="true"]::after{content:"✓";position:absolute;left:14px;top:50%;transform:translateY(-52%);font-size:14px;color:#1C1537}
+.critItems button.right{outline:4px solid var(--mint)}
+.critItems button.wrong{outline:4px solid var(--tomato)}
+.critItems button.missed{outline:4px dashed var(--mint)}
+.critItems button:disabled{cursor:default}
+.critCount{text-align:center;font-family:"Dela Gothic One",sans-serif;font-size:16px;margin-top:8px}

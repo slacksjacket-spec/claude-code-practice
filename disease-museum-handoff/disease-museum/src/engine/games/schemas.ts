@@ -11,5 +11,6 @@ import { MicroscopeData } from "./microscope.schema";
 import { AxisData } from "./axis.schema";
 import { VisualFieldData } from "./visualField.schema";
 import { GcsData } from "./gcs.schema";
+import { CriteriaData } from "./criteria.schema";
 
-export const SHARED_SCHEMAS = { reveal: RevealData, clueRace: ClueRaceData, depth: DepthData, grid: GridData, order: OrderData, tapMap: TapMapData, scenario: ScenarioData, abg: AbgData, microscope: MicroscopeData, axis: AxisData, visualField: VisualFieldData, gcs: GcsData };
+export const SHARED_SCHEMAS = { reveal: RevealData, clueRace: ClueRaceData, depth: DepthData, grid: GridData, order: OrderData, tapMap: TapMapData, scenario: ScenarioData, abg: AbgData, microscope: MicroscopeData, axis: AxisData, visualField: VisualFieldData, gcs: GcsData, criteria: CriteriaData };
