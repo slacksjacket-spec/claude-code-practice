@@ -140,6 +140,7 @@ async function genericPlay(p: Page, ex: string) {
   if (await has(".bugs .bug")) { await p.locator(`${ex} .bug`).nth(1).click(); await p.locator(`${ex} .bug`).nth(2).click(); await clickIf(".go"); return; }
   if (await has(".bags .bag")) { await p.locator(`${ex} .bag`).nth(0).click(); await p.locator(`${ex} .bag`).nth(3).click(); await clickIf(".go"); return; }
   if (await has(".ogttTypes .opt")) { await clickIf(".ogttTypes .opt"); await clickIf(".step2 .opt"); return; }
+  if (await has(".ctgTypes .opt")) { await p.locator(`${ex} .ctgTypes .opt`).nth(2).click(); await clickIf(".step2 .opt"); return; }
   if (await has(".anaPats .opt")) { await clickIf(".anaPats .opt"); await clickIf(".step2 .opt"); return; }
   if (await has(".gridQ button")) { await clickIf(".gridQ button"); await clickIf(".opt"); return; }
   if (await has(".tapChips button")) { await clickIf(".tapChips button"); await clickIf(".go"); await clickIf(".step2 .opt"); return; }
