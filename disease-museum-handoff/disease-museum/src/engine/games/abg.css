@@ -1,0 +1,7 @@
+/* 血液ガス道場 */
+.gasPanel{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;font-family:ui-monospace,Menlo,monospace;background:#0B1A14;color:#5CFF9D;border:3px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.gasPanel div{font-size:12px;font-weight:800}
+.gasPanel b{display:block;font-size:20px}
+.abgSteps{display:flex;gap:4px;margin:8px 0}
+.abgSteps i{flex:1;height:10px;border-radius:5px;border:2px solid var(--line);background:var(--card)}
+.abgSteps i.ok{background:var(--mint)}.abgSteps i.ng{background:var(--pink)}.abgSteps i.cur{background:var(--sun)}

@@ -25,6 +25,7 @@ await build({
   configFile: false,
   logLevel: "warn",
   plugins: [viteSingleFile()],
+  define: { __SINGLE__: "true" },
   build: { outDir: tmp, emptyOutDir: true, rollupOptions: { input: entry } },
 });
 
@@ -40,6 +41,11 @@ const external = [...html.matchAll(/(?:src|href)=["'](https?:\/\/[^"']+|(?!data:
   .filter((u) => !/^https:\/\/fonts\.(googleapis|gstatic)\.com/.test(u));
 if (external.length) {
   console.error("✗ 外部ファイルへの参照が残っている:", external);
+  process.exit(1);
+}
+// zod（データ検証用）がブラウザ側に紛れ込んでいないか。schema ファイルから値を import すると入ってしまう
+if (/ZodError|\$ZodType/.test(html)) {
+  console.error("✗ zod がバンドルに入っている。展示モジュールは schema から型だけを import すること（定数は *.consts.ts へ）");
   process.exit(1);
 }
 console.log(`✓ dist-single/${hall}.html（${(statSync(out).size / 1024).toFixed(1)} KB）`);

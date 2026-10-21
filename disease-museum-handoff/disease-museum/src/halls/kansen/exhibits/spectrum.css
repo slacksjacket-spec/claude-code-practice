@@ -1,0 +1,12 @@
+/* 抗菌薬スペクトラム */
+.drugCard{display:flex;align-items:center;gap:12px;border:3px solid var(--line);border-radius:18px;background:var(--card);padding:10px 14px;box-shadow:var(--shadow)}
+.drugCard .pill{width:54px;height:26px;border-radius:13px;border:3px solid #1C1537;background:linear-gradient(90deg,var(--tomato) 50%,#fff 50%);flex:none}
+.drugCard b{font-family:"Dela Gothic One",sans-serif;font-size:19px;display:block}
+.bugs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.bug{min-height:56px;border:3px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-weight:800;font-size:14px;text-align:left;padding:6px 10px;cursor:pointer;box-shadow:var(--shadow)}
+.bug small{display:block;font-size:11px;opacity:.7}
+.bug[aria-pressed="true"]{background:var(--mint);color:#1C1537;transform:translate(2px,2px);box-shadow:none}
+.bug.right{outline:4px solid var(--mint)}
+.bug.wrong{outline:4px solid var(--tomato)}
+.bug.missed{outline:4px dashed var(--mint)}
+.bug:disabled{cursor:default}

@@ -1,0 +1,10 @@
+/* GCS採点 */
+.gcsRow{margin-top:10px}
+.gcsRow h4{margin:0 0 4px;font-family:"Dela Gothic One",sans-serif;font-size:14px}
+.gcsBtns{display:flex;flex-wrap:wrap;gap:6px}
+.gcsBtns button{min-height:44px;border:3px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-weight:800;font-size:13px;padding:4px 10px;cursor:pointer;text-align:left}
+.gcsBtns button b{font-family:"Dela Gothic One",sans-serif;margin-right:4px}
+.gcsBtns button[aria-pressed="true"]{background:var(--sun);color:#1C1537}
+.gcsBtns button.right{outline:4px solid var(--mint)}
+.gcsBtns button.wrong{outline:4px solid var(--tomato)}
+.gcsTotal{font-family:"Dela Gothic One",sans-serif;font-size:20px;text-align:center;margin-top:10px}

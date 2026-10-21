@@ -1,0 +1,11 @@
+/* 部位タップ */
+.tapFig{display:block;width:100%;max-width:420px;margin:8px auto 0;border:3px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+.tapFig .tapR{cursor:pointer}
+.tapFig .tapR .shape{fill:var(--cobalt);fill-opacity:.12;stroke:var(--cobalt);stroke-width:1.5;stroke-dasharray:4 3}
+.tapFig .tapR:hover .shape,.tapFig .tapR:focus-visible .shape{fill-opacity:.3}
+.tapFig .tapR.sel .shape{fill:var(--sun);fill-opacity:.65;stroke:#1C1537;stroke-dasharray:none}
+.tapFig .tapR.right .shape{fill:var(--mint);fill-opacity:.75;stroke:#1C1537;stroke-dasharray:none}
+.tapFig .tapR.wrong .shape{fill:var(--pink);fill-opacity:.75;stroke:#1C1537;stroke-dasharray:none}
+.tapChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tapChips button{border:3px solid var(--line);border-radius:999px;background:var(--card);padding:6px 12px;font-weight:800;font-size:13px;min-height:44px}
+.tapChips button[aria-pressed="true"]{background:var(--sun);color:#1C1537}

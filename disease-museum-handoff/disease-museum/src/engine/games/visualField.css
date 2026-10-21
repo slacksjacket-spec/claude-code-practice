@@ -1,0 +1,10 @@
+/* 視野と病変 */
+.vfFields{display:flex;justify-content:center;gap:18px;margin-top:8px}
+.vfFields figure{margin:0;text-align:center;font-weight:800;font-size:13px}
+.vfFields svg{width:120px;height:120px;display:block}
+.vfPath{display:block;width:100%;max-width:360px;margin:8px auto 0;border:3px solid var(--line);border-radius:16px;background:#FFF8F0;box-shadow:var(--shadow);touch-action:manipulation}
+.vfPath .les{cursor:pointer}
+.vfPath .les .hit{fill:var(--cobalt);fill-opacity:.12;stroke:var(--cobalt);stroke-width:2;stroke-dasharray:4 3}
+.vfPath .les.right .hit{fill:var(--mint);fill-opacity:.55;stroke:var(--mint);stroke-dasharray:none}
+.vfPath .les.wrong .hit{fill:var(--tomato);fill-opacity:.5;stroke:var(--tomato);stroke-dasharray:none}
+.vfPath .les:focus-visible .hit{stroke-width:4}

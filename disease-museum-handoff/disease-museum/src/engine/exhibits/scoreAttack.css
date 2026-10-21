@@ -1,0 +1,12 @@
+/* ScoreAttack（reference/kantansui_hall_v2.html から抽出） */
+.labs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:520px){.labs{grid-template-columns:repeat(2,1fr)}}
+.labt{border:3px solid var(--line);border-radius:14px;background:var(--card);padding:8px;font-weight:800;font-size:13px;text-align:left;line-height:1.35;min-height:70px}
+.labt .v{font-family:"Dela Gothic One",sans-serif;font-weight:400;font-size:16px;display:block}
+.labt.sel{background:var(--sun);color:#1C1537}
+.labt.okp{background:var(--mint);color:#1C1537}
+.labt.miss{background:var(--pink);color:#1C1537}
+.labt.fp{background:#FFD0C4;color:#1C1537;text-decoration:line-through}
+.timer{height:14px;border-radius:7px;border:3px solid var(--line);background:var(--card);overflow:hidden;margin:8px 0}
+.timer i{display:block;height:100%;background:var(--tomato);transition:width .25s linear}
+.ctFig svg{width:100%;max-width:380px;display:block;margin:auto}

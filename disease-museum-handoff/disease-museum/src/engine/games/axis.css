@@ -1,0 +1,19 @@
+/* ホルモン軸 */
+.axisBox{position:relative;margin:10px auto 0;max-width:420px;padding-right:46px}
+.axisLv{display:flex;align-items:center;gap:10px;border:3px solid var(--line);border-radius:16px;background:var(--card);padding:8px 10px;box-shadow:var(--shadow)}
+.axisLv .org{flex:1;min-width:0}
+.axisLv .org small{display:block;font-weight:800;opacity:.7;font-size:12px}
+.axisLv .org b{font-family:"Dela Gothic One",sans-serif;font-size:16px}
+.axisLv .dir{min-width:64px;min-height:48px;font-size:26px;font-weight:800;border:3px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);cursor:pointer}
+.axisLv .dir.up{background:color-mix(in srgb,var(--tomato) 35%,var(--card))}
+.axisLv .dir.down{background:color-mix(in srgb,var(--cobalt) 30%,var(--card))}
+.axisLv .dir.nl{background:color-mix(in srgb,var(--mint) 30%,var(--card))}
+.axisLv .dir:disabled{cursor:default}
+.axisLv.given .dir{border-style:dashed}
+.axisLv.right{outline:4px solid var(--mint)}
+.axisLv.wrong{outline:4px solid var(--tomato)}
+.axisLv .fix{font-size:12px;font-weight:800}
+.axisArrow{text-align:center;font-weight:800;font-size:13px;line-height:26px}
+.axisFb{position:absolute;right:0;top:30px;bottom:30px;width:36px;border:3px dashed var(--pink);border-left:none;border-radius:0 18px 18px 0}
+.axisFb span{position:absolute;right:-10px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;white-space:nowrap;font-size:11px;font-weight:800;background:var(--bg);padding:0 4px;color:var(--pink)}
+.axisGo{display:flex;justify-content:center;margin-top:12px}

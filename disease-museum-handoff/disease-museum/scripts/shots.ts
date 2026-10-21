@@ -33,8 +33,12 @@ async function launch(): Promise<Browser> {
 }
 
 // Google Fonts は Node 側で取りに行く（Node はプロキシの CA を信頼している。ブラウザの TLS 検証は切らない）
+// 乱数を固定して、撮るたびに同じ画面になるようにする（エンジンと試作の両方）
+const SEED_RANDOM = `(() => { let a = 20260926; Math.random = () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();`;
+
 async function newContext(browser: Browser, opts: BrowserContextOptions) {
   const ctx = await browser.newContext(opts);
+  await ctx.addInitScript(SEED_RANDOM);
   await ctx.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, async (route) => {
     try { await route.fulfill({ response: await route.fetch() }); } catch { await route.abort(); }
   });
@@ -87,6 +91,91 @@ async function shootExhibits(page: Page, dir: string, idPrefix = "ex-") {
   return ids;
 }
 
+// 展示ごとに「1手遊んだ」状態を作る。クラス名はエンジンと試作で同じなので、同じ手順が両方に効く
+const PLAY: Record<string, (page: Page, ex: string) => Promise<void>> = {
+  lab: async (p, ex) => { await p.click(`${ex} .test >> nth=0`); await p.click(`${ex} .test >> nth=3`); await p.click(`${ex} .opt >> nth=4`); },
+  portal: async (p, ex) => { await p.locator(`${ex} input[type=range]`).fill("14"); await p.click(`${ex} .opt >> nth=1`); },
+  hbv: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); },
+  hcc: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); await p.waitForTimeout(800); await p.click(`${ex} .opt >> nth=1`); },
+  er: async (p, ex) => { await p.click(`${ex} .opt >> nth=1`); },
+  panc: async (p, ex) => { await p.click(`${ex} .labt >> nth=0`); await p.click(`${ex} .labt >> nth=2`); await p.click(`${ex} .row .btn >> nth=0`); },
+  vs: async (p, ex) => { await p.click(`${ex} .pick .btn`); await p.waitForTimeout(200); await p.click(`${ex} .pick .btn >> nth=0`); },
+  memory: async (p, ex) => { await p.click(`${ex} .mc >> nth=0`); await p.click(`${ex} .mc >> nth=1`); },
+  // 消化管ホール
+  reveal: async (p, ex) => { await p.click(`${ex} .more`); await p.click(`${ex} .opt >> nth=0`); },
+  endoscopy: async (p, ex) => { await p.click(`${ex} .go`); await p.waitForTimeout(300); await p.click(`${ex} .opt >> nth=3`); },
+  depth: async (p, ex) => { await p.click(`${ex} .band >> nth=0`); await p.click(`${ex} .opt >> nth=0`); },
+  pylori: async (p, ex) => { await p.click(`${ex} .opt >> nth=1`); },
+  resection: async (p, ex) => { await p.click(`${ex} .segChips button >> nth=7`); await p.click(`${ex} .go`); },
+  versus: async (p, ex) => { await p.click(`${ex} .pick .btn`); await p.waitForTimeout(200); await p.click(`${ex} .pick .btn >> nth=0`); },
+  food: async (p, ex) => { await p.locator(`${ex} .rewind input`).fill("70"); await p.click(`${ex} .mb >> nth=0`); await p.click(`${ex} .opt >> nth=0`); },
+  race: async (p, ex) => { await p.click(`${ex} .more`); await p.click(`${ex} .opt >> nth=0`); },
+  // 循環器ホール
+  dojo: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); },
+  calipers: async (p, ex) => { await p.click(`${ex} .nudge button[data-d="0.04"]`); await p.click(`${ex} .go`); await p.click(`${ex} .opt >> nth=0`); },
+  twelve: async (p, ex) => { await p.click(`${ex} .leadChips button >> nth=1`); await p.click(`${ex} .leadChips button >> nth=2`); await p.click(`${ex} .go`); await p.click(`${ex} .opt >> nth=2`); },
+  axis: async (p, ex) => { const dial = p.locator(`${ex} .dial`); const b = (await dial.boundingBox())!; await dial.click({ position: { x: b.width * 0.72, y: b.height * 0.72 } }); await p.click(`${ex} .opt >> nth=0`); },
+  sounds: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); await p.click(`${ex} .spot >> nth=4`); },
+  codeblue: async (p, ex) => { await p.click(`${ex} .opt >> nth=0`); },
+  chest: async (p, ex) => { await p.click(`${ex} .test >> nth=0`); await p.click(`${ex} .opt >> nth=0`); },
+};
+
+/** 個別の手順がない展示は、画面の部品から遊び方を見分けて1手だけ遊ぶ（新しいホールでも撮れるように） */
+async function genericPlay(p: Page, ex: string) {
+  const has = async (sel: string) => (await p.locator(`${ex} ${sel}`).count()) > 0;
+  const clickIf = async (sel: string) => { if (await has(sel)) { await p.locator(`${ex} ${sel}`).first().click(); return true; } return false; };
+  if (await has('.scope .obj[data-t="1"]')) { // microscope：目標を全部タップ → 設問
+    for (const g of await p.locator(`${ex} .scope .obj[data-t="1"]`).all()) await g.dispatchEvent("click");
+    await clickIf(".step2 .opt"); return;
+  }
+  if (await has(".axisLv .dir")) { // axis：矢印を1回ずつ → 判定 → 原因
+    for (const b of await p.locator(`${ex} .axisLv .dir:not([disabled])`).all()) await b.click();
+    await clickIf(".go"); await clickIf(".step2 .opt"); return;
+  }
+  if (await has(".vfPath .les")) { await p.locator(`${ex} .vfPath .les`).nth(2).dispatchEvent("click"); await clickIf(".step2 .opt"); return; }
+  if (await has(".gcsRow")) {
+    for (const k of ["E", "V", "M"]) await p.locator(`${ex} .gcsRow[data-k="${k}"] button`).nth(1).click();
+    await clickIf(".go"); await clickIf(".step2 .opt"); return;
+  }
+  if (await has(".bugs .bug")) { await p.locator(`${ex} .bug`).nth(1).click(); await p.locator(`${ex} .bug`).nth(2).click(); await clickIf(".go"); return; }
+  if (await has(".bags .bag")) { await p.locator(`${ex} .bag`).nth(0).click(); await p.locator(`${ex} .bag`).nth(3).click(); await clickIf(".go"); return; }
+  if (await has(".ogttTypes .opt")) { await clickIf(".ogttTypes .opt"); await clickIf(".step2 .opt"); return; }
+  if (await has(".ctgTypes .opt")) { await p.locator(`${ex} .ctgTypes .opt`).nth(2).click(); await clickIf(".step2 .opt"); return; }
+  if (await has(".tags button")) { for (let i = 0; i < 6 && await has(".tags button:not([disabled])"); i++) await p.locator(`${ex} .tags button`).nth(i % 4).click(); return; }
+  if (await has(".toxTypes .opt")) { await clickIf(".toxTypes .opt"); await clickIf(".step2 .opt"); return; }
+  if (await has(".roots .opt")) { await clickIf(".roots .opt"); await clickIf(".step2 .opt"); return; }
+  if (await has(".hlTypes .opt")) { await clickIf(".hlTypes .opt"); await clickIf(".step2 .opt"); return; }
+  if (await has(".pupBtns button")) { await p.locator(`${ex} .pupBtns button`).nth(2).click(); await clickIf(".s1 .opt"); await clickIf(".step2 .opt"); return; }
+  if (await has(".abcde button")) { await p.locator(`${ex} .abcde button`).nth(0).click(); await clickIf(".go"); await clickIf(".step2 .opt"); return; }
+  if (await has(".chatOpts .opt")) { for (let i = 0; i < 6 && await has(".chatOpts .opt"); i++) { await clickIf(".chatOpts .opt"); await p.waitForTimeout(450); } await clickIf(".step2 .opt"); return; }
+  if (await has(".s1 .opt")) { await clickIf(".s1 .opt"); await clickIf(".step2 .opt"); return; }
+  if (await has(".critItems button")) { await p.locator(`${ex} .critItems button`).nth(0).click(); await p.locator(`${ex} .critItems button`).nth(1).click(); await clickIf(".go"); await clickIf(".step2 .opt"); return; }
+  if (await has(".anaPats .opt")) { await clickIf(".anaPats .opt"); await clickIf(".step2 .opt"); return; }
+  if (await has(".gridQ button")) { await clickIf(".gridQ button"); await clickIf(".opt"); return; }
+  if (await has(".tapChips button")) { await clickIf(".tapChips button"); await clickIf(".go"); await clickIf(".step2 .opt"); return; }
+  if (await has(".orderPool .opt")) { await clickIf(".orderPool .opt"); return; }
+  if (await has(".more")) { await clickIf(".more"); await clickIf(".opt"); return; }
+  if (await has(".test")) { await clickIf(".test"); await clickIf(".opt"); return; }
+  if (await has(".pick .btn")) { await clickIf(".pick .btn"); await p.waitForTimeout(200); await clickIf(".pick .btn"); return; }
+  if (await has(".labt")) { await clickIf(".labt"); await clickIf(".row .btn"); return; }
+  if (await has(".mc")) { await p.locator(`${ex} .mc`).nth(0).click(); await p.locator(`${ex} .mc`).nth(1).click(); return; }
+  if (await has(".go") && !(await has(".opt"))) { await clickIf(".go"); return; }
+  await clickIf(".opt");
+}
+
+async function shootPlayed(page: Page, dir: string, ids: string[]) {
+  const style = await page.addStyleTag({ content: HIDE_TOPBAR + ".toast{display:none!important}" });
+  for (const id of ids) {
+    if (id === "ex-gacha" || id === "ex-review") continue;
+    const play = PLAY[id.replace(/^ex-/, "")] ?? genericPlay;
+    await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+    await play(page, `#${id}`);
+    await page.waitForTimeout(700);
+    await page.locator(`#${id}`).screenshot({ path: resolve(dir, `play-${id}.png`), animations: "disabled" });
+  }
+  await style.evaluate((n) => (n as ChildNode).remove());
+}
+
 const browser = await launch();
 rmSync(outRoot, { recursive: true, force: true });
 
@@ -113,6 +202,10 @@ for (const hall of halls) {
     await page.screenshot({ path: resolve(dir, "01-full.png"), fullPage: true });
     const ids = await shootExhibits(page, dir);
     for (const id of ids) sheet.push({ hall, vp: vp.name, label: id, mine: relative(outRoot, resolve(dir, `${id}.png`)) });
+    await shootPlayed(page, dir, ids);
+    for (const id of ids.filter((i) => i !== "ex-gacha" && i !== "ex-review")) sheet.push({ hall, vp: vp.name, label: `play-${id}`, mine: relative(outRoot, resolve(dir, `play-${id}.png`)) });
+    await page.reload();
+    await settle(page);
 
     if (vp.name === "390") {
       const o = await overflowCheck(page);
@@ -140,18 +233,19 @@ for (const hall of halls) {
     }
 
     // 3. 遊んだあとの状態（XP・スタンプ・収蔵庫）を入れて読み直す
-    const key = await page.evaluate(() => Object.keys(localStorage).find((k) => k.startsWith("diseaseMuseum.")) ?? "");
-    await page.evaluate((key) => {
+    await page.evaluate((hall) => {
+      localStorage.setItem("diseaseMuseum.museum.v3", JSON.stringify({ coins: 85, xp: 430 }));
+      const key = `diseaseMuseum.hall.${hall}.v3`;
       const st = JSON.parse(localStorage.getItem(key) || "{}");
       Object.assign(st, {
-        coins: 85, xp: 430, stamps: { lab: 1, hbv: 1, er: 1 }, gacha: { ...st.gacha, chol: 1, ileus: 1 },
+        stamps: { lab: 1, hbv: 1, er: 1 }, gacha: { ...st.gacha, chol: 1, ileus: 1 },
         review: [
           { id: "shot-1", src: "黄疸診断ラボ", q: "（撮影用のダミー）56歳 女性：食後の右季肋部痛、発熱と黄疸。", opts: ["総胆管結石", "急性肝炎", "溶血性貧血"], ans: "総胆管結石" },
           { id: "shot-2", src: "対決の間：PBC vs PSC", q: "（撮影用のダミー）「AMA陽性」はどっち？", opts: ["PBC", "PSC"], ans: "PBC" },
         ],
       });
       localStorage.setItem(key, JSON.stringify(st));
-    }, key);
+    }, hall);
     await page.reload();
     await settle(page);
     await page.evaluate("window.scrollTo(0, 0)");
@@ -188,11 +282,61 @@ for (const hall of halls) {
         const p = relative(outRoot, resolve(rdir, `${id}.png`));
         if (row) row.ref = p; else sheet.push({ hall, vp: vp.name, label: id, ref: p });
       }
+      await shootPlayed(rp, rdir, rids);
+      for (const id of rids) {
+        const row = sheet.find((x) => x.hall === hall && x.vp === vp.name && x.label === `play-${id}`);
+        if (row) row.ref = relative(outRoot, resolve(rdir, `play-${id}.png`));
+      }
       for (const f of ["00-top", "01-full"]) sheet.push({ hall, vp: vp.name, label: f, mine: relative(outRoot, resolve(dir, `${f}.png`)), ref: relative(outRoot, resolve(rdir, `${f}.png`)) });
       await rc.close();
     }
   }
 }
+// 館の入口（静的サイト）。vite preview で配信して、入口 → ホールの移動とコインの共有を確かめる
+{
+  execSync("npx vite build --logLevel warn", { cwd: root, stdio: "inherit" });
+  // dist/ をディスクから直接返す（ローカルのサーバーを立てない。Playwright はループバックもプロキシに通すため）
+  const base = "http://museum.test/";
+  const serveDist = async (ctx: Awaited<ReturnType<typeof newContext>>) => {
+    await ctx.route(`${base}**`, async (route) => {
+      let path = decodeURIComponent(new URL(route.request().url()).pathname);
+      if (path.endsWith("/")) path += "index.html";
+      const file = resolve(root, "dist", "." + path);
+      if (!file.startsWith(resolve(root, "dist")) || !existsSync(file)) return route.fulfill({ status: 404, body: "not found" });
+      await route.fulfill({ path: file });
+    });
+  };
+  for (const vp of VIEWPORTS) {
+    const dir = resolve(outRoot, "museum", vp.name);
+    mkdirSync(dir, { recursive: true });
+    const ctx = await newContext(browser, { viewport: { width: vp.width, height: vp.height }, isMobile: vp.isMobile, hasTouch: vp.hasTouch, deviceScaleFactor: vp.deviceScaleFactor, reducedMotion: "reduce" });
+    await serveDist(ctx);
+    const page = await ctx.newPage();
+    page.on("pageerror", (e) => problems.push(`museum ${vp.name}: JSエラー ${e.message}`));
+    await page.goto(base);
+    await page.evaluate(() => {
+      localStorage.setItem("diseaseMuseum.museum.v3", JSON.stringify({ coins: 85, xp: 430 }));
+      localStorage.setItem("diseaseMuseum.hall.kantansui.v3", JSON.stringify({ stamps: { lab: 1, hbv: 1, er: 1 } }));
+    });
+    await page.reload();
+    await settle(page);
+    await page.screenshot({ path: resolve(dir, "00-museum.png"), fullPage: true });
+    sheet.push({ hall: "museum", vp: vp.name, label: "入口", mine: relative(outRoot, resolve(dir, "00-museum.png")) });
+    if (vp.name === "390") {
+      const o = await overflowCheck(page);
+      if (o.scrollW > o.W || o.bad.length) problems.push(`museum 390: 横にはみ出し ${o.bad.join(" / ")}`);
+    }
+    await page.click('a.hallCard[href="halls/kantansui/"]');
+    await page.waitForURL(/halls\/kantansui/);
+    await settle(page);
+    const coins = await page.locator("#coins").textContent();
+    if (coins !== "85") problems.push(`museum ${vp.name}: ホールに入るとコインが ${coins}（館全体の 85 が引き継がれていない）`);
+    if (!(await page.locator('a[href="../../"]').count())) problems.push(`museum ${vp.name}: ホールに「館の入口へ」のリンクがない`);
+    await page.screenshot({ path: resolve(dir, "01-hall-from-museum.png") });
+    await ctx.close();
+  }
+}
+
 await browser.close();
 
 // 見比べ用の一覧

@@ -1,0 +1,8 @@
+/* 深達度タップ */
+.wall{display:block;width:100%;max-width:520px;margin:0 auto;border:3px solid var(--line);border-radius:16px;box-shadow:var(--shadow);background:var(--card)}
+.wall .band{cursor:pointer}
+.wall .band:hover rect.l,.wall .band:focus-visible rect.l{stroke:var(--cobalt);stroke-width:4}
+.wall .band.pick rect.l{stroke:var(--sun);stroke-width:5}
+.wall .band.right rect.l{stroke:var(--mint);stroke-width:5}
+.wall .band.wrong rect.l{stroke:var(--pink);stroke-width:5}
+.wall text{font-size:13px;font-weight:800;fill:#1C1537;pointer-events:none}
