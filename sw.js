@@ -2,7 +2,7 @@
 
 // 医学系ツール共通のService Worker(サイトルートスコープ)。
 // アプリを更新したらこのバージョンを上げる(古いキャッシュが破棄される)
-const CACHE = 'medical-hub-v2';
+const CACHE = 'medical-hub-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -27,7 +27,13 @@ const ASSETS = [
   './road-quiz/',
   './road-quiz/index.html',
   './road-quiz/mapdata.js',
-  './road-quiz/routes.js'
+  './road-quiz/routes.js',
+  './osce-sim/',
+  './osce-sim/index.html',
+  './osce-sim/data-cases.js',
+  './osce-sim/data-sim.js',
+  './osce-sim/data-say.js',
+  './osce-sim/engine.js'
 ];
 
 self.addEventListener('install', e => {

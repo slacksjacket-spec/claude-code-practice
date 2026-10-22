@@ -378,8 +378,7 @@
 <body>
 <main id="app"></main>
 
-<script src="data-cato.js"></script>
-<script src="data-notes.js"></script>
+<script src="data-cases.js"></script>
 <script src="data-sim.js"></script>
 <script src="data-say.js"></script>
 <script src="engine.js"></script>
@@ -390,12 +389,13 @@
   const KEY = 'osce-sim-v1';
   const EXAM_LIMIT = 720;
   const app = document.getElementById('app');
-  // CATO表（data-cato.js）と暗記用ノート（data-notes.js）は公開リポジトリに置いていない。ないときは案内だけ出す
-  if (!CATO || !NOTES || !E) {
+  // CATO表（data-cato.js）と暗記用ノート（data-notes.js）があるのは非公開版だけ。
+  // 公開版（data-cases.js だけ）では、表とノートの表示・クイズ・BLS・First のヒントを出さない
+  const FULL = !!(CATO && NOTES);
+  if (!E) {
     app.innerHTML = '<div class="page"><nav class="topnav"><a href="../medical.html">← 国試ツールキット</a></nav>' +
       '<section class="card" style="display:grid;gap:10px"><h1 style="font-size:1.4rem">OSCEステーション</h1>' +
-      '<p style="margin:0">症例のもとになるCATO表と暗記用ノートのデータが見つかりません。これらは公開しないため、リポジトリには含めていません。</p>' +
-      '<p class="dim" style="margin:0;font-size:0.85rem">このフォルダに data-cato.js と data-notes.js を置くと動きます。</p></section></div>';
+      '<p style="margin:0">症例データを読み込めませんでした。通信状態を確かめて、ページを再読み込みしてください。</p></section></div>';
     return;
   }
   const esc = s => String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -420,6 +420,8 @@
 
   // ---- 画面切り替え ----
   function go(v) {
+    // ノート・クイズ・BLS は非公開版だけ
+    if (!FULL && ['notes', 'quiz', 'bls'].indexOf(v) >= 0) v = 'home';
     view = v;
     stopTimer4();
     if (v !== 'station') document.body.style.overflow = '';
@@ -460,7 +462,7 @@
   function renderHome() {
     const st = stats();
     const cur = store.current;
-    const modeText = store.cfg.mode === 'exam' ? '本番モード（面接・診察 12分、ヒントなし）' : '練習モード（時間制限なし、ヒントあり）';
+    const modeText = store.cfg.mode === 'exam' ? '本番モード（面接・診察 12分' + (FULL ? '、ヒントなし' : '') + '）' : '練習モード（時間制限なし' + (FULL ? '、ヒントあり' : '') + '）';
     app.innerHTML =
       '<div class="page">' +
       '<nav class="topnav"><a href="../medical.html">← 国試ツールキット</a><button class="linkbtn" data-act="go" data-v="setup">設定</button></nav>' +
@@ -481,15 +483,15 @@
       '</section>' +
       '<section><div class="section-title"><h2>症候から選ぶ</h2><span class="dim" style="font-size:0.8rem">タップするとその症候の症例がランダムに出ます</span></div>' +
       '<div class="grid-sym">' + symTiles('startSym') + '</div></section>' +
-      '<section class="tools">' +
+      (FULL ? '<section class="tools">' +
       '<button class="card tool" data-act="go" data-v="notes"><b>症候別ノート</b><span>暗記用の「→」と First・Red Flag、CATO表を見返す</span></button>' +
       '<button class="card tool" data-act="go" data-v="quiz"><b>クイズ</b><span>所見→疾患、Red Flag、Firstの分岐を4択で</span></button>' +
       '<button class="card tool" data-act="go" data-v="bls"><b>BLS 並べ替え</b><span>心停止の対応を正しい順に並べる（JRC 2020）</span></button>' +
-      '</section>' +
+      '</section>' : '') +
       (store.history.length ? '<section><div class="section-title"><h2>最近のステーション</h2></div><div class="hist">' +
         store.history.slice(-8).reverse().map(x => '<div class="hist-row"><span class="rank ' + x.rank + '">' + x.rank + '</span><span>' + esc(x.sym) + '<span class="dim"> ／ ' + esc(x.dis) + '</span></span><span class="mono">' + x.total + '点</span></div>').join('') +
         '</div></section>' : '') +
-      '<footer class="note">症候・想定疾患・医療面接と身体診察のポイントは、CATO 学生配付資料（医療系大学間共用試験実施評価機構 2024, p.90〜130）をもとにした自作ノートから作っています。患者のセリフや所見の数値は練習用に作ったもので、実際の試験の評価基準ではありません。成績はこの端末のブラウザにだけ保存されます。</footer>' +
+      '<footer class="note">症候・想定疾患・医療面接と身体診察のポイントは、CATO 学生配付資料（医療系大学間共用試験実施評価機構 2024, p.90〜130）をもとにした自作ノートから作っています。患者のセリフや所見の数値は練習用に作ったもので、実際の試験の評価基準ではありません。' + (FULL ? '' : 'この公開版には、CATO表と暗記用ノートの表示やクイズは入れていません。') + '成績はこの端末のブラウザにだけ保存されます。</footer>' +
       '</div>';
   }
 
@@ -502,7 +504,7 @@
       '<nav class="topnav"><button class="linkbtn" data-act="go" data-v="home">← ホーム</button></nav>' +
       '<section class="card settings">' +
       '<h2>ステーションの設定</h2>' +
-      '<div class="opt"><span>モード</span><div class="seg">' + seg('mode', 'exam', '本番：面接・診察 12分、ヒントなし') + seg('mode', 'practice', '練習：時間制限なし、First のヒントあり') + '</div></div>' +
+      '<div class="opt"><span>モード</span><div class="seg">' + seg('mode', 'exam', '本番：面接・診察 12分' + (FULL ? '、ヒントなし' : '')) + seg('mode', 'practice', '練習：時間制限なし' + (FULL ? '、First のヒントあり' : '')) + '</div></div>' +
       '<div class="opt"><span>質問の選び方</span><div class="seg">' + seg('input', 'list', '一覧から選ぶ') + seg('input', 'search', 'キーワードで探す（思い出す練習）') + '</div></div>' +
       '<p class="dim" style="margin:0;font-size:0.8rem">質問・診察はそれぞれ時間を消費します（質問 15秒、バイタル 60秒など）。本番モードでは12分を使い切ると、自動で報告に移ります。</p>' +
       '</section>' +
@@ -657,7 +659,7 @@
   function qButtons(list) {
     const asked = G.st.asked;
     return '<div class="qgrid">' + list.map(q => '<button class="qbtn' + (asked.indexOf(q.id) >= 0 ? ' done' : '') + '" data-act="ask" data-q="' + q.id + '"' +
-      (G.timeUp ? ' disabled' : '') + ' title="' + esc(q.q) + '">' + (q.tag ? '<span class="tag">' + esc(q.tag) + '</span>' : '') + '<span>' + esc(q.l) + '</span></button>').join('') + '</div>';
+      (G.timeUp ? ' disabled' : '') + ' title="' + esc(E.questionText(G.c, q.id)) + '">' + (q.tag ? '<span class="tag">' + esc(q.tag) + '</span>' : '') + '<span>' + esc(q.l) + '</span></button>').join('') + '</div>';
   }
   // カタカナはひらがなにそろえて比べる（「タバコ」でも「たばこ」でも当たるように）
   const kana = s => s.toLowerCase().replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
@@ -730,7 +732,7 @@
       foot.innerHTML = '<div class="confirm"><span>面接・診察を終えて、指導医への報告に進みますか？</span><button class="btn small ghost" data-act="endno">続ける</button><button class="btn small primary" data-act="report">報告へ進む</button></div>';
       return;
     }
-    const hint = G.mode === 'practice' ? '<button class="btn small ghost hint" data-act="hint" title="First（最初にやること）を見る。30秒かかります">ヒント（+30秒）</button>' : '<span class="hint"></span>';
+    const hint = FULL && G.mode === 'practice' ? '<button class="btn small ghost hint" data-act="hint" title="First（最初にやること）を見る。30秒かかります">ヒント（+30秒）</button>' : '<span class="hint"></span>';
     foot.innerHTML = hint + '<button class="btn small ghost" data-act="pause" title="中断してホームへ（続きから再開できます）">中断</button>' +
       (G.timeUp ? '<button class="btn small primary" data-act="report">報告へ進む</button>' : '<button class="btn small primary" data-act="endask">報告へ</button>');
   }
@@ -827,7 +829,7 @@
     const rfs = c.rf.filter(x => x.cato);
     const rfRow = '<div class="pair"><select data-act-change="rfd" aria-label="Red Flag"><option value="">見逃してはいけない疾患</option>' +
       rfs.map(x => '<option value="' + esc(x.cato) + '"' + (rep.rf.d === x.cato ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>' + reasonSel('rfr', rep.rf.ref) + '</div>';
-    const P = NOTES.present;
+    const P = FULL ? NOTES.present : null;
     app.innerHTML =
       '<div class="page report">' +
       '<nav class="topnav">' + (G.timeUp ? '<span></span>' : '<button class="linkbtn" data-act="backstation">← 面接・診察に戻る</button>') + '<button class="linkbtn" data-act="pause">中断してホームへ</button></nav>' +
@@ -837,15 +839,15 @@
       '<section class="step card"><h2><span class="num">2</span>根拠を2つ <span class="dim" style="font-size:0.8rem;font-weight:400">カルテの陽性所見から</span></h2><div class="choices">' + evChips + '</div></section>' +
       '<section class="step card"><h2><span class="num">3</span>鑑別を2つと、考えにくい根拠</h2><p class="dim" style="margin:0;font-size:0.82rem">その疾患なら見られるはずの所見が「なかった」ことを根拠にします。</p><div class="pairs">' + ddRows + '</div></section>' +
       '<section class="step card"><h2><span class="num">4</span>Red Flag に触れる</h2><div class="pairs">' + rfRow + '</div></section>' +
-      '<details class="ref"><summary>4分プレゼンの型（暗記用ノート）</summary><div class="flow">' + P.flow.map(f => '<div><b>' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span><span class="dim">' + esc(f[2]) + '</span></div>').join('') + '</div>' +
-      '<div class="flow" style="margin-top:12px">' + P.assessment.map(a => '<div style="grid-template-columns:1fr"><span class="dim">' + esc(a) + '</span></div>').join('') + '</div></details>' +
+      (P ? '<details class="ref"><summary>4分プレゼンの型（暗記用ノート）</summary><div class="flow">' + P.flow.map(f => '<div><b>' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span><span class="dim">' + esc(f[2]) + '</span></div>').join('') + '</div>' +
+      '<div class="flow" style="margin-top:12px">' + P.assessment.map(a => '<div style="grid-template-columns:1fr"><span class="dim">' + esc(a) + '</span></div>').join('') + '</div></details>' : '') +
       '<div class="row" style="justify-content:flex-end"><button class="btn primary" data-act="submit"' + (rep.dx ? '' : ' disabled') + '>報告する（採点）</button></div>' +
       '</div>';
   }
 
   // ---- 結果 ----
   function verdictOf(rank) {
-    return { S: '合格レベルを大きく超えています。', A: '安定して合格できる出来です。', B: 'おおむね良好。落とした項目を確認しましょう。', C: 'もう一歩。決め手と除外の質問を見直しましょう。', D: 'まずは First と Red Flag の確認から。' }[rank];
+    return { S: '合格レベルを大きく超えています。', A: '安定して合格できる出来です。', B: 'おおむね良好。落とした項目を確認しましょう。', C: 'もう一歩。決め手と除外の質問を見直しましょう。', D: 'まずは決め手になる質問・診察と、Red Flag の確認から。' }[rank];
   }
   function cellsList(c, kind, id, src) {
     const items = kind === 'q' ? (c.q[id] || []) : (c.e[id] || []);
@@ -867,8 +869,8 @@
       return '<details class="rfd"><summary><b>' + esc(x.name) + '</b><span class="mono dim">' + hit + ' / ' + (qids.length + eids.length) + '</span></summary>' +
         '<div class="checks">' + (qs.concat(es).join('') || '<span class="dim">表に記載なし</span>') + '</div></details>';
     }).join('');
-    const N = NOTES.symptoms[c.sym];
-    const first = N.first.map(f => '<div class="fi"><b>' + esc(f.ask) + ' →</b><div class="br">' + f.br.map(b => '<span>' + esc(b[0] || '') + '</span><span>' + esc(b[1]) + '</span>').join('') + '</div></div>').join('');
+    const N = FULL ? NOTES.symptoms[c.sym] : null;
+    const first = !N ? '' : N.first.map(f => '<div class="fi"><b>' + esc(f.ask) + ' →</b><div class="br">' + f.br.map(b => '<span>' + esc(b[0] || '') + '</span><span>' + esc(b[1]) + '</span>').join('') + '</div></div>').join('');
     const pres = E.presentation(c);
     const refText = ref => {
       if (!ref) return '（根拠なし）';
@@ -896,10 +898,10 @@
       '</section>' +
       '<section class="card"><div class="section-title"><h2>模範プレゼン（4分）</h2><div class="row"><span class="timer4" id="t4">04:00</span><button class="btn small" data-act="t4">音読タイマー</button></div></div>' +
       '<div class="present">' + pres.sections.map(s => '<div class="sec"><div class="t"><b>' + esc(s.title) + '</b>' + esc(s.time) + '</div><p>' + esc(s.lines.join('')) + '</p></div>').join('') + '</div></section>' +
-      '<section class="card"><div class="section-title"><h2>First：' + esc(c.sym) + 'で最初にやること</h2></div><div class="first">' + first + '</div></section>' +
+      (first ? '<section class="card"><div class="section-title"><h2>First：' + esc(c.sym) + 'で最初にやること</h2></div><div class="first">' + first + '</div></section>' : '') +
       '<section class="card"><div class="section-title"><h2>Red Flag を除外する質問・診察</h2><span class="dim" style="font-size:0.8rem">緊急性の高い順・聞けた数 / 表の項目数</span></div>' +
       '<div class="rfds">' + (rfBlocks || '<span class="dim">この症例で除外すべき Red Flag の項目はありません。</span>') + '</div></section>' +
-      '<section><div class="section-title"><h2>CATO表：' + esc(c.sym) + '</h2><div class="legend"><span><i style="background:var(--accent-soft)"></i>正解の列</span><span><i style="box-shadow:inset 0 0 0 2px var(--good)"></i>聞けた・診られた</span><span><i style="box-shadow:inset 0 0 0 2px var(--bad)"></i>落とした</span></div></div>' + catoTable(c.sym, c) + '</section>' +
+      (FULL ? '<section><div class="section-title"><h2>CATO表：' + esc(c.sym) + '</h2><div class="legend"><span><i style="background:var(--accent-soft)"></i>正解の列</span><span><i style="box-shadow:inset 0 0 0 2px var(--good)"></i>聞けた・診られた</span><span><i style="box-shadow:inset 0 0 0 2px var(--bad)"></i>落とした</span></div></div>' + catoTable(c.sym, c) + '</section>' : '') +
       '<div class="row" style="justify-content:flex-end"><button class="btn" data-act="go" data-v="home">ホーム</button><button class="btn" data-act="startSym" data-sym="' + esc(c.sym) + '">同じ症候で別の症例</button><button class="btn primary" data-act="random">次のステーション</button></div>' +
       '</div>';
   }

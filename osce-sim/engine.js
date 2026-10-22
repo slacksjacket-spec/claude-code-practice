@@ -3,12 +3,25 @@
 // 症例の生成、質問への返答、診察所見、バイタル、採点、模範プレゼン、クイズをまとめる。
 // CATO表の「列＝疾患」を1症例とし、その列のセルが患者の答え・所見になる。
 (function (root) {
-  const CATO = root.OSCE_CATO;
-  const NOTES = root.OSCE_NOTES;
+  // 症例のもとは、非公開の CATO表（data-cato.js）があればそれを、なければ公開用に疾患ごとにまとめたもの（data-cases.js）から
+  // 組み立てた表を使う。暗記用ノート（data-notes.js）は非公開版にだけあり、ないときは Red Flag を data-cases.js から読む
+  const CATO = root.OSCE_CATO || (root.OSCE_CASES && root.OSCE_CASES.map(tableFromCases));
+  const NOTES = root.OSCE_NOTES || null;
   const SIM = root.OSCE_SIM;
   const SAY = root.OSCE_SAY;
-  // CATO表と暗記用ノートのデータ（リポジトリには含めていない）がなければ何もしない
-  if (!CATO || !NOTES) return;
+  // 症例データがなければ何もしない（画面側で案内を出す）
+  if (!CATO) return;
+
+  // data-cases.js の1症候分を、data-cato.js と同じ形の表に戻す
+  function tableFromCases(s) {
+    const diseases = Object.keys(s.cases);
+    const rows = (labels, k) => labels.map((row, i) => {
+      const cells = {};
+      diseases.forEach(d => { const hit = s.cases[d][k].find(x => x[0] === i); if (hit) cells[d] = hit[1]; });
+      return [row, cells];
+    });
+    return { id: s.id, name: s.name, diseases, interview: rows(s.qrows, 'q'), exam: rows(s.erows, 'e'), unc: [] };
+  }
 
   // ---- 乱数（シードが同じなら同じ症例になる）----
   function mulberry32(a) {
@@ -158,9 +171,15 @@
     return { dq, de };
   }
 
+  // 症候の Red Flag（緊急性の高い順）。name はノートでの名前、cato は表の疾患名（表にないものは null）
+  function redFlagsOf(sym) {
+    if (NOTES) return ((NOTES.symptoms[sym] || {}).redFlags || []).map(n => ({ name: n, cato: resolveNoteName(sym, n) }));
+    const s = (root.OSCE_CASES || []).find(x => x.name === sym);
+    return s ? s.rf.map(([name, cato]) => ({ name, cato })) : [];
+  }
   function resolveNoteName(sym, n) {
     const S = SYM[sym];
-    const N = NOTES.symptoms[sym];
+    const N = NOTES && NOTES.symptoms[sym];
     const a = (N && N.alias && N.alias[n]) || n;
     return S && S.diseases.indexOf(a) >= 0 ? a : null;
   }
@@ -264,12 +283,32 @@
       p.relation = familyRelation(p.age, p.sex);
     }
 
+    // 痛みの性状と強さ（NRS）。表にない部分を data-sim.js の pain で補う
+    // NRS はほかの所見とは別の乱数で決める（既存の症例の出方を変えないため）
+    const pain = SIM.pain[sym + '|' + dis] || null;
+    const pr = mulberry32((seed ^ 0x5bd1e995) >>> 0);
+    const nr = pain ? pain.n : [3, 5, 5, 7];
+    const nrsNow = randInt(pr, nr[0], nr[1]);
+    c.nrs = { now: nrsNow, worst: Math.max(nrsNow, randInt(pr, nr[2], nr[3])), pain: !!pain };
+    if (pain) {
+      // 小学生くらいの子どもは、子どもの言葉で言う（kq）
+      const sayQ = p.informant === 'parent' && p.age >= 6 && pain.kq ? '本人は「' + pain.kq + '」と言っています。' : reported(p, pain.q, 'quality');
+      if (c.q.quality) c.q.quality.forEach(i => { i.say = sayQ; });
+      else if (pain.qc) addItem(c.q, 'quality', { cell: pain.qc, chart: pain.qc, row: null, say: sayQ, src: 'profile', neg: false });
+      const nt = nrsChart(c), ns = nrsSay(c, pain.t);
+      if (c.q.severity) c.q.severity.forEach(i => { i.chart = i.chart + '、' + nt; i.say = ns; });
+      else addItem(c.q, 'severity', { cell: nt, chart: nt, row: null, say: ns, src: 'profile', neg: false });
+      Object.keys(pain.h || {}).forEach(qid => {
+        if (c.q[qid] || !qAllowed(qid, p)) return;
+        addItem(c.q, qid, { cell: pain.h[qid][1], chart: pain.h[qid][1], row: null, say: reported(p, pain.h[qid][0]), src: 'profile', neg: false });
+      });
+    }
+
     // 鑑別と Red Flag
     const cbd = cellsByDisease(S, p);
     c.dq = cbd.dq;
     c.de = cbd.de;
-    const N = NOTES.symptoms[sym] || { redFlags: [] };
-    c.rf = N.redFlags.map(n => ({ name: n, cato: resolveNoteName(sym, n) }));
+    c.rf = redFlagsOf(sym);
     c.isRF = c.rf.some(x => x.cato === dis);
     c.rfQ = {};
     c.rfE = {};
@@ -378,6 +417,55 @@
     return { asked: [], revealed: {}, examined: [], t: 0, limit: opts.limit || 0, firstContent: null, hints: 0 };
   }
   function itemsOf(c, qid) { return c.q[qid] || []; }
+  // 本人以外（親・付き添いの家族）が答えるときは「本人は『…』と言っています」にする
+  function reported(p, text, kind) {
+    if (p.informant === 'self') return text;
+    if (p.informant === 'parent' && p.age < 6) return kind === 'quality' ? 'まだうまく言葉では言えませんが、とても痛がっています。' : text;
+    return '本人は「' + text.replace(/。$/, '') + '」と言って' + (p.informant === 'both' ? 'いました。' : 'います。');
+  }
+  // NRS のカルテ表記（今と、最も強かったとき）。数字で答えられない年少児は様子を書く
+  function nrsChart(c) {
+    const n = c.nrs, p = c.p;
+    if (p.informant === 'parent' && p.age < 6) {
+      return '数値での評価は困難（' + (n.pain ? (n.worst >= 7 ? '激しく痛がっている' : '時々痛がる') : (n.worst >= 7 ? 'とてもつらそう' : '元気がない')) + '）';
+    }
+    return 'NRS ' + n.now + '/10' + (n.worst > n.now ? '（最大 ' + n.worst + '/10）' : '');
+  }
+  // 痛みの強さを表すひとこと [今も続いている, もう和らいだ]
+  const NRS_WORDS = [[10, '今までに経験したことのない痛みです。', '今までに経験したことのない痛みでした。'],
+    [8, 'とても我慢できないくらいの痛みです。', 'とても我慢できないくらいの痛みでした。'],
+    [6, 'かなり強い痛みです。', 'かなり強い痛みでした。'],
+    [4, '我慢できないほどではありません。', '我慢できないほどではありませんでした。'],
+    [0, 'それほど強い痛みではありません。', 'それほど強い痛みではありませんでした。']];
+  // NRS を聞かれたときの答え。痛みが主訴でない症例は「つらさ」で答える
+  function nrsSay(c, tail) {
+    const p = c.p, n = c.nrs;
+    const hurt = n.pain ? '痛' : 'つら';
+    if (p.informant === 'parent' && p.age < 6) {
+      return 'まだ数字では言えませんが、' + (n.pain ? (n.worst >= 7 ? '激しく泣いて痛がっています。' : '時々痛がって泣いています。')
+        : (n.worst >= 7 ? 'とてもつらそうです。' : 'いつもより元気がありません。'));
+    }
+    if (p.informant === 'parent') {
+      return '本人に聞くと、' + (n.now === 0 ? '今は' + hurt + 'くなくて、' + hurt + 'いときは10のうち' + n.worst + 'くらいだったそうです。'
+        : n.now >= n.worst ? '10のうち' + n.now + 'くらい' + hurt + 'いそうです。'
+        : '今は10のうち' + n.now + 'くらいで、一番' + hurt + 'いときは' + n.worst + 'くらいだったそうです。');
+    }
+    const nums = n.now === 0 ? '今は治まっていて0です。' + hurt + 'いときは' + n.worst + 'くらいでした。'
+      : n.now >= n.worst ? '今が一番' + (n.pain ? '強くて' : 'つらくて') + '、' + n.now + 'くらいです。'
+      : '今は' + n.now + 'くらいで、一番ひどいときは' + n.worst + 'くらいでした。';
+    const w = NRS_WORDS.find(x => n.worst >= x[0]);
+    const desc = !n.pain ? '' : tail || w[n.now < n.worst - 1 ? 2 : 1];
+    return reported(p, nums + desc);
+  }
+  // 痛みが主訴の症例では、性状・強さ・部位を「痛み」として聞く
+  function questionText(c, qid) {
+    if (c.nrs && c.nrs.pain) {
+      if (qid === 'severity') return '痛みの強さを、まったく痛みがない状態を0、想像できる最悪の痛みを10とすると、今はいくつくらいですか？一番ひどいときはいくつでしたか？';
+      if (qid === 'quality') return 'どのような痛みですか？言葉で表すと、どんな感じでしょうか。';
+      if (qid === 'location') return 'どのあたりが痛みますか？指で示していただけますか？';
+    }
+    return SIM.Q[qid].q;
+  }
   function identifyText(c) {
     const p = c.p;
     if (p.informant === 'parent') return 'この子は' + p.name + 'です。' + p.birthStr + '生まれです。';
@@ -393,6 +481,7 @@
     const neg = c.sm.neg && c.sm.neg[qid];
     switch (qid) {
       case 'onset': return c.onsetSay;
+      case 'severity': return nrsSay(c);
       case 'alcohol': return p.age < 20 ? 'お酒は飲みません。' : Q.n;
       case 'occupation': return p.occupation;
       case 'living': return p.living;
@@ -419,7 +508,7 @@
   function volunteer(c, st, groups, n, maxRos) {
     const cands = [];
     Object.keys(c.q).forEach(qid => {
-      if (st.revealed[qid] || qid === 'checkup') return;
+      if (st.revealed[qid] || qid === 'checkup' || qid === 'severity') return;
       const Q = SIM.Q[qid];
       if (!Q || groups.indexOf(Q.g) < 0) return;
       const its = c.q[qid].filter(i => i.src !== 'cc' && !i.neg);
@@ -478,7 +567,7 @@
       default:
         a = answerFor(c, qid); reveal(qid);
     }
-    return { q: Q.q, a, newly };
+    return { q: questionText(c, qid), a, newly };
   }
 
   // ---- 診察 ----
@@ -520,7 +609,7 @@
 
   // ---- カルテ ----
   // 表に記載のない質問への答え（data-sim.js の n）を、カルテでどう書くか。ここにないものは「なし」
-  const DEFAULT_CHART = { mechanism: 'はっきりしない', quality: 'はっきりしない', severity: '中等度（5/10）', location: 'はっきり限局しない',
+  const DEFAULT_CHART = { mechanism: 'はっきりしない', quality: 'はっきりしない', location: 'はっきり限局しない',
     course: '徐々に増悪', duration: '持続的' };
   function chartEntries(c, st) {
     const out = [];
@@ -537,6 +626,7 @@
       else if (qid === 'onset') { text = c.onsetMed; pos = false; }
       else if (qid === 'alcohol') { text = c.p.age < 20 ? 'なし' : '機会飲酒程度'; pos = false; }
       else if (c.sm.negChart && c.sm.negChart[qid]) { text = c.sm.negChart[qid]; pos = false; }
+      else if (qid === 'severity') { text = nrsChart(c).replace('NRS ', 'つらさ '); pos = false; }
       else if (DEFAULT_CHART[qid]) { text = DEFAULT_CHART[qid]; pos = false; }
       else if (Q.n) { text = 'なし'; pos = false; }
       else { text = defaultAnswer(c, qid).replace(/。$/, ''); pos = false; }
@@ -580,6 +670,7 @@
     if (!items.length) return 0;
     if (items.some(i => i.src === 'primary' && !i.neg)) return 5;
     if (items.some(i => i.src === 'cross' && !i.neg)) return 3;
+    if (items.some(i => i.src === 'profile' && !i.neg)) return id === 'severity' ? 1 : 3;
     if (items.some(i => i.src === 'primary')) return 3;
     return 0;
   }
@@ -731,7 +822,7 @@
     else if (sm.event) hpiLines.push((onsetItems.length ? '発症様式は' + chartsOf('onset').join('・') + '。' : '') + sm.event.replace('{t}', c.onsetMed));
     else hpiLines.push((onsetItems.length ? '発症様式は' + chartsOf('onset').join('・') + 'で、' : c.onsetMed + '、') + ccWord + 'が出現しました。');
     const seenHpi = [];
-    const hp = HPI_ORDER.filter(q => q !== 'onset' && itemsOf(c, q).some(i => i.src === 'primary')).map(q => {
+    const hp = HPI_ORDER.filter(q => q !== 'onset' && itemsOf(c, q).some(i => i.src === 'primary' || i.src === 'profile')).map(q => {
       const t = chartsOf(q).filter(x => seenHpi.indexOf(x) < 0);
       t.forEach(x => seenHpi.push(x));
       if (!t.length) return null;
@@ -802,7 +893,7 @@
 
     const asLines = [];
     // 根拠は、暗記用ノートで「→ この疾患」の左に出てくる所見を優先する
-    const N = NOTES.symptoms[c.sym];
+    const N = NOTES && NOTES.symptoms[c.sym];
     const cues = [];
     if (N) N.interview.concat(N.exam.map(x => [null, x[0], x[1]])).forEach(x => {
       if (x[2].some(n => (N.alias[n] || n) === c.dis)) x[1].split(/[・＋、]/).forEach(t => cues.push(t.replace(/（.*?）/g, '')));
@@ -810,12 +901,16 @@
     const inNotes = t => cues.some(k => k.length >= 2 && (t.indexOf(k) >= 0 || k.indexOf(t) >= 0));
     const evs = [];
     EXAM_ORDER.forEach(e => (c.e[e] || []).forEach(i => {
-      if (i.src === 'primary' && !i.neg && ['vitals', 'consciousness', 'general'].indexOf(e) < 0) evs.push({ t: findingText(c, 'e:' + e, i.text), raw: i.text });
+      if (i.src === 'primary' && !i.neg && ['vitals', 'consciousness', 'general'].indexOf(e) < 0) evs.push({ t: findingText(c, 'e:' + e, i.text), raw: i.text, ref: 'e:' + e, g: 0 });
     }));
-    Object.keys(c.q).forEach(q => itemsOf(c, q).forEach(i => { if (i.src === 'primary' && !i.neg) evs.push({ t: findingText(c, 'q:' + q, i.chart), raw: i.chart }); }));
-    ['vitals', 'consciousness', 'general'].forEach(e => (c.e[e] || []).forEach(i => { if (i.src === 'primary' && !i.neg) evs.push({ t: findingText(c, 'e:' + e, i.text), raw: i.cell }); }));
-    if (!evs.length) Object.keys(c.q).forEach(q => itemsOf(c, q).forEach(i => { if (i.src === 'primary') evs.push({ t: findingText(c, 'q:' + q, i.chart), raw: i.chart }); }));
-    const evSorted = evs.filter(x => inNotes(x.raw)).concat(evs.filter(x => !inNotes(x.raw)));
+    Object.keys(c.q).forEach(q => itemsOf(c, q).forEach(i => { if (i.src === 'primary' && !i.neg) evs.push({ t: findingText(c, 'q:' + q, i.chart), raw: i.chart, ref: 'q:' + q, g: 0 }); }));
+    ['vitals', 'consciousness', 'general'].forEach(e => (c.e[e] || []).forEach(i => { if (i.src === 'primary' && !i.neg) evs.push({ t: findingText(c, 'e:' + e, i.text), raw: i.cell, ref: 'e:' + e, g: 1 }); }));
+    if (!evs.length) Object.keys(c.q).forEach(q => itemsOf(c, q).forEach(i => { if (i.src === 'primary') evs.push({ t: findingText(c, 'q:' + q, i.chart), raw: i.chart, ref: 'q:' + q, g: 0 }); }));
+    // ノートがない（公開版の）ときは、同じ表のほかの疾患には見られない所見ほど根拠として優先する
+    const shared = x => SYM[c.sym].diseases.filter(d => d !== c.dis &&
+      (((x.ref[0] === 'q' ? c.dq[d] : c.de[d]) || {})[x.ref.slice(2)] || []).some(v => related(v, x.raw))).length;
+    const evSorted = N ? evs.filter(x => inNotes(x.raw)).concat(evs.filter(x => !inNotes(x.raw)))
+      : evs.map((x, i) => ({ x, i, k: shared(x) })).sort((a, b) => a.x.g - b.x.g || a.k - b.k || a.i - b.i).map(y => y.x);
     const ev = uniq(evSorted.map(x => x.t)).slice(0, 2);
     asLines.push('以上から、最も考えられるのは' + c.dis + 'です。' + (ev.length ? '根拠は' + ev.join('と') + 'です。' : ''));
     const rfFirst = c.rf.find(x => x.cato && !related(x.cato, c.dis) && againstReasons(c, x.cato).length);
@@ -851,6 +946,7 @@
     return set;
   }
   function quizCue(r, sym) {
+    if (!NOTES) return null;
     const syms = sym ? [sym] : Object.keys(NOTES.symptoms);
     for (let tries = 0; tries < 50; tries++) {
       const s = pick(r, syms);
@@ -867,6 +963,7 @@
     return null;
   }
   function quizRF(r, sym) {
+    if (!NOTES) return null;
     const syms = (sym ? [sym] : Object.keys(NOTES.symptoms)).filter(s => NOTES.symptoms[s].redFlags.length);
     if (!syms.length) return null;
     const s = pick(r, syms);
@@ -876,6 +973,7 @@
     return { type: 'rf', sym: s, answer: N.redFlags.slice(), options };
   }
   function quizFirst(r, sym) {
+    if (!NOTES) return null;
     const syms = (sym ? [sym] : Object.keys(NOTES.symptoms)).filter(s => NOTES.symptoms[s].first.some(f => f.br.length >= 2));
     if (!syms.length) return null;
     const s = pick(r, syms);
@@ -892,7 +990,7 @@
   }
 
   root.OSCE_ENGINE = {
-    mulberry32, shuffle, symptomList, buildCase, newState, ask, examine, examText, chartEntries, score, presentation,
+    questionText, mulberry32, shuffle, symptomList, buildCase, newState, ask, examine, examText, chartEntries, score, presentation,
     questionList, examList, reasonValid, routeInterview, routeExam, resolveNoteName, formatVitals, vitalsFlags, vitalsAbnormal,
     quizCue, quizRF, quizFirst, bgChecklist, clean, findingText, HPI_ORDER, EXAM_ORDER
   };
