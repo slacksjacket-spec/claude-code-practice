@@ -3,12 +3,25 @@
 // 症例の生成、質問への返答、診察所見、バイタル、採点、模範プレゼン、クイズをまとめる。
 // CATO表の「列＝疾患」を1症例とし、その列のセルが患者の答え・所見になる。
 (function (root) {
-  const CATO = root.OSCE_CATO;
-  const NOTES = root.OSCE_NOTES;
+  // 症例のもとは、非公開の CATO表（data-cato.js）があればそれを、なければ公開用に疾患ごとにまとめたもの（data-cases.js）から
+  // 組み立てた表を使う。暗記用ノート（data-notes.js）は非公開版にだけあり、ないときは Red Flag を data-cases.js から読む
+  const CATO = root.OSCE_CATO || (root.OSCE_CASES && root.OSCE_CASES.map(tableFromCases));
+  const NOTES = root.OSCE_NOTES || null;
   const SIM = root.OSCE_SIM;
   const SAY = root.OSCE_SAY;
-  // CATO表と暗記用ノートのデータ（リポジトリには含めていない）がなければ何もしない
-  if (!CATO || !NOTES) return;
+  // 症例データがなければ何もしない（画面側で案内を出す）
+  if (!CATO) return;
+
+  // data-cases.js の1症候分を、data-cato.js と同じ形の表に戻す
+  function tableFromCases(s) {
+    const diseases = Object.keys(s.cases);
+    const rows = (labels, k) => labels.map((row, i) => {
+      const cells = {};
+      diseases.forEach(d => { const hit = s.cases[d][k].find(x => x[0] === i); if (hit) cells[d] = hit[1]; });
+      return [row, cells];
+    });
+    return { id: s.id, name: s.name, diseases, interview: rows(s.qrows, 'q'), exam: rows(s.erows, 'e'), unc: [] };
+  }
 
   // ---- 乱数（シードが同じなら同じ症例になる）----
   function mulberry32(a) {
@@ -158,9 +171,15 @@
     return { dq, de };
   }
 
+  // 症候の Red Flag（緊急性の高い順）。name はノートでの名前、cato は表の疾患名（表にないものは null）
+  function redFlagsOf(sym) {
+    if (NOTES) return ((NOTES.symptoms[sym] || {}).redFlags || []).map(n => ({ name: n, cato: resolveNoteName(sym, n) }));
+    const s = (root.OSCE_CASES || []).find(x => x.name === sym);
+    return s ? s.rf.map(([name, cato]) => ({ name, cato })) : [];
+  }
   function resolveNoteName(sym, n) {
     const S = SYM[sym];
-    const N = NOTES.symptoms[sym];
+    const N = NOTES && NOTES.symptoms[sym];
     const a = (N && N.alias && N.alias[n]) || n;
     return S && S.diseases.indexOf(a) >= 0 ? a : null;
   }
@@ -289,8 +308,7 @@
     const cbd = cellsByDisease(S, p);
     c.dq = cbd.dq;
     c.de = cbd.de;
-    const N = NOTES.symptoms[sym] || { redFlags: [] };
-    c.rf = N.redFlags.map(n => ({ name: n, cato: resolveNoteName(sym, n) }));
+    c.rf = redFlagsOf(sym);
     c.isRF = c.rf.some(x => x.cato === dis);
     c.rfQ = {};
     c.rfE = {};
@@ -875,7 +893,7 @@
 
     const asLines = [];
     // 根拠は、暗記用ノートで「→ この疾患」の左に出てくる所見を優先する
-    const N = NOTES.symptoms[c.sym];
+    const N = NOTES && NOTES.symptoms[c.sym];
     const cues = [];
     if (N) N.interview.concat(N.exam.map(x => [null, x[0], x[1]])).forEach(x => {
       if (x[2].some(n => (N.alias[n] || n) === c.dis)) x[1].split(/[・＋、]/).forEach(t => cues.push(t.replace(/（.*?）/g, '')));
@@ -883,12 +901,16 @@
     const inNotes = t => cues.some(k => k.length >= 2 && (t.indexOf(k) >= 0 || k.indexOf(t) >= 0));
     const evs = [];
     EXAM_ORDER.forEach(e => (c.e[e] || []).forEach(i => {
-      if (i.src === 'primary' && !i.neg && ['vitals', 'consciousness', 'general'].indexOf(e) < 0) evs.push({ t: findingText(c, 'e:' + e, i.text), raw: i.text });
+      if (i.src === 'primary' && !i.neg && ['vitals', 'consciousness', 'general'].indexOf(e) < 0) evs.push({ t: findingText(c, 'e:' + e, i.text), raw: i.text, ref: 'e:' + e, g: 0 });
     }));
-    Object.keys(c.q).forEach(q => itemsOf(c, q).forEach(i => { if (i.src === 'primary' && !i.neg) evs.push({ t: findingText(c, 'q:' + q, i.chart), raw: i.chart }); }));
-    ['vitals', 'consciousness', 'general'].forEach(e => (c.e[e] || []).forEach(i => { if (i.src === 'primary' && !i.neg) evs.push({ t: findingText(c, 'e:' + e, i.text), raw: i.cell }); }));
-    if (!evs.length) Object.keys(c.q).forEach(q => itemsOf(c, q).forEach(i => { if (i.src === 'primary') evs.push({ t: findingText(c, 'q:' + q, i.chart), raw: i.chart }); }));
-    const evSorted = evs.filter(x => inNotes(x.raw)).concat(evs.filter(x => !inNotes(x.raw)));
+    Object.keys(c.q).forEach(q => itemsOf(c, q).forEach(i => { if (i.src === 'primary' && !i.neg) evs.push({ t: findingText(c, 'q:' + q, i.chart), raw: i.chart, ref: 'q:' + q, g: 0 }); }));
+    ['vitals', 'consciousness', 'general'].forEach(e => (c.e[e] || []).forEach(i => { if (i.src === 'primary' && !i.neg) evs.push({ t: findingText(c, 'e:' + e, i.text), raw: i.cell, ref: 'e:' + e, g: 1 }); }));
+    if (!evs.length) Object.keys(c.q).forEach(q => itemsOf(c, q).forEach(i => { if (i.src === 'primary') evs.push({ t: findingText(c, 'q:' + q, i.chart), raw: i.chart, ref: 'q:' + q, g: 0 }); }));
+    // ノートがない（公開版の）ときは、同じ表のほかの疾患には見られない所見ほど根拠として優先する
+    const shared = x => SYM[c.sym].diseases.filter(d => d !== c.dis &&
+      (((x.ref[0] === 'q' ? c.dq[d] : c.de[d]) || {})[x.ref.slice(2)] || []).some(v => related(v, x.raw))).length;
+    const evSorted = N ? evs.filter(x => inNotes(x.raw)).concat(evs.filter(x => !inNotes(x.raw)))
+      : evs.map((x, i) => ({ x, i, k: shared(x) })).sort((a, b) => a.x.g - b.x.g || a.k - b.k || a.i - b.i).map(y => y.x);
     const ev = uniq(evSorted.map(x => x.t)).slice(0, 2);
     asLines.push('以上から、最も考えられるのは' + c.dis + 'です。' + (ev.length ? '根拠は' + ev.join('と') + 'です。' : ''));
     const rfFirst = c.rf.find(x => x.cato && !related(x.cato, c.dis) && againstReasons(c, x.cato).length);
@@ -924,6 +946,7 @@
     return set;
   }
   function quizCue(r, sym) {
+    if (!NOTES) return null;
     const syms = sym ? [sym] : Object.keys(NOTES.symptoms);
     for (let tries = 0; tries < 50; tries++) {
       const s = pick(r, syms);
@@ -940,6 +963,7 @@
     return null;
   }
   function quizRF(r, sym) {
+    if (!NOTES) return null;
     const syms = (sym ? [sym] : Object.keys(NOTES.symptoms)).filter(s => NOTES.symptoms[s].redFlags.length);
     if (!syms.length) return null;
     const s = pick(r, syms);
@@ -949,6 +973,7 @@
     return { type: 'rf', sym: s, answer: N.redFlags.slice(), options };
   }
   function quizFirst(r, sym) {
+    if (!NOTES) return null;
     const syms = (sym ? [sym] : Object.keys(NOTES.symptoms)).filter(s => NOTES.symptoms[s].first.some(f => f.br.length >= 2));
     if (!syms.length) return null;
     const s = pick(r, syms);
