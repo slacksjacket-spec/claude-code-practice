@@ -657,7 +657,7 @@
   function qButtons(list) {
     const asked = G.st.asked;
     return '<div class="qgrid">' + list.map(q => '<button class="qbtn' + (asked.indexOf(q.id) >= 0 ? ' done' : '') + '" data-act="ask" data-q="' + q.id + '"' +
-      (G.timeUp ? ' disabled' : '') + ' title="' + esc(q.q) + '">' + (q.tag ? '<span class="tag">' + esc(q.tag) + '</span>' : '') + '<span>' + esc(q.l) + '</span></button>').join('') + '</div>';
+      (G.timeUp ? ' disabled' : '') + ' title="' + esc(E.questionText(G.c, q.id)) + '">' + (q.tag ? '<span class="tag">' + esc(q.tag) + '</span>' : '') + '<span>' + esc(q.l) + '</span></button>').join('') + '</div>';
   }
   // カタカナはひらがなにそろえて比べる（「タバコ」でも「たばこ」でも当たるように）
   const kana = s => s.toLowerCase().replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
