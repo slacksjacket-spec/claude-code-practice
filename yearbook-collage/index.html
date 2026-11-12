@@ -89,6 +89,17 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
       <button id="btnAddDir">フォルダごと追加</button>
     </div>
     <p class="note">この学年に追加されます。画面にドラッグ＆ドロップでもOK。写真はPCの外に送られず、ブラウザの中だけで処理されます。</p>
+    <div class="row"><label>配置スタイル</label>
+      <select data-k="style">
+        <option value="mosaic">モザイク（縦横ミックス）</option>
+        <option value="scatter">ちらし（傾けて重ねる）</option>
+        <option value="rows">行で揃える（横並び）</option>
+        <option value="cols">列で揃える（縦並び）</option>
+      </select>
+    </div>
+    <div class="row"><label>大きさのメリハリ</label>
+      <select data-k="variety"><option value="0">なし</option><option value="1">少し</option><option value="2">大きめ</option></select>
+    </div>
     <div class="row"><label>並び順</label>
       <select id="sortMode">
         <option value="date">撮影日順</option>
@@ -227,7 +238,7 @@ const DEFAULTS = {
   mOuter:12, mInner:18, mTop:12, mBottom:12, gap:1.5,
   bg:'#ffffff', radius:0, stroke:0, strokeColor:'#ffffff',
   titlePos:'left', titleAlign:'left', titlePt:28, titleColor:'#333333', titleFont:'maru',
-  featPos:'top', featMax:55, officeDpi:220, officeScope:'all',
+  style:'mosaic', variety:1, featPos:'top', featMax:55, officeDpi:220, officeScope:'all',
   entryYear: new Date().getFullYear() - 6,
   titles: ['1年生','2年生','3年生','4年生','5年生','6年生'],
 };
@@ -246,7 +257,7 @@ function saveSettings(){ try { localStorage.setItem('yb-collage-settings', JSON.
 
 const S = {
   set: loadSettings(),
-  grades: Array.from({length:6}, () => ({ photos:[], sort:'date' })),
+  grades: Array.from({length:6}, () => ({ photos:[], sort:'date', seed:1 })),
   cur: 0,
   mode: 'swap',
 };
@@ -348,11 +359,12 @@ function applySort(g){
   else if (g.sort === 'shuffle') optimizeOrder(g, 400);
 }
 function optimizeOrder(g, trials){
+  if (S.set.style === 'mosaic' || S.set.style === 'scatter') trials = Math.min(trials, 15);
   const ph = g.photos.slice();
   let best = null, bestScore = Infinity;
   for (let t = 0; t < trials; t++) {
     for (let i = ph.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [ph[i], ph[j]] = [ph[j], ph[i]]; }
-    const sc = layoutSpread(ph).score;
+    const sc = layoutSpread(ph, g.seed).score;
     if (sc < bestScore) { bestScore = sc; best = ph.slice(); }
   }
   if (best) g.photos = best;
@@ -417,7 +429,89 @@ function pageBoxes(){
   return { L, R, title };
 }
 // photos: [{w,h,feat}]  feat=true の写真（集合写真など）はページ幅いっぱいの大きな枠に置く
-function layoutSpread(photos){
+function rng(seed){   // 再現できる乱数（同じseedなら同じ配置）
+  let a = seed >>> 0;
+  return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+// モザイク：写真の縦横比から「左右に並べる／上下に積む」の組み合わせ（木構造）を作る。
+// 組み合わせ全体の縦横比がページに近い案を何百通りから選ぶので、1枚ごとのトリミングはほぼ出ない。
+function mosaic(ars, W, H, gap, seed){
+  const n = ars.length;
+  if (!n) return { cells:[], score:0 };
+  if (W <= 0 || H <= 0) return { cells:[], score:99 };
+  const R = rng(seed*7919 + n*131 + Math.round(W*7) + Math.round(H*3));
+  const T = W / H, tol = [0.28, 0.42, 0.62][S.set.variety] ?? 0.42;   // 大きさのばらつきの許容量
+  const build = (a, b) => {
+    if (b - a === 1) return { leaf:a };
+    const m = b - a;
+    const k = Math.min(b-1, Math.max(a+1, a + Math.round(m*(0.5 + (R()-0.5)*0.8))));
+    return { L:build(a, k), R:build(k, b), vert:R() < 0.5 };
+  };
+  const arOf = nd => {
+    if (nd.leaf != null) return nd.ar = ars[nd.leaf];
+    const l = arOf(nd.L), r = arOf(nd.R);
+    return nd.ar = nd.vert ? l + r : 1 / (1/l + 1/r);
+  };
+  const evaluate = root => {
+    arOf(root);
+    const cells = [];
+    const place = (nd, x, y, w, h) => {
+      if (nd.leaf != null) { cells.push({ i:nd.leaf, x, y, w, h }); return; }
+      if (nd.vert) { const w1 = (w-gap) * nd.L.ar / (nd.L.ar + nd.R.ar); place(nd.L, x, y, w1, h); place(nd.R, x+w1+gap, y, w-gap-w1, h); }
+      else { const h1 = (h-gap) * (1/nd.L.ar) / (1/nd.L.ar + 1/nd.R.ar); place(nd.L, x, y, w, h1); place(nd.R, x, y+h1+gap, w, h-gap-h1); }
+    };
+    place(root, 0, 0, W, H);
+    let crop = 0; const la = [];
+    for (const c of cells) {
+      if (c.w <= 1 || c.h <= 1) return { cells, score:1e9 };
+      crop += Math.abs(Math.log((c.w/c.h) / ars[c.i]));
+      la.push(Math.log(c.w*c.h));
+    }
+    const mean = la.reduce((x, y) => x + y, 0) / n;
+    const sd = Math.sqrt(la.reduce((x, y) => x + (y-mean)**2, 0) / n);
+    const minA = Math.exp(Math.min(...la)) / (W*H/n);
+    return { cells, score: crop/n + Math.max(0, sd - tol)*1.5 + Math.abs(sd - tol*0.7)*0.15 + (minA < 0.45 ? (0.45 - minA)*6 : 0) };
+  };
+  // ① ランダムな組み合わせを多数試す
+  let best = null, bestTree = null;
+  for (let t = 0; t < 150; t++) {
+    const tree = build(0, n), r = evaluate(tree);
+    if (!best || r.score < best.score) { best = r; bestTree = tree; }
+  }
+  // ② 一番良い案の「左右／上下」を1か所ずつ反転して、良くなれば採用（山登り）
+  const nodes = [];
+  (function collect(nd){ if (nd.leaf == null) { nodes.push(nd); collect(nd.L); collect(nd.R); } })(bestTree);
+  for (let t = 0; t < nodes.length * 12 && nodes.length; t++) {
+    const nd = nodes[Math.floor(R() * nodes.length)];
+    nd.vert = !nd.vert;
+    const r = evaluate(bestTree);
+    if (r.score < best.score) best = r; else nd.vert = !nd.vert;
+  }
+  return best;
+}
+function layoutPage(ars, W, H, gap, seed){
+  const st = S.set.style;
+  if (st === 'cols') {
+    const r = justify(ars.map(a => 1/a), H, W, gap);
+    return { score:r.score, cells:r.cells.map(c => ({ i:c.i, x:c.y, y:c.x, w:c.h, h:c.w })) };
+  }
+  if (st === 'mosaic' || st === 'scatter') return mosaic(ars, W, H, gap, seed);
+  return justify(ars, W, H, gap);
+}
+function strokeW(){ return S.set.style === 'scatter' ? Math.max(S.set.stroke, 2) : S.set.stroke; }
+const layoutCache = new Map();
+function layoutSpread(photos, seed = 1){
+  const st = S.set;
+  const key = JSON.stringify([seed, st.style, st.variety, st.pageW, st.pageH, st.mOuter, st.mInner, st.mTop, st.mBottom, st.gap,
+    st.titlePos, st.titlePt, st.featPos, st.featMax, photos.map(p => [p.w, p.h, p.feat ? 1 : 0])]);
+  if (layoutCache.has(key)) return structuredClone(layoutCache.get(key));
+  const r = layoutSpreadRaw(photos, seed);
+  if (layoutCache.size > 200) layoutCache.clear();
+  layoutCache.set(key, r);
+  return structuredClone(r);
+}
+function layoutSpreadRaw(photos, seed){
   const s = S.set, gap = s.gap, { L, R } = pageBoxes();
   if (!photos.length) return { cells:[], score:0, split:0 };
   const feat = [], norm = [];
@@ -442,8 +536,8 @@ function layoutSpread(photos){
   let best = null;
   for (let sp = lo; sp <= hi; sp++) {
     if (m >= 2 && areaA && areaB && (sp === 0 || sp === m)) continue;
-    const a = justify(ars.slice(0, sp), A.w, A.h, gap);
-    const b = justify(ars.slice(sp), B.w, B.h, gap);
+    const a = layoutPage(ars.slice(0, sp), A.w, A.h, gap, seed*2);
+    const b = layoutPage(ars.slice(sp), B.w, B.h, gap, seed*2 + 1);
     const score = a.score + b.score + Math.abs(sp - mid)*0.03;
     if (!best || score < best.score) best = { score, a, b, sp };
   }
@@ -452,6 +546,14 @@ function layoutSpread(photos){
     ...best.a.cells.map(c => ({ ...c, i:norm[c.i], x:c.x + A.x, y:c.y + A.y })),
     ...best.b.cells.map(c => ({ ...c, i:norm[c.i + best.sp], x:c.x + B.x, y:c.y + B.y })),
   );
+  if (s.style === 'scatter') {   // ちらし：少し大きくして傾け、重ねる
+    const R = rng(seed*104729 + 7);
+    for (const c of cells) {
+      const m = c.feat ? 0.35 : 1, e = 1 + 0.07*m;
+      c.rot = (R()*2 - 1) * 7 * m;
+      c.x -= c.w*(e-1)/2; c.y -= c.h*(e-1)/2; c.w *= e; c.h *= e;
+    }
+  }
   return { cells, score:best.score, split: best.sp + pages[0].f.length };
 }
 
@@ -472,7 +574,7 @@ function render(){
     stage.innerHTML = `<div class="empty"><b>${esc(S.set.titles[S.cur])} の写真を入れてください</b>ここに写真をドラッグ＆ドロップ、<br>または左の「写真を追加」から選んでください。<br>入れた瞬間に自動でコラージュされます。</div>`;
     view = null; renderStatus(); return;
   }
-  const lay = layoutSpread(g.photos);
+  const lay = layoutSpread(g.photos, g.seed);
   const totalW = 2*s.pageW + 2*s.bleed, totalH = s.pageH + 2*s.bleed;
   const sw = stage.clientWidth - 32, sh = stage.clientHeight - 32;
   const scale = Math.max(0.5, Math.min(sw/totalW, sh/totalH));
@@ -500,11 +602,12 @@ function render(){
     const el = add(sp, 'cell', { left:X(c.x), top:Y(c.y), width:D(c.w), height:D(c.h) });
     el.dataset.idx = c.i;
     if (s.radius) el.style.borderRadius = D(s.radius) + 'px';
-    if (s.stroke) el.style.boxShadow = `inset 0 0 0 ${D(s.stroke)}px ${s.strokeColor}`;
+    if (c.rot) el.style.transform = `rotate(${c.rot}deg)`;
+    if (s.style === 'scatter') el.style.boxShadow = `0 ${D(0.6)}px ${D(1.5)}px rgba(0,0,0,.35)`;
     const im = document.createElement('img'); im.src = p.thumb; im.draggable = false;
     placeImg(im, p, D(c.w), D(c.h));
     el.appendChild(im);
-    if (s.stroke) { const f = document.createElement('div'); f.style.cssText = `position:absolute;inset:0;box-shadow:inset 0 0 0 ${D(s.stroke)}px ${s.strokeColor};border-radius:inherit;pointer-events:none`; el.appendChild(f); }
+    if (strokeW()) { const f = document.createElement('div'); f.style.cssText = `position:absolute;inset:0;box-shadow:inset 0 0 0 ${D(strokeW())}px ${s.strokeColor};border-radius:inherit;pointer-events:none`; el.appendChild(f); }
     const x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.title = 'この写真を外す'; x.dataset.del = c.i;
     el.appendChild(x);
     const st = document.createElement('button'); st.className = 'star' + (p.feat ? ' on' : '');
@@ -664,7 +767,11 @@ $('#preset').onchange = e => {
 $('#gradeTitle').oninput = e => { S.set.titles[S.cur] = e.target.value; saveSettings(); render(); };
 $('#entryYear').oninput = e => { S.set.entryYear = parseInt(e.target.value) || S.set.entryYear; saveSettings(); };
 $('#sortMode').onchange = e => { const g = S.grades[S.cur]; g.sort = e.target.value; applySort(g); render(); };
-$('#btnShuffle').onclick = () => { const g = S.grades[S.cur]; g.sort = 'shuffle'; optimizeOrder(g, 400); render(); };
+$('#btnShuffle').onclick = () => {
+  const g = S.grades[S.cur]; g.seed = Math.floor(Math.random()*1e9);
+  if (S.set.style === 'rows' || S.set.style === 'cols') { g.sort = 'shuffle'; optimizeOrder(g, 400); }
+  render();
+};
 $('#btnClear').onclick = () => {
   const g = S.grades[S.cur]; if (!g.photos.length || !confirm(`${S.set.titles[S.cur]} の写真をすべて外しますか？`)) return;
   g.photos.forEach(p => URL.revokeObjectURL(p.thumb)); g.photos = []; render();
@@ -713,7 +820,7 @@ async function renderSpreadCanvas(gi, onProg){
     const tx = s.titleAlign === 'left' ? title.x : s.titleAlign === 'center' ? title.x + title.w/2 : title.x + title.w;
     ctx.fillText(s.titles[gi], tx, title.y + title.h/2);
   }
-  const lay = layoutSpread(g.photos);
+  const lay = layoutSpread(g.photos, g.seed);
   let n = 0;
   for (const c of lay.cells) {
     const p = g.photos[c.i];
@@ -723,14 +830,18 @@ async function renderSpreadCanvas(gi, onProg){
       const iw = img.naturalWidth, ih = img.naturalHeight;
       const b = cropBox({ ...p, w:iw, h:ih }, c.w, c.h);
       const sx = -b.left / b.k, sy = -b.top / b.k, sw = c.w / b.k, sh = c.h / b.k;
+      const stw = strokeW();
       ctx.save();
-      if (s.radius) { roundRectPath(ctx, c.x, c.y, c.w, c.h, s.radius); ctx.clip(); }
+      if (c.rot) { const cx = c.x + c.w/2, cy = c.y + c.h/2; ctx.translate(cx, cy); ctx.rotate(c.rot * Math.PI/180); ctx.translate(-cx, -cy); }
+      if (s.style === 'scatter') {   // 影
+        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 1.5*ppm; ctx.shadowOffsetY = 0.6*ppm;
+        ctx.fillStyle = s.strokeColor; roundRectPath(ctx, c.x, c.y, c.w, c.h, s.radius); ctx.fill(); ctx.restore();
+      }
+      roundRectPath(ctx, c.x, c.y, c.w, c.h, s.radius); ctx.clip();
       ctx.drawImage(img, sx, sy, sw, sh, c.x, c.y, c.w, c.h);
-      if (s.stroke) {
-        ctx.strokeStyle = s.strokeColor; ctx.lineWidth = s.stroke*2;   // 内側半分だけ見える（clip）
-        if (!s.radius) { ctx.beginPath(); ctx.rect(c.x, c.y, c.w, c.h); ctx.clip(); ctx.beginPath(); ctx.rect(c.x, c.y, c.w, c.h); }
-        else roundRectPath(ctx, c.x, c.y, c.w, c.h, s.radius);
-        ctx.stroke();
+      if (stw) {   // フチ：内側半分だけ見える（clip）
+        ctx.strokeStyle = s.strokeColor; ctx.lineWidth = stw*2;
+        roundRectPath(ctx, c.x, c.y, c.w, c.h, s.radius); ctx.stroke();
       }
       ctx.restore();
       img.src = '';
@@ -820,7 +931,7 @@ const OFFICE_FONT = { gothic:'Yu Gothic', maru:'HG丸ｺﾞｼｯｸM-PRO', minc
 
 // 各写真を「トリミング前の全体」で書き出し解像度に縮小し、トリミング量(srcRect)を添える
 async function officePhotos(gi, ppm, onProg){
-  const g = S.grades[gi], lay = layoutSpread(g.photos), items = [];
+  const g = S.grades[gi], lay = layoutSpread(g.photos, g.seed), items = [];
   let n = 0;
   for (const c of lay.cells) {
     const p = g.photos[c.i], url = URL.createObjectURL(p.file);
@@ -852,7 +963,8 @@ function geomXml(w, h){
   let g = s.radius > 0
     ? `<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${Math.round(Math.min(50000, s.radius / Math.min(w, h) * 100000))}"/></a:avLst></a:prstGeom>`
     : `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>`;
-  if (s.stroke > 0) g += `<a:ln w="${EMU(s.stroke)}"><a:solidFill><a:srgbClr val="${hex(s.strokeColor)}"/></a:solidFill></a:ln>`;
+  if (strokeW() > 0) g += `<a:ln w="${EMU(strokeW())}"><a:solidFill><a:srgbClr val="${hex(s.strokeColor)}"/></a:solidFill></a:ln>`;
+  if (s.style === 'scatter') g += `<a:effectLst><a:outerShdw blurRad="${EMU(1.5)}" dist="${EMU(0.6)}" dir="5400000" algn="t" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="35000"/></a:srgbClr></a:outerShdw></a:effectLst>`;
   return g;
 }
 async function collectOffice(label){
@@ -877,7 +989,7 @@ async function exportDocx(){
     let id = 1;
     const addMedia = bytes => { const n = media.length + 1; media.push({ name:`word/media/image${n}.jpeg`, data:bytes });
       const rid = `rId${n + 10}`; rels.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image${n}.jpeg"/>`); return rid; };
-    const anchor = (rid, x, y, w, h, src, behind, name) => { const n = id++;
+    const anchor = (rid, x, y, w, h, src, behind, name, rot) => { const n = id++;
       const crop = src ? `<a:srcRect l="${src.l}" t="${src.t}" r="${src.r}" b="${src.b}"/>` : '';
       return `<w:r><w:drawing><wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="${behind ? 1 : 1000 + n}" behindDoc="${behind ? 1 : 0}" locked="0" layoutInCell="1" allowOverlap="1">`
       + `<wp:simplePos x="0" y="0"/><wp:positionH relativeFrom="page"><wp:posOffset>${EMU(x)}</wp:posOffset></wp:positionH>`
@@ -887,7 +999,7 @@ async function exportDocx(){
       + `<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic>`
       + `<pic:nvPicPr><pic:cNvPr id="${n}" name="${xesc(name)}"/><pic:cNvPicPr/></pic:nvPicPr>`
       + `<pic:blipFill><a:blip r:embed="${rid}"/>${crop}<a:stretch><a:fillRect/></a:stretch></pic:blipFill>`
-      + `<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${EMU(w)}" cy="${EMU(h)}"/></a:xfrm>${behind ? '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>' : geomXml(w, h)}</pic:spPr>`
+      + `<pic:spPr><a:xfrm${rot ? ` rot="${Math.round(rot*60000)}"` : ''}><a:off x="0" y="0"/><a:ext cx="${EMU(w)}" cy="${EMU(h)}"/></a:xfrm>${behind ? '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>' : geomXml(w, h)}</pic:spPr>`
       + `</pic:pic></a:graphicData></a:graphic></wp:anchor></w:drawing></w:r>`; };
     const bgRid = s.bg.toLowerCase() !== '#ffffff' ? addMedia(await solidJpeg(s.bg)) : null;
     const { title } = pageBoxes();
@@ -897,12 +1009,12 @@ async function exportDocx(){
     const font = OFFICE_FONT[s.titleFont];
     const paras = [];
     const pages = [];
-    grades.forEach(({ gi, items }) => { pages.push({ gi, side:'L' }, { gi, side:'R' }); pages.at(-2).items = items.filter(it => it.c.x < s.pageW); pages.at(-1).items = items.filter(it => it.c.x >= s.pageW); });
+    grades.forEach(({ gi, items }) => { pages.push({ gi, side:'L' }, { gi, side:'R' }); pages.at(-2).items = items.filter(it => it.c.x + it.c.w/2 < s.pageW); pages.at(-1).items = items.filter(it => it.c.x + it.c.w/2 >= s.pageW); });
     for (let pi = 0; pi < pages.length; pi++) {
       const pg = pages[pi], last = pi === pages.length - 1, ox = pg.side === 'L' ? 0 : s.pageW;
       let runs = '';
       if (bgRid) runs += anchor(bgRid, 0, 0, s.pageW, s.pageH, null, true, '背景');
-      for (const it of pg.items) runs += anchor(addMedia(it.bytes), it.c.x - ox, it.c.y, it.c.w, it.c.h, it.src, false, it.name);
+      for (const it of pg.items) runs += anchor(addMedia(it.bytes), it.c.x - ox, it.c.y, it.c.w, it.c.h, it.src, false, it.name, it.c.rot);
       let text = '';
       const hasTitle = title && s.titles[pg.gi] && ((pg.side === 'L') === titleLeft);
       const tsz = Math.round(s.titlePt * 2);
@@ -953,7 +1065,7 @@ async function exportPptx(){
         const c = it.c;
         shapes += `<p:pic><p:nvPicPr><p:cNvPr id="${id++}" name="${xesc(it.name)}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>`
           + `<p:blipFill><a:blip r:embed="${rid}"/><a:srcRect l="${it.src.l}" t="${it.src.t}" r="${it.src.r}" b="${it.src.b}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>`
-          + `<p:spPr><a:xfrm><a:off x="${EMU(c.x)}" y="${EMU(c.y)}"/><a:ext cx="${EMU(c.w)}" cy="${EMU(c.h)}"/></a:xfrm>${geomXml(c.w, c.h)}</p:spPr></p:pic>`;
+          + `<p:spPr><a:xfrm${c.rot ? ` rot="${Math.round(c.rot*60000)}"` : ''}><a:off x="${EMU(c.x)}" y="${EMU(c.y)}"/><a:ext cx="${EMU(c.w)}" cy="${EMU(c.h)}"/></a:xfrm>${geomXml(c.w, c.h)}</p:spPr></p:pic>`;
       }
       if (title && s.titles[gi]) {
         shapes += `<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="タイトル"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>`
