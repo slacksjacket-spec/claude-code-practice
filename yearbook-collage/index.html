@@ -758,12 +758,28 @@ function renderStatus(lay){
 let drag = null, wheelT = 0;
 const clamp01 = v => Math.min(1, Math.max(0, v));
 function pageBox(page){ const b = pageBoxes(); return page ? b.R : b.L; }
-function defaultFp(g, p){
+function defaultFp(g, p, except){
   const cnt = [0, 0];
-  g.photos.forEach(q => { if (q.feat && q.fp) cnt[q.fp.page]++; });
-  const page = cnt[0] <= cnt[1] ? 0 : 1, pg = pageBox(page);
-  const w = Math.min(1, (pg.h * S.set.featMax / 100) * (p.w / p.h) / pg.w);
-  return { page, w, cx:.5, cy:{ top:0, middle:.5, bottom:1 }[S.set.featPos] ?? 0 };
+  g.photos.forEach(q => { if (q.feat && q.fp && q !== except) cnt[q.fp.page]++; });
+  const order = cnt[0] <= cnt[1] ? [0, 1] : [1, 0];
+  const pref = { top:0, middle:.5, bottom:1 }[S.set.featPos] ?? 0;
+  // ほかの大きい写真と重ならない場所を探す：少ないページから、全幅→半分→3分の1の大きさで順に試す
+  for (const page of order) {
+    const pg = pageBox(page);
+    const others = g.photos.filter(q => q.feat && q.fp && q !== except && q !== p && q.fp.page === page).map(q => featRect(q, pg));
+    const n = others.length;
+    const w0 = Math.min(1, (pg.h * S.set.featMax / 100 / (n + 1)) * (p.w / p.h) / pg.w);
+    const cands = [];
+    for (const w of [w0, Math.min(w0, .55), Math.min(w0, .4)])
+      for (const cy of [pref, 0, 1, .5])
+        for (const cx of w > .9 ? [.5] : [.5, 0, 1]) cands.push({ page, w, cx, cy });
+    const gap = S.set.gap;
+    for (const c of cands) {
+      const r = featRect({ ...p, fp:c }, pg);
+      if (!others.some(o => r.x < o.x + o.w + gap && o.x < r.x + r.w + gap && r.y < o.y + o.h + gap && o.y < r.y + r.h + gap)) return c;
+    }
+  }
+  return { page:order[0], w:.4, cx:.5, cy:.5 };   // どうしても空かなければ重ねて置く
 }
 // mm座標の位置・大きさから fp（ページ内の割合）を計算
 function placeFeat(p, page, x, y, w, h){
@@ -774,6 +790,9 @@ function placeFeat(p, page, x, y, w, h){
 }
 function featCommand(p, cmd, step = 1.1){
   const fp = p.fp || (p.fp = defaultFp(S.grades[S.cur], p));
+  if (cmd === 'flip') { const np = 1 - fp.page, g = S.grades[S.cur]; p.fp = { ...fp, page:np }; const r = featRect(p, pageBox(np));
+    const hit = g.photos.some(q => q !== p && q.feat && q.fp && q.fp.page === np && (o => r.x < o.x + o.w && o.x < r.x + r.w && r.y < o.y + o.h && o.y < r.y + r.h)(featRect(q, pageBox(np))));
+    if (hit) { const c = defaultFp(g, p, p); if (c.page === np) p.fp = c; } return; }
   if (cmd === 'bigger') fp.w = Math.min(1, fp.w * step);
   else if (cmd === 'smaller') fp.w = Math.max(0.15, fp.w / step);
   else if (cmd === 'top') { fp.cy = 0; fp.cx = .5; }
