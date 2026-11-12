@@ -1,0 +1,1124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>卒アル見開きコラージュ</title>
+<style>
+:root{
+  --bg:#f3f1ec; --panel:#ffffff; --ink:#26231f; --sub:#6f6a62; --line:#e2ddd4;
+  --accent:#d0603a; --accent-ink:#fff; --ok:#3f8a5a; --warn:#c2731d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;font-size:14px}
+header{display:flex;align-items:center;gap:16px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:16px;margin:0;white-space:nowrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:#faf8f4;border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit;display:flex;gap:6px;align-items:center}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab .cnt{font-size:11px;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.08)}
+.tab.on .cnt{background:rgba(255,255,255,.2)}
+.tab .cnt.full{background:var(--ok);color:#fff}
+.app{display:flex;height:calc(100% - 53px)}
+aside{width:320px;flex:none;overflow:auto;background:var(--panel);border-right:1px solid var(--line);padding:8px 14px 40px}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+details{border-bottom:1px solid var(--line);padding:6px 0}
+summary{font-weight:700;cursor:pointer;padding:6px 0}
+.row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.row label{flex:1;color:var(--sub);font-size:13px}
+.row input[type=number]{width:72px}
+.row input[type=text]{flex:1.4;min-width:0}
+input,select{font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+input[type=color]{padding:0;width:40px;height:28px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 10px;color:var(--ink)}
+button:hover{border-color:#bdb5a8}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.block{display:block;width:100%;margin:6px 0;text-align:left}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.btns button{flex:1}
+.note{color:var(--sub);font-size:12px;line-height:1.6;margin:4px 0}
+.toolbar{display:flex;align-items:center;gap:10px;padding:8px 16px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.seg button{border:0;border-radius:0;padding:6px 12px}
+.seg button.on{background:var(--ink);color:#fff}
+.status{margin-left:auto;color:var(--sub);font-size:13px}
+.status b.ok{color:var(--ok)} .status b.warn{color:var(--warn)}
+#stage{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:12px 16px 20px}
+.spread{position:relative;box-shadow:0 6px 30px rgba(0,0,0,.15);user-select:none;-webkit-user-select:none}
+.guide{position:absolute;pointer-events:none;border:1px dashed rgba(208,96,58,.7)}
+.gutter{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed rgba(0,0,0,.35);pointer-events:none}
+.margin{position:absolute;pointer-events:none;border:1px dotted rgba(60,120,200,.55)}
+.cell{position:absolute;overflow:hidden;cursor:grab;background:#ddd}
+.cell img{position:absolute;max-width:none;pointer-events:none;-webkit-user-drag:none}
+.cell.src{outline:3px solid var(--accent);opacity:.6}
+.cell.tgt{outline:3px solid #3a7bd0;outline-offset:-3px}
+.mode-crop .cell{cursor:move}
+.cell .x{position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;border:0;padding:0;background:rgba(0,0,0,.6);color:#fff;font-size:12px;line-height:20px;display:none;cursor:pointer}
+.cell:hover .x{display:block}
+.cell .star{position:absolute;left:3px;top:3px;border:0;border-radius:999px;padding:2px 7px;font-size:11px;background:rgba(0,0,0,.6);color:#fff;display:none;cursor:pointer}
+.cell:hover .star,.cell .star.on{display:block}
+.cell .star.on{background:#e0a106;color:#fff}
+.ttl{position:absolute;white-space:nowrap;overflow:hidden;line-height:1;display:flex;align-items:center;pointer-events:none}
+.empty{border:2px dashed #c9c1b4;border-radius:16px;padding:40px;text-align:center;color:var(--sub);background:rgba(255,255,255,.6);max-width:520px}
+.empty b{display:block;font-size:18px;color:var(--ink);margin-bottom:8px}
+#stage.drag .spread,#stage.drag .empty{outline:4px dashed var(--accent);outline-offset:6px}
+#overlay{position:fixed;inset:0;background:rgba(20,18,15,.55);display:none;align-items:center;justify-content:center;z-index:10}
+#overlay .box{background:#fff;border-radius:12px;padding:20px 24px;min-width:300px}
+#overlay .bar{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-top:12px}
+#overlay .bar i{display:block;height:100%;background:var(--accent);width:0}
+.hint{padding:0 16px 10px;color:var(--sub);font-size:12px}
+@media (max-width:820px){
+  .app{flex-direction:column;height:auto}
+  aside{width:auto;border-right:0;border-bottom:1px solid var(--line);max-height:none}
+  #stage{min-height:60vh}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>📚 卒アル見開きコラージュ</h1>
+  <div class="tabs" id="tabs"></div>
+</header>
+<div class="app">
+<aside>
+  <details open>
+    <summary>① 写真</summary>
+    <div class="btns">
+      <button class="primary" id="btnAdd">写真を追加</button>
+      <button id="btnAddDir">フォルダごと追加</button>
+    </div>
+    <p class="note">この学年に追加されます。画面にドラッグ＆ドロップでもOK。写真はPCの外に送られず、ブラウザの中だけで処理されます。</p>
+    <div class="row"><label>配置スタイル</label>
+      <select data-k="style">
+        <option value="mosaic">モザイク（縦横ミックス）</option>
+        <option value="scatter">ちらし（傾けて重ねる）</option>
+        <option value="rows">行で揃える（横並び）</option>
+        <option value="cols">列で揃える（縦並び）</option>
+      </select>
+    </div>
+    <div class="row"><label>大きさのメリハリ</label>
+      <select data-k="variety"><option value="0">なし</option><option value="1">少し</option><option value="2">大きめ</option></select>
+    </div>
+    <div class="row"><label>並び順</label>
+      <select id="sortMode">
+        <option value="date">撮影日順</option>
+        <option value="name">ファイル名順</option>
+        <option value="shuffle">バランス重視（シャッフル）</option>
+        <option value="manual">手動（入れ替えた順）</option>
+      </select>
+    </div>
+    <div class="btns">
+      <button id="btnShuffle">🔀 別の配置を試す</button>
+      <button id="btnClear">この学年を空にする</button>
+    </div>
+    <details>
+      <summary style="font-weight:400">全学年まとめて振り分け（撮影日）</summary>
+      <div class="row"><label>入学した年（4月）</label><input type="number" id="entryYear" min="2000" max="2100"></div>
+      <button class="block" id="btnDistribute">写真をまとめて選んで学年に自動振り分け</button>
+      <p class="note">撮影日（EXIF）で 4月〜翌3月 を1学年として振り分けます。撮影日が読めない写真はファイルの更新日時を使います。</p>
+    </details>
+  </details>
+
+  <details open>
+    <summary>② ページサイズ</summary>
+    <div class="row"><label>判型（1ページ）</label>
+      <select id="preset">
+        <option value="A4P">A4 縦（210×297）</option>
+        <option value="A4L">A4 横（297×210）</option>
+        <option value="AB">AB判（210×257）</option>
+        <option value="B5P">B5 縦（182×257）</option>
+        <option value="SQ">正方形（210×210）</option>
+        <option value="custom">カスタム</option>
+      </select>
+    </div>
+    <div class="row"><label>幅 / 高さ (mm)</label><input type="number" data-k="pageW" step="1"><input type="number" data-k="pageH" step="1"></div>
+    <div class="row"><label>塗り足し (mm)</label><input type="number" data-k="bleed" step="0.5" min="0"></div>
+    <div class="row"><label>書き出し解像度 (dpi)</label><input type="number" data-k="dpi" step="10" min="72" max="600"></div>
+    <div class="row"><label>目標枚数（1見開き）</label><input type="number" data-k="target" step="1" min="1"></div>
+  </details>
+
+  <details open>
+    <summary>③ 余白・間隔</summary>
+    <div class="row"><label>外側の余白 (mm)</label><input type="number" data-k="mOuter" step="0.5" min="0"></div>
+    <div class="row"><label>ノド（綴じ側）の余白 (mm)</label><input type="number" data-k="mInner" step="0.5" min="0"></div>
+    <div class="row"><label>上 / 下 (mm)</label><input type="number" data-k="mTop" step="0.5" min="0"><input type="number" data-k="mBottom" step="0.5" min="0"></div>
+    <div class="row"><label>写真の間隔 (mm)</label><input type="number" data-k="gap" step="0.25" min="0"></div>
+    <p class="note">ノドは綴じ目に写真が飲み込まれないよう、外側より広めがおすすめ。</p>
+  </details>
+
+  <details open>
+    <summary>★ 集合写真を大きく</summary>
+    <p class="note">写真にカーソルを乗せて「☆ 大きく」を押すと、その写真がページ幅いっぱいの大きな枠になります（集合写真向け）。1枚目は左ページ、2枚目は右ページに入ります。基本はトリミングなしで全体が入ります。</p>
+    <div class="row"><label>置く位置</label>
+      <select data-k="featPos"><option value="top">ページの上</option><option value="bottom">ページの下</option></select>
+    </div>
+    <div class="row"><label>最大の高さ（ページの%）</label><input type="number" data-k="featMax" step="5" min="15" max="100"></div>
+  </details>
+
+  <details>
+    <summary>④ 見た目</summary>
+    <div class="row"><label>背景色</label><input type="color" data-k="bg"></div>
+    <div class="row"><label>角の丸み (mm)</label><input type="number" data-k="radius" step="0.5" min="0"></div>
+    <div class="row"><label>フチの太さ (mm)</label><input type="number" data-k="stroke" step="0.25" min="0"></div>
+    <div class="row"><label>フチの色</label><input type="color" data-k="strokeColor"></div>
+  </details>
+
+  <details open>
+    <summary>⑤ タイトル</summary>
+    <div class="row"><label>この学年のタイトル</label><input type="text" id="gradeTitle"></div>
+    <div class="row"><label>置く場所</label>
+      <select data-k="titlePos"><option value="left">左ページの上</option><option value="right">右ページの上</option><option value="none">なし</option></select>
+    </div>
+    <div class="row"><label>揃え</label>
+      <select data-k="titleAlign"><option value="left">左</option><option value="center">中央</option><option value="right">右</option></select>
+    </div>
+    <div class="row"><label>文字の大きさ (pt)</label><input type="number" data-k="titlePt" step="1" min="6"></div>
+    <div class="row"><label>文字の色</label><input type="color" data-k="titleColor"></div>
+    <div class="row"><label>書体</label>
+      <select data-k="titleFont">
+        <option value="gothic">ゴシック</option>
+        <option value="maru">丸ゴシック</option>
+        <option value="mincho">明朝</option>
+      </select>
+    </div>
+  </details>
+
+  <details open>
+    <summary>⑥ 書き出し（JPEG）</summary>
+    <button class="block primary" id="expSpread">この学年を書き出す（見開き1枚）</button>
+    <button class="block" id="expPages">この学年を書き出す（左右ページ別）</button>
+    <button class="block" id="expAll">全学年まとめて書き出す</button>
+    <p class="note">塗り足し込みのサイズ・指定dpiで出力します。複数ファイルのダウンロード許可を聞かれたら「許可」してください。</p>
+  </details>
+
+  <details open>
+    <summary>⑦ Word / PowerPoint で書き出し</summary>
+    <p class="note">写真1枚ずつが動かせる図として入るので、Office上で位置・大きさ・トリミングを手直しできます（トリミングされた部分も中に残っています）。</p>
+    <div class="row"><label>対象</label>
+      <select data-k="officeScope"><option value="all">全学年（写真のある学年）</option><option value="cur">この学年だけ</option></select>
+    </div>
+    <div class="row"><label>画質</label>
+      <select data-k="officeDpi"><option value="150">軽め（150dpi）</option><option value="220">標準（220dpi）</option><option value="300">高画質（300dpi）</option><option value="350">最高（350dpi・重い）</option></select>
+    </div>
+    <button class="block" id="expDocx">📄 Word（.docx）… 1ページずつ</button>
+    <button class="block" id="expPptx">📊 PowerPoint（.pptx）… 見開き1枚＝1スライド</button>
+    <p class="note">Wordは背景色・角丸・フチも反映。塗り足しは入らないので、印刷所入稿はJPEG書き出しがおすすめです。</p>
+  </details>
+</aside>
+
+<main>
+  <div class="toolbar">
+    <div class="seg" id="modeSeg">
+      <button data-mode="swap" class="on">↔ 入れ替え</button>
+      <button data-mode="crop">✥ 位置調整</button>
+    </div>
+    <label style="display:flex;gap:6px;align-items:center;color:var(--sub)"><input type="checkbox" id="showGuides" checked>ガイド線</label>
+    <div class="status" id="status"></div>
+  </div>
+  <div id="stage"></div>
+  <div class="hint" id="hint"></div>
+</main>
+</div>
+
+<input type="file" id="fileIn" accept="image/*" multiple hidden>
+<input type="file" id="dirIn" webkitdirectory multiple hidden>
+<input type="file" id="distIn" accept="image/*" multiple hidden>
+<div id="overlay"><div class="box"><div id="ovText">処理中…</div><div class="bar"><i id="ovBar"></i></div></div></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+/* ---------- 状態 ---------- */
+const PRESETS = { A4P:[210,297], A4L:[297,210], AB:[210,257], B5P:[182,257], SQ:[210,210] };
+const DEFAULTS = {
+  preset:'A4P', pageW:210, pageH:297, bleed:3, dpi:350, target:50,
+  mOuter:12, mInner:18, mTop:12, mBottom:12, gap:1.5,
+  bg:'#ffffff', radius:0, stroke:0, strokeColor:'#ffffff',
+  titlePos:'left', titleAlign:'left', titlePt:28, titleColor:'#333333', titleFont:'maru',
+  style:'mosaic', variety:1, featPos:'top', featMax:55, officeDpi:220, officeScope:'all',
+  entryYear: new Date().getFullYear() - 6,
+  titles: ['1年生','2年生','3年生','4年生','5年生','6年生'],
+};
+const FONTS = {
+  gothic:'"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif',
+  maru:'"Hiragino Maru Gothic ProN","Hiragino Maru Gothic Pro","Rounded Mplus 1c","BIZ UDGothic","Yu Gothic",sans-serif',
+  mincho:'"Hiragino Mincho ProN","Yu Mincho","YuMincho","MS Mincho",serif',
+};
+const PT2MM = 25.4/72;
+
+function loadSettings(){
+  try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('yb-collage-settings')||'{}')); }
+  catch { return {...DEFAULTS}; }
+}
+function saveSettings(){ try { localStorage.setItem('yb-collage-settings', JSON.stringify(S.set)); } catch {} }
+
+const S = {
+  set: loadSettings(),
+  grades: Array.from({length:6}, () => ({ photos:[], sort:'date', seed:1 })),
+  cur: 0,
+  mode: 'swap',
+};
+let uidN = 0; const uid = () => 'p' + (++uidN);
+
+/* ---------- 写真読み込み ---------- */
+function isImage(f){ return f.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|heic|heif|avif)$/i.test(f.name); }
+
+async function readExifDate(file){
+  if (!/jpe?g/i.test(file.type) && !/\.jpe?g$/i.test(file.name)) return null;
+  try {
+    const v = new DataView(await file.slice(0, 262144).arrayBuffer());
+    if (v.getUint16(0) !== 0xFFD8) return null;
+    let o = 2;
+    while (o + 4 < v.byteLength) {
+      const m = v.getUint16(o);
+      if ((m & 0xFF00) !== 0xFF00) return null;
+      const len = v.getUint16(o + 2);
+      if (m === 0xFFE1 && v.getUint32(o + 4) === 0x45786966) return parseTiffDate(v, o + 10);
+      if (m === 0xFFDA) return null;
+      o += 2 + len;
+    }
+  } catch {}
+  return null;
+}
+function parseTiffDate(v, t){
+  const le = v.getUint16(t) === 0x4949;
+  const u16 = p => v.getUint16(p, le), u32 = p => v.getUint32(p, le);
+  const ifd = off => { const p = t + off, n = u16(p), tags = {};
+    for (let i = 0; i < n; i++) { const e = p + 2 + i*12; tags[u16(e)] = { count:u32(e+4), val:e+8 }; } return tags; };
+  const str = tag => { if (!tag) return null; const off = tag.count > 4 ? t + u32(tag.val) : tag.val;
+    let s = ''; for (let i = 0; i < tag.count - 1; i++) s += String.fromCharCode(v.getUint8(off + i)); return s; };
+  const i0 = ifd(u32(t + 4));
+  let ds = null;
+  if (i0[0x8769]) { const ex = ifd(u32(i0[0x8769].val)); ds = str(ex[0x9003]) || str(ex[0x9004]); }
+  ds = ds || str(i0[0x0132]);
+  const m = ds && ds.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+  return m ? new Date(+m[1], m[2]-1, +m[3], +m[4], +m[5], +m[6]).getTime() : null;
+}
+
+function loadImg(url){
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });
+}
+async function makePhoto(file){
+  const date = (await readExifDate(file)) || file.lastModified || 0;
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await loadImg(url);   // 向き（EXIF Orientation）はブラウザが反映
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const sc = Math.min(1, 800 / Math.max(w, h));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w*sc)); c.height = Math.max(1, Math.round(h*sc));
+    const cx = c.getContext('2d'); cx.imageSmoothingQuality = 'high';
+    cx.drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+    return { id:uid(), file, name:file.name, date, w, h, thumb:URL.createObjectURL(blob), fx:.5, fy:.5, z:1 };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+async function pool(items, n, fn){
+  let i = 0;
+  await Promise.all(Array.from({length:Math.min(n, items.length)}, async () => {
+    while (i < items.length) { const k = i++; await fn(items[k], k); }
+  }));
+}
+
+async function importFiles(files, assign){
+  const list = [...files].filter(isImage);
+  if (!list.length) return;
+  const fails = [], made = [];
+  let done = 0;
+  overlay(true, `写真を読み込み中… 0 / ${list.length}`, 0);
+  await pool(list, 4, async f => {
+    try { made.push(await makePhoto(f)); } catch { fails.push(f.name); }
+    done++; overlay(true, `写真を読み込み中… ${done} / ${list.length}`, done/list.length);
+  });
+  let skipped = 0;
+  const touched = new Set();
+  for (const p of made) {
+    const gi = assign(p);
+    if (gi == null) { skipped++; URL.revokeObjectURL(p.thumb); continue; }
+    const g = S.grades[gi];
+    if (g.photos.some(q => q.name === p.name && q.file.size === p.file.size)) { URL.revokeObjectURL(p.thumb); continue; }
+    g.photos.push(p); touched.add(gi);
+  }
+  for (const gi of touched) applySort(S.grades[gi]);
+  overlay(false);
+  render();
+  const msg = [];
+  if (fails.length) msg.push(`${fails.length}枚は読み込めませんでした（HEICはChromeでは開けないのでJPEGに変換してください）:\n` + fails.slice(0,10).join('\n'));
+  if (skipped) msg.push(`${skipped}枚は撮影日が6年間の範囲外だったので追加していません。`);
+  if (msg.length) alert(msg.join('\n\n'));
+}
+
+/* ---------- 並び替え ---------- */
+function applySort(g){
+  if (g.sort === 'date') g.photos.sort((a,b) => a.date - b.date || a.name.localeCompare(b.name, 'ja', {numeric:true}));
+  else if (g.sort === 'name') g.photos.sort((a,b) => a.name.localeCompare(b.name, 'ja', {numeric:true}));
+  else if (g.sort === 'shuffle') optimizeOrder(g, 400);
+}
+function optimizeOrder(g, trials){
+  if (S.set.style === 'mosaic' || S.set.style === 'scatter') trials = Math.min(trials, 15);
+  const ph = g.photos.slice();
+  let best = null, bestScore = Infinity;
+  for (let t = 0; t < trials; t++) {
+    for (let i = ph.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [ph[i], ph[j]] = [ph[j], ph[i]]; }
+    const sc = layoutSpread(ph, g.seed).score;
+    if (sc < bestScore) { bestScore = sc; best = ph.slice(); }
+  }
+  if (best) g.photos = best;
+}
+
+/* ---------- 自動レイアウト（行揃え・トリミング最小化） ---------- */
+// 並び順を保ったまま k 行に分け、各行の縦横比の合計を揃える
+function partition(a, k){
+  const n = a.length, pre = [0];
+  for (const x of a) pre.push(pre[pre.length-1] + x);
+  const T = pre[n] / k, INF = 1e18;
+  let dp = new Array(n+1).fill(INF); dp[0] = 0;
+  const back = [];
+  for (let j = 1; j <= k; j++) {
+    const nd = new Array(n+1).fill(INF), bk = new Int32Array(n+1);
+    for (let i = j; i <= n - (k - j); i++) {
+      for (let p = j - 1; p < i; p++) {
+        if (dp[p] === INF) continue;
+        const c = dp[p] + (pre[i] - pre[p] - T) ** 2;
+        if (c < nd[i]) { nd[i] = c; bk[i] = p; }
+      }
+    }
+    back.push(bk); dp = nd;
+  }
+  const groups = []; let i = n;
+  for (let j = k; j >= 1; j--) { const p = back[j-1][i]; groups.unshift([p, i]); i = p; }
+  return groups;
+}
+function justify(ars, W, H, gap){
+  const n = ars.length;
+  if (!n) return { cells:[], score:0 };
+  let best = null;
+  for (let k = 1; k <= Math.min(n, 16); k++) {
+    const groups = partition(ars, k);
+    const hs = groups.map(([a,b]) => { let s = 0; for (let i = a; i < b; i++) s += ars[i]; return (W - (b-a-1)*gap) / s; });
+    if (hs.some(h => !(h > 0))) continue;
+    const sumH = hs.reduce((a,b) => a+b, 0);
+    const s = (H - (k-1)*gap) / sumH;           // 縦方向の伸縮率 = トリミング量
+    if (!(s > 0)) continue;
+    const mean = sumH / k;
+    const cv = Math.sqrt(hs.reduce((a,h) => a + (h-mean)**2, 0) / k) / mean;
+    const score = Math.abs(Math.log(s)) + 0.35*cv;
+    if (!best || score < best.score) best = { score, groups, hs, s };
+  }
+  if (!best) return { cells:[], score:99 };
+  const cells = []; let y = 0;
+  best.groups.forEach(([a,b], gi) => {
+    const rh = best.hs[gi] * best.s; let x = 0;
+    for (let i = a; i < b; i++) { const w = ars[i]*best.hs[gi]; cells.push({ i, x, y, w, h:rh }); x += w + gap; }
+    y += rh + gap;
+  });
+  return { cells, score:best.score };
+}
+function pageBoxes(){
+  const s = S.set;
+  const titleH = s.titlePos === 'none' ? 0 : s.titlePt*PT2MM*1.35;
+  const w = s.pageW - s.mOuter - s.mInner, h = s.pageH - s.mTop - s.mBottom;
+  const L = { x:s.mOuter, y:s.mTop, w, h }, R = { x:s.pageW + s.mInner, y:s.mTop, w, h };
+  let title = null;
+  const T = s.titlePos === 'left' ? L : s.titlePos === 'right' ? R : null;
+  if (T) { title = { x:T.x, y:T.y, w:T.w, h:titleH }; T.y += titleH + Math.max(s.gap, 2); T.h -= titleH + Math.max(s.gap, 2); }
+  return { L, R, title };
+}
+// photos: [{w,h,feat}]  feat=true の写真（集合写真など）はページ幅いっぱいの大きな枠に置く
+function rng(seed){   // 再現できる乱数（同じseedなら同じ配置）
+  let a = seed >>> 0;
+  return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+// モザイク：写真の縦横比から「左右に並べる／上下に積む」の組み合わせ（木構造）を作る。
+// 組み合わせ全体の縦横比がページに近い案を何百通りから選ぶので、1枚ごとのトリミングはほぼ出ない。
+function mosaic(ars, W, H, gap, seed){
+  const n = ars.length;
+  if (!n) return { cells:[], score:0 };
+  if (W <= 0 || H <= 0) return { cells:[], score:99 };
+  const R = rng(seed*7919 + n*131 + Math.round(W*7) + Math.round(H*3));
+  const T = W / H, tol = [0.28, 0.42, 0.62][S.set.variety] ?? 0.42;   // 大きさのばらつきの許容量
+  const build = (a, b) => {
+    if (b - a === 1) return { leaf:a };
+    const m = b - a;
+    const k = Math.min(b-1, Math.max(a+1, a + Math.round(m*(0.5 + (R()-0.5)*0.8))));
+    return { L:build(a, k), R:build(k, b), vert:R() < 0.5 };
+  };
+  const arOf = nd => {
+    if (nd.leaf != null) return nd.ar = ars[nd.leaf];
+    const l = arOf(nd.L), r = arOf(nd.R);
+    return nd.ar = nd.vert ? l + r : 1 / (1/l + 1/r);
+  };
+  const evaluate = root => {
+    arOf(root);
+    const cells = [];
+    const place = (nd, x, y, w, h) => {
+      if (nd.leaf != null) { cells.push({ i:nd.leaf, x, y, w, h }); return; }
+      if (nd.vert) { const w1 = (w-gap) * nd.L.ar / (nd.L.ar + nd.R.ar); place(nd.L, x, y, w1, h); place(nd.R, x+w1+gap, y, w-gap-w1, h); }
+      else { const h1 = (h-gap) * (1/nd.L.ar) / (1/nd.L.ar + 1/nd.R.ar); place(nd.L, x, y, w, h1); place(nd.R, x, y+h1+gap, w, h-gap-h1); }
+    };
+    place(root, 0, 0, W, H);
+    let crop = 0; const la = [];
+    for (const c of cells) {
+      if (c.w <= 1 || c.h <= 1) return { cells, score:1e9 };
+      crop += Math.abs(Math.log((c.w/c.h) / ars[c.i]));
+      la.push(Math.log(c.w*c.h));
+    }
+    const mean = la.reduce((x, y) => x + y, 0) / n;
+    const sd = Math.sqrt(la.reduce((x, y) => x + (y-mean)**2, 0) / n);
+    const minA = Math.exp(Math.min(...la)) / (W*H/n);
+    return { cells, score: crop/n + Math.max(0, sd - tol)*1.5 + Math.abs(sd - tol*0.7)*0.15 + (minA < 0.45 ? (0.45 - minA)*6 : 0) };
+  };
+  // ① ランダムな組み合わせを多数試す
+  let best = null, bestTree = null;
+  for (let t = 0; t < 150; t++) {
+    const tree = build(0, n), r = evaluate(tree);
+    if (!best || r.score < best.score) { best = r; bestTree = tree; }
+  }
+  // ② 一番良い案の「左右／上下」を1か所ずつ反転して、良くなれば採用（山登り）
+  const nodes = [];
+  (function collect(nd){ if (nd.leaf == null) { nodes.push(nd); collect(nd.L); collect(nd.R); } })(bestTree);
+  for (let t = 0; t < nodes.length * 12 && nodes.length; t++) {
+    const nd = nodes[Math.floor(R() * nodes.length)];
+    nd.vert = !nd.vert;
+    const r = evaluate(bestTree);
+    if (r.score < best.score) best = r; else nd.vert = !nd.vert;
+  }
+  return best;
+}
+function layoutPage(ars, W, H, gap, seed){
+  const st = S.set.style;
+  if (st === 'cols') {
+    const r = justify(ars.map(a => 1/a), H, W, gap);
+    return { score:r.score, cells:r.cells.map(c => ({ i:c.i, x:c.y, y:c.x, w:c.h, h:c.w })) };
+  }
+  if (st === 'mosaic' || st === 'scatter') return mosaic(ars, W, H, gap, seed);
+  return justify(ars, W, H, gap);
+}
+function strokeW(){ return S.set.style === 'scatter' ? Math.max(S.set.stroke, 2) : S.set.stroke; }
+const layoutCache = new Map();
+function layoutSpread(photos, seed = 1){
+  const st = S.set;
+  const key = JSON.stringify([seed, st.style, st.variety, st.pageW, st.pageH, st.mOuter, st.mInner, st.mTop, st.mBottom, st.gap,
+    st.titlePos, st.titlePt, st.featPos, st.featMax, photos.map(p => [p.w, p.h, p.feat ? 1 : 0])]);
+  if (layoutCache.has(key)) return structuredClone(layoutCache.get(key));
+  const r = layoutSpreadRaw(photos, seed);
+  if (layoutCache.size > 200) layoutCache.clear();
+  layoutCache.set(key, r);
+  return structuredClone(r);
+}
+function layoutSpreadRaw(photos, seed){
+  const s = S.set, gap = s.gap, { L, R } = pageBoxes();
+  if (!photos.length) return { cells:[], score:0, split:0 };
+  const feat = [], norm = [];
+  photos.forEach((p, i) => (p.feat ? feat : norm).push(i));
+  const pages = [{ ...L, f:[] }, { ...R, f:[] }];
+  feat.forEach((i, k) => pages[k % 2].f.push(i));     // 1枚目→左ページ、2枚目→右ページ…
+  const cells = [];
+  for (const pg of pages) {
+    if (!pg.f.length) continue;
+    const maxH = (pg.h * s.featMax / 100 - gap*(pg.f.length-1)) / pg.f.length;
+    const bands = pg.f.map(i => ({ i, h: Math.min(pg.w * photos[i].h / photos[i].w, maxH) }));
+    const total = bands.reduce((a, b) => a + b.h + gap, 0);
+    let y = s.featPos === 'bottom' ? pg.y + pg.h - total + gap : pg.y;
+    for (const b of bands) { cells.push({ i:b.i, x:pg.x, y, w:pg.w, h:b.h, feat:true }); y += b.h + gap; }
+    pg.h -= total; if (s.featPos !== 'bottom') pg.y += total;
+  }
+  const [A, B] = pages, ars = norm.map(i => photos[i].w / photos[i].h), m = ars.length;
+  const areaA = A.h > 15 ? A.w*A.h : 0, areaB = B.h > 15 ? B.w*B.h : 0;
+  const mid = Math.round(m * areaA / ((areaA + areaB) || 1));
+  let lo = Math.max(0, mid-4), hi = Math.min(m, mid+4);
+  if (!areaA) lo = hi = 0; else if (!areaB) lo = hi = m;
+  let best = null;
+  for (let sp = lo; sp <= hi; sp++) {
+    if (m >= 2 && areaA && areaB && (sp === 0 || sp === m)) continue;
+    const a = layoutPage(ars.slice(0, sp), A.w, A.h, gap, seed*2);
+    const b = layoutPage(ars.slice(sp), B.w, B.h, gap, seed*2 + 1);
+    const score = a.score + b.score + Math.abs(sp - mid)*0.03;
+    if (!best || score < best.score) best = { score, a, b, sp };
+  }
+  if (!best) best = { score:0, a:{cells:[]}, b:{cells:[]}, sp:0 };
+  cells.push(
+    ...best.a.cells.map(c => ({ ...c, i:norm[c.i], x:c.x + A.x, y:c.y + A.y })),
+    ...best.b.cells.map(c => ({ ...c, i:norm[c.i + best.sp], x:c.x + B.x, y:c.y + B.y })),
+  );
+  if (s.style === 'scatter') {   // ちらし：少し大きくして傾け、重ねる
+    const R = rng(seed*104729 + 7);
+    for (const c of cells) {
+      const m = c.feat ? 0.35 : 1, e = 1 + 0.07*m;
+      c.rot = (R()*2 - 1) * 7 * m;
+      c.x -= c.w*(e-1)/2; c.y -= c.h*(e-1)/2; c.w *= e; c.h *= e;
+    }
+  }
+  return { cells, score:best.score, split: best.sp + pages[0].f.length };
+}
+
+/* ---------- 画像の切り抜き計算（プレビューと書き出し共通） ---------- */
+function cropBox(p, cw, ch){
+  const k = Math.max(cw/p.w, ch/p.h) * p.z;
+  const dw = p.w*k, dh = p.h*k;
+  return { left:(cw-dw)*p.fx, top:(ch-dh)*p.fy, width:dw, height:dh, k };
+}
+
+/* ---------- 画面描画 ---------- */
+let view = null;   // { scale, ox, oy, cells }
+function render(){
+  renderTabs(); renderControls();
+  const g = S.grades[S.cur], s = S.set, stage = $('#stage');
+  stage.innerHTML = '';
+  if (!g.photos.length) {
+    stage.innerHTML = `<div class="empty"><b>${esc(S.set.titles[S.cur])} の写真を入れてください</b>ここに写真をドラッグ＆ドロップ、<br>または左の「写真を追加」から選んでください。<br>入れた瞬間に自動でコラージュされます。</div>`;
+    view = null; renderStatus(); return;
+  }
+  const lay = layoutSpread(g.photos, g.seed);
+  const totalW = 2*s.pageW + 2*s.bleed, totalH = s.pageH + 2*s.bleed;
+  const sw = stage.clientWidth - 32, sh = stage.clientHeight - 32;
+  const scale = Math.max(0.5, Math.min(sw/totalW, sh/totalH));
+  const sp = document.createElement('div');
+  sp.className = 'spread';
+  sp.style.cssText = `width:${totalW*scale}px;height:${totalH*scale}px;background:${s.bg}`;
+  const o = s.bleed*scale, X = mm => o + mm*scale, Y = mm => o + mm*scale, D = mm => mm*scale;
+  const guides = $('#showGuides').checked;
+  if (guides) {
+    add(sp, 'guide', { left:X(0), top:Y(0), width:D(2*s.pageW), height:D(s.pageH) });
+    const gt = document.createElement('div'); gt.className = 'gutter'; gt.style.left = X(s.pageW) + 'px'; sp.appendChild(gt);
+    const { L, R } = pageBoxes();
+    for (const b of [L, R]) add(sp, 'margin', { left:X(b.x), top:Y(b.y), width:D(b.w), height:D(b.h) });
+  }
+  const { title } = pageBoxes();
+  if (title) {
+    const t = add(sp, 'ttl', { left:X(title.x), top:Y(title.y), width:D(title.w), height:D(title.h) });
+    t.textContent = s.titles[S.cur];
+    t.style.fontSize = D(s.titlePt*PT2MM) + 'px';
+    t.style.color = s.titleColor; t.style.fontFamily = FONTS[s.titleFont]; t.style.fontWeight = '700';
+    t.style.justifyContent = { left:'flex-start', center:'center', right:'flex-end' }[s.titleAlign];
+  }
+  lay.cells.forEach((c, idx) => {
+    const p = g.photos[c.i];
+    const el = add(sp, 'cell', { left:X(c.x), top:Y(c.y), width:D(c.w), height:D(c.h) });
+    el.dataset.idx = c.i;
+    if (s.radius) el.style.borderRadius = D(s.radius) + 'px';
+    if (c.rot) el.style.transform = `rotate(${c.rot}deg)`;
+    if (s.style === 'scatter') el.style.boxShadow = `0 ${D(0.6)}px ${D(1.5)}px rgba(0,0,0,.35)`;
+    const im = document.createElement('img'); im.src = p.thumb; im.draggable = false;
+    placeImg(im, p, D(c.w), D(c.h));
+    el.appendChild(im);
+    if (strokeW()) { const f = document.createElement('div'); f.style.cssText = `position:absolute;inset:0;box-shadow:inset 0 0 0 ${D(strokeW())}px ${s.strokeColor};border-radius:inherit;pointer-events:none`; el.appendChild(f); }
+    const x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.title = 'この写真を外す'; x.dataset.del = c.i;
+    el.appendChild(x);
+    const st = document.createElement('button'); st.className = 'star' + (p.feat ? ' on' : '');
+    st.textContent = p.feat ? '★ 大きく中' : '☆ 大きく'; st.title = '集合写真などをページ幅いっぱいに大きく載せる'; st.dataset.feat = c.i;
+    el.appendChild(st);
+  });
+  stage.appendChild(sp);
+  view = { scale, cells:lay.cells };
+  sp.classList.toggle('mode-crop', S.mode === 'crop');
+  renderStatus(lay);
+}
+function placeImg(im, p, cw, ch){
+  const b = cropBox(p, cw, ch);
+  im.style.left = b.left + 'px'; im.style.top = b.top + 'px'; im.style.width = b.width + 'px'; im.style.height = b.height + 'px';
+}
+function add(parent, cls, box){
+  const el = document.createElement('div'); el.className = cls;
+  for (const k in box) el.style[k] = box[k] + 'px';
+  parent.appendChild(el); return el;
+}
+function esc(t){ return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function renderTabs(){
+  const tabs = $('#tabs'); tabs.innerHTML = '';
+  S.grades.forEach((g, i) => {
+    const b = document.createElement('button');
+    b.className = 'tab' + (i === S.cur ? ' on' : '');
+    const full = g.photos.length === S.set.target;
+    b.innerHTML = `${i+1}年 <span class="cnt${full ? ' full' : ''}">${g.photos.length}</span>`;
+    b.onclick = () => { S.cur = i; render(); };
+    tabs.appendChild(b);
+  });
+}
+function renderControls(){
+  $$('[data-k]').forEach(el => { if (document.activeElement !== el) el.value = S.set[el.dataset.k]; });
+  $('#preset').value = S.set.preset;
+  $('#sortMode').value = S.grades[S.cur].sort;
+  if (document.activeElement !== $('#gradeTitle')) $('#gradeTitle').value = S.set.titles[S.cur];
+  if (document.activeElement !== $('#entryYear')) $('#entryYear').value = S.set.entryYear;
+}
+function renderStatus(lay){
+  const g = S.grades[S.cur], n = g.photos.length, t = S.set.target;
+  const cls = n === t ? 'ok' : 'warn';
+  let txt = `<b class="${cls}">${n} / ${t} 枚</b>`;
+  if (n && n !== t) txt += n < t ? `（あと${t-n}枚）` : `（${n-t}枚多い）`;
+  if (lay && lay.cells.length) txt += `　左${lay.split}枚・右${n-lay.split}枚`;
+  $('#status').innerHTML = txt;
+  $('#hint').textContent = S.mode === 'swap'
+    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外せます。☆で集合写真を大きく。'
+    : '写真をドラッグすると見せる位置がずれます。ホイールで拡大、ダブルクリックで元に戻ります。';
+}
+
+/* ---------- 操作（入れ替え・位置調整） ---------- */
+let drag = null;
+$('#stage').addEventListener('pointerdown', e => {
+  if (e.target.dataset.del != null || e.target.dataset.feat != null) return;
+  const cell = e.target.closest('.cell'); if (!cell || e.button !== 0) return;
+  e.preventDefault();
+  const idx = +cell.dataset.idx, p = S.grades[S.cur].photos[idx];
+  drag = { cell, idx, p, x0:e.clientX, y0:e.clientY, fx:p.fx, fy:p.fy, moved:false, tgt:null };
+  cell.setPointerCapture(e.pointerId);
+  if (S.mode === 'swap') cell.classList.add('src');
+});
+$('#stage').addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+  if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+  if (S.mode === 'crop') {
+    const cw = drag.cell.clientWidth, ch = drag.cell.clientHeight, b = cropBox(drag.p, cw, ch);
+    const clamp = v => Math.min(1, Math.max(0, v));
+    if (cw - b.width < 0) drag.p.fx = clamp(drag.fx + dx/(cw - b.width));
+    if (ch - b.height < 0) drag.p.fy = clamp(drag.fy + dy/(ch - b.height));
+    placeImg(drag.cell.querySelector('img'), drag.p, cw, ch);
+  } else {
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const t = under && under.closest('.cell');
+    if (drag.tgt && drag.tgt !== t) drag.tgt.classList.remove('tgt');
+    drag.tgt = t && t !== drag.cell ? t : null;
+    if (drag.tgt) drag.tgt.classList.add('tgt');
+  }
+});
+function endDrag(){
+  if (!drag) return;
+  const d = drag; drag = null;
+  d.cell.classList.remove('src');
+  if (S.mode === 'swap' && d.tgt) {
+    const g = S.grades[S.cur], j = +d.tgt.dataset.idx;
+    [g.photos[d.idx], g.photos[j]] = [g.photos[j], g.photos[d.idx]];
+    g.sort = 'manual';
+    render();
+  }
+}
+$('#stage').addEventListener('pointerup', endDrag);
+$('#stage').addEventListener('pointercancel', endDrag);
+$('#stage').addEventListener('click', e => {
+  const fi = e.target.dataset.feat;
+  if (fi != null) { const p = S.grades[S.cur].photos[+fi]; p.feat = !p.feat; p.fx = p.fy = .5; p.z = 1; render(); return; }
+  const i = e.target.dataset.del; if (i == null) return;
+  const g = S.grades[S.cur], [p] = g.photos.splice(+i, 1);
+  URL.revokeObjectURL(p.thumb); render();
+});
+$('#stage').addEventListener('wheel', e => {
+  if (S.mode !== 'crop') return;
+  const cell = e.target.closest('.cell'); if (!cell) return;
+  e.preventDefault();
+  const p = S.grades[S.cur].photos[+cell.dataset.idx];
+  p.z = Math.min(4, Math.max(1, p.z * (e.deltaY < 0 ? 1.08 : 1/1.08)));
+  placeImg(cell.querySelector('img'), p, cell.clientWidth, cell.clientHeight);
+}, { passive:false });
+$('#stage').addEventListener('dblclick', e => {
+  const cell = e.target.closest('.cell'); if (!cell || S.mode !== 'crop') return;
+  const p = S.grades[S.cur].photos[+cell.dataset.idx];
+  p.fx = p.fy = .5; p.z = 1; placeImg(cell.querySelector('img'), p, cell.clientWidth, cell.clientHeight);
+});
+$('#modeSeg').addEventListener('click', e => {
+  const m = e.target.dataset.mode; if (!m) return;
+  S.mode = m; $$('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m)); render();
+});
+$('#showGuides').onchange = render;
+
+/* ドラッグ＆ドロップで追加 */
+const stage = $('#stage');
+stage.addEventListener('dragover', e => { if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); stage.classList.add('drag'); } });
+stage.addEventListener('dragleave', () => stage.classList.remove('drag'));
+stage.addEventListener('drop', async e => {
+  e.preventDefault(); stage.classList.remove('drag');
+  const files = await filesFromDrop(e.dataTransfer);
+  importFiles(files, () => S.cur);
+});
+async function filesFromDrop(dt){
+  const items = [...dt.items].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  if (!items.length) return [...dt.files];
+  const out = [];
+  const walk = async ent => {
+    if (ent.isFile) out.push(await new Promise((r, j) => ent.file(r, j)));
+    else if (ent.isDirectory) {
+      const rd = ent.createReader();
+      let batch;
+      do { batch = await new Promise((r, j) => rd.readEntries(r, j)); for (const b of batch) await walk(b); } while (batch.length);
+    }
+  };
+  for (const it of items) await walk(it);
+  return out;
+}
+
+/* ---------- 設定 ---------- */
+$$('[data-k]').forEach(el => el.addEventListener('input', () => {
+  const k = el.dataset.k;
+  S.set[k] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
+  if (k === 'pageW' || k === 'pageH') S.set.preset = 'custom';
+  saveSettings(); render();
+}));
+$('#preset').onchange = e => {
+  const v = e.target.value; S.set.preset = v;
+  if (PRESETS[v]) [S.set.pageW, S.set.pageH] = PRESETS[v];
+  saveSettings(); render();
+};
+$('#gradeTitle').oninput = e => { S.set.titles[S.cur] = e.target.value; saveSettings(); render(); };
+$('#entryYear').oninput = e => { S.set.entryYear = parseInt(e.target.value) || S.set.entryYear; saveSettings(); };
+$('#sortMode').onchange = e => { const g = S.grades[S.cur]; g.sort = e.target.value; applySort(g); render(); };
+$('#btnShuffle').onclick = () => {
+  const g = S.grades[S.cur]; g.seed = Math.floor(Math.random()*1e9);
+  if (S.set.style === 'rows' || S.set.style === 'cols') { g.sort = 'shuffle'; optimizeOrder(g, 400); }
+  render();
+};
+$('#btnClear').onclick = () => {
+  const g = S.grades[S.cur]; if (!g.photos.length || !confirm(`${S.set.titles[S.cur]} の写真をすべて外しますか？`)) return;
+  g.photos.forEach(p => URL.revokeObjectURL(p.thumb)); g.photos = []; render();
+};
+$('#btnAdd').onclick = () => $('#fileIn').click();
+$('#btnAddDir').onclick = () => $('#dirIn').click();
+$('#btnDistribute').onclick = () => $('#distIn').click();
+$('#fileIn').onchange = e => { importFiles(e.target.files, () => S.cur); e.target.value = ''; };
+$('#dirIn').onchange = e => { importFiles(e.target.files, () => S.cur); e.target.value = ''; };
+$('#distIn').onchange = e => {
+  const ey = S.set.entryYear;
+  importFiles(e.target.files, p => {
+    const d = new Date(p.date), fy = d.getMonth() >= 3 ? d.getFullYear() : d.getFullYear() - 1;
+    const gi = fy - ey; return gi >= 0 && gi < 6 ? gi : null;
+  });
+  e.target.value = '';
+};
+new ResizeObserver(() => render()).observe($('#stage'));
+window.addEventListener('beforeunload', e => { if (S.grades.some(g => g.photos.length)) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- 書き出し ---------- */
+function overlay(on, text, frac){
+  $('#overlay').style.display = on ? 'flex' : 'none';
+  if (text) $('#ovText').textContent = text;
+  if (frac != null) $('#ovBar').style.width = (frac*100) + '%';
+}
+function roundRectPath(ctx, x, y, w, h, r){
+  r = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath();
+}
+async function renderSpreadCanvas(gi, onProg){
+  const g = S.grades[gi], s = S.set, ppm = s.dpi / 25.4;
+  const W = Math.round((2*s.pageW + 2*s.bleed) * ppm), H = Math.round((s.pageH + 2*s.bleed) * ppm);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = s.bg; ctx.fillRect(0, 0, W, H);
+  ctx.setTransform(ppm, 0, 0, ppm, s.bleed*ppm, s.bleed*ppm);   // 以降は mm 単位（仕上がり左上が原点）
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  const { title } = pageBoxes();
+  if (title && s.titles[gi]) {
+    const fs = s.titlePt*PT2MM;
+    ctx.font = `700 ${fs}px ${FONTS[s.titleFont]}`; ctx.fillStyle = s.titleColor; ctx.textBaseline = 'middle';
+    ctx.textAlign = s.titleAlign;
+    const tx = s.titleAlign === 'left' ? title.x : s.titleAlign === 'center' ? title.x + title.w/2 : title.x + title.w;
+    ctx.fillText(s.titles[gi], tx, title.y + title.h/2);
+  }
+  const lay = layoutSpread(g.photos, g.seed);
+  let n = 0;
+  for (const c of lay.cells) {
+    const p = g.photos[c.i];
+    const url = URL.createObjectURL(p.file);
+    try {
+      const img = await loadImg(url);
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const b = cropBox({ ...p, w:iw, h:ih }, c.w, c.h);
+      const sx = -b.left / b.k, sy = -b.top / b.k, sw = c.w / b.k, sh = c.h / b.k;
+      const stw = strokeW();
+      ctx.save();
+      if (c.rot) { const cx = c.x + c.w/2, cy = c.y + c.h/2; ctx.translate(cx, cy); ctx.rotate(c.rot * Math.PI/180); ctx.translate(-cx, -cy); }
+      if (s.style === 'scatter') {   // 影
+        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 1.5*ppm; ctx.shadowOffsetY = 0.6*ppm;
+        ctx.fillStyle = s.strokeColor; roundRectPath(ctx, c.x, c.y, c.w, c.h, s.radius); ctx.fill(); ctx.restore();
+      }
+      roundRectPath(ctx, c.x, c.y, c.w, c.h, s.radius); ctx.clip();
+      ctx.drawImage(img, sx, sy, sw, sh, c.x, c.y, c.w, c.h);
+      if (stw) {   // フチ：内側半分だけ見える（clip）
+        ctx.strokeStyle = s.strokeColor; ctx.lineWidth = stw*2;
+        roundRectPath(ctx, c.x, c.y, c.w, c.h, s.radius); ctx.stroke();
+      }
+      ctx.restore();
+      img.src = '';
+    } finally { URL.revokeObjectURL(url); }
+    onProg && onProg(++n / lay.cells.length);
+  }
+  return cv;
+}
+async function toJpeg(canvas, dpi){
+  const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  // JFIF ヘッダの解像度を指定 dpi に書き換え（印刷所でサイズが正しく出るように）
+  if (buf[6] === 0x4A && buf[7] === 0x46 && buf[8] === 0x49 && buf[9] === 0x46 && buf[10] === 0) {
+    buf[13] = 1; buf[14] = dpi >> 8; buf[15] = dpi & 255; buf[16] = dpi >> 8; buf[17] = dpi & 255;
+  }
+  return new Blob([buf], { type:'image/jpeg' });
+}
+function crop(src, x, w){
+  const c = document.createElement('canvas'); c.width = w; c.height = src.height;
+  c.getContext('2d').drawImage(src, x, 0, w, src.height, 0, 0, w, src.height); return c;
+}
+function download(blob, name){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+async function exportGrades(list, pages){
+  const todo = list.filter(gi => S.grades[gi].photos.length);
+  if (!todo.length) { alert('写真が入っている学年がありません。'); return; }
+  const s = S.set, ppm = s.dpi / 25.4;
+  try {
+    for (let k = 0; k < todo.length; k++) {
+      const gi = todo[k], name = `grade${gi+1}`;   // ファイル名は環境差が出ないよう英数字のみ
+      const cv = await renderSpreadCanvas(gi, f => overlay(true, `${s.titles[gi]} を書き出し中…`, (k + f*0.9)/todo.length));
+      if (pages) {
+        const pw = Math.round((s.pageW + 2*s.bleed) * ppm);
+        download(await toJpeg(crop(cv, 0, pw), s.dpi), `${name}_left.jpg`);
+        download(await toJpeg(crop(cv, cv.width - pw, pw), s.dpi), `${name}_right.jpg`);
+      } else {
+        download(await toJpeg(cv, s.dpi), `${name}_spread.jpg`);
+      }
+      cv.width = cv.height = 0;
+    }
+  } catch (err) {
+    alert('書き出しに失敗しました：' + err.message + '\n解像度(dpi)を下げると成功する場合があります。');
+  } finally { overlay(false); }
+}
+$('#expSpread').onclick = () => exportGrades([S.cur], false);
+$('#expPages').onclick = () => exportGrades([S.cur], true);
+$('#expAll').onclick = () => {
+  const both = confirm('全学年を書き出します。\n\nOK → 見開き1枚ずつ\nキャンセル → 次の確認へ（左右ページ別）');
+  if (both) exportGrades([0,1,2,3,4,5], false);
+  else if (confirm('左右ページ別で全学年を書き出しますか？')) exportGrades([0,1,2,3,4,5], true);
+};
+
+/* ---------- Word / PowerPoint 書き出し（ライブラリ不使用・オフライン） ---------- */
+const CRC_T = (() => { const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+  return t; })();
+function crc32(u8){ let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(files, mime){   // 無圧縮ZIP（Officeファイルの入れ物）
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  for (const f of files) {
+    const data = typeof f.data === 'string' ? enc.encode(f.data) : f.data, nm = enc.encode(f.name), crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(12, 0x21, true); lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true);
+    lh.setUint32(22, data.length, true); lh.setUint16(26, nm.length, true);
+    parts.push(lh, nm, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(14, 0x21, true); ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true);
+    ch.setUint32(24, data.length, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    central.push(ch, nm);
+    off += 30 + nm.length + data.length;
+  }
+  const cd = central.reduce((a, b) => a + b.byteLength, 0), e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+  e.setUint32(12, cd, true); e.setUint32(16, off, true);
+  return new Blob([...parts, ...central, e], { type:mime });
+}
+const xesc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const EMU = mm => Math.round(mm * 36000);
+const TW = mm => Math.round(mm * 1440 / 25.4);
+const hex = c => c.replace('#', '').toUpperCase();
+const OFFICE_FONT = { gothic:'Yu Gothic', maru:'HG丸ｺﾞｼｯｸM-PRO', mincho:'Yu Mincho' };
+
+// 各写真を「トリミング前の全体」で書き出し解像度に縮小し、トリミング量(srcRect)を添える
+async function officePhotos(gi, ppm, onProg){
+  const g = S.grades[gi], lay = layoutSpread(g.photos, g.seed), items = [];
+  let n = 0;
+  for (const c of lay.cells) {
+    const p = g.photos[c.i], url = URL.createObjectURL(p.file);
+    try {
+      const img = await loadImg(url), iw = img.naturalWidth, ih = img.naturalHeight;
+      const b = cropBox({ ...p, w:iw, h:ih }, c.w, c.h);
+      const sc = Math.min(1, b.width * ppm / iw, 5000 / Math.max(iw, ih));
+      const cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(iw*sc)); cv.height = Math.max(1, Math.round(ih*sc));
+      const cx = cv.getContext('2d'); cx.imageSmoothingQuality = 'high'; cx.drawImage(img, 0, 0, cv.width, cv.height);
+      const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.9));
+      const pct = v => Math.max(0, Math.round(v * 100000));
+      const src = { l:pct(-b.left / b.width), t:pct(-b.top / b.height),
+                    r:pct(1 - (c.w - b.left) / b.width), b:pct(1 - (c.h - b.top) / b.height) };
+      items.push({ c, src, bytes:new Uint8Array(await blob.arrayBuffer()), name:p.name });
+      img.src = ''; cv.width = cv.height = 0;
+    } finally { URL.revokeObjectURL(url); }
+    onProg && onProg(++n / lay.cells.length);
+  }
+  return items;
+}
+async function solidJpeg(color){
+  const c = document.createElement('canvas'); c.width = c.height = 8;
+  const x = c.getContext('2d'); x.fillStyle = color; x.fillRect(0, 0, 8, 8);
+  return new Uint8Array(await (await new Promise(r => c.toBlob(r, 'image/jpeg', 0.95))).arrayBuffer());
+}
+function geomXml(w, h){
+  const s = S.set;
+  let g = s.radius > 0
+    ? `<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${Math.round(Math.min(50000, s.radius / Math.min(w, h) * 100000))}"/></a:avLst></a:prstGeom>`
+    : `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>`;
+  if (strokeW() > 0) g += `<a:ln w="${EMU(strokeW())}"><a:solidFill><a:srgbClr val="${hex(s.strokeColor)}"/></a:solidFill></a:ln>`;
+  if (s.style === 'scatter') g += `<a:effectLst><a:outerShdw blurRad="${EMU(1.5)}" dist="${EMU(0.6)}" dir="5400000" algn="t" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="35000"/></a:srgbClr></a:outerShdw></a:effectLst>`;
+  return g;
+}
+async function collectOffice(label){
+  const s = S.set, ppm = (+s.officeDpi || 220) / 25.4;
+  const list = (s.officeScope === 'cur' ? [S.cur] : [0,1,2,3,4,5]).filter(gi => S.grades[gi].photos.length);
+  if (!list.length) { alert('写真が入っている学年がありません。'); return null; }
+  const out = [];
+  for (let k = 0; k < list.length; k++) {
+    const gi = list[k];
+    out.push({ gi, items: await officePhotos(gi, ppm, f => overlay(true, `${label}：${s.titles[gi]} の写真を準備中…`, (k + f) / list.length)) });
+  }
+  return out;
+}
+
+/* Word：見開きの左右を別ページに。写真は「前面」配置の図（ページ基準の絶対位置） */
+async function exportDocx(){
+  const s = S.set;
+  try {
+    const grades = await collectOffice('Word'); if (!grades) return;
+    overlay(true, 'Wordファイルを作成中…', 1);
+    const media = [], rels = [];
+    let id = 1;
+    const addMedia = bytes => { const n = media.length + 1; media.push({ name:`word/media/image${n}.jpeg`, data:bytes });
+      const rid = `rId${n + 10}`; rels.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image${n}.jpeg"/>`); return rid; };
+    const anchor = (rid, x, y, w, h, src, behind, name, rot) => { const n = id++;
+      const crop = src ? `<a:srcRect l="${src.l}" t="${src.t}" r="${src.r}" b="${src.b}"/>` : '';
+      return `<w:r><w:drawing><wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="${behind ? 1 : 1000 + n}" behindDoc="${behind ? 1 : 0}" locked="0" layoutInCell="1" allowOverlap="1">`
+      + `<wp:simplePos x="0" y="0"/><wp:positionH relativeFrom="page"><wp:posOffset>${EMU(x)}</wp:posOffset></wp:positionH>`
+      + `<wp:positionV relativeFrom="page"><wp:posOffset>${EMU(y)}</wp:posOffset></wp:positionV>`
+      + `<wp:extent cx="${EMU(w)}" cy="${EMU(h)}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:wrapNone/>`
+      + `<wp:docPr id="${n}" name="${xesc(name)}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>`
+      + `<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic>`
+      + `<pic:nvPicPr><pic:cNvPr id="${n}" name="${xesc(name)}"/><pic:cNvPicPr/></pic:nvPicPr>`
+      + `<pic:blipFill><a:blip r:embed="${rid}"/>${crop}<a:stretch><a:fillRect/></a:stretch></pic:blipFill>`
+      + `<pic:spPr><a:xfrm${rot ? ` rot="${Math.round(rot*60000)}"` : ''}><a:off x="0" y="0"/><a:ext cx="${EMU(w)}" cy="${EMU(h)}"/></a:xfrm>${behind ? '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>' : geomXml(w, h)}</pic:spPr>`
+      + `</pic:pic></a:graphicData></a:graphic></wp:anchor></w:drawing></w:r>`; };
+    const bgRid = s.bg.toLowerCase() !== '#ffffff' ? addMedia(await solidJpeg(s.bg)) : null;
+    const { title } = pageBoxes();
+    const titleLeft = title && title.x < s.pageW;
+    const sect = side => `<w:sectPr><w:pgSz w:w="${TW(s.pageW)}" w:h="${TW(s.pageH)}"${s.pageW > s.pageH ? ' w:orient="landscape"' : ''}/>`
+      + `<w:pgMar w:top="${TW(s.mTop)}" w:right="${TW(side === 'L' ? s.mInner : s.mOuter)}" w:bottom="${TW(Math.min(s.mBottom, 5))}" w:left="${TW(side === 'L' ? s.mOuter : s.mInner)}" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr>`;
+    const font = OFFICE_FONT[s.titleFont];
+    const paras = [];
+    const pages = [];
+    grades.forEach(({ gi, items }) => { pages.push({ gi, side:'L' }, { gi, side:'R' }); pages.at(-2).items = items.filter(it => it.c.x + it.c.w/2 < s.pageW); pages.at(-1).items = items.filter(it => it.c.x + it.c.w/2 >= s.pageW); });
+    for (let pi = 0; pi < pages.length; pi++) {
+      const pg = pages[pi], last = pi === pages.length - 1, ox = pg.side === 'L' ? 0 : s.pageW;
+      let runs = '';
+      if (bgRid) runs += anchor(bgRid, 0, 0, s.pageW, s.pageH, null, true, '背景');
+      for (const it of pg.items) runs += anchor(addMedia(it.bytes), it.c.x - ox, it.c.y, it.c.w, it.c.h, it.src, false, it.name, it.c.rot);
+      let text = '';
+      const hasTitle = title && s.titles[pg.gi] && ((pg.side === 'L') === titleLeft);
+      const tsz = Math.round(s.titlePt * 2);
+      if (hasTitle) text = `<w:r><w:rPr><w:rFonts w:ascii="${xesc(font)}" w:hAnsi="${xesc(font)}" w:eastAsia="${xesc(font)}"/><w:b/><w:color w:val="${hex(s.titleColor)}"/><w:sz w:val="${tsz}"/><w:szCs w:val="${tsz}"/></w:rPr><w:t xml:space="preserve">${xesc(s.titles[pg.gi])}</w:t></w:r>`;
+      const lineH = title ? TW(title.h) : 240;
+      const ppr = `<w:pPr><w:spacing w:before="0" w:after="0" w:line="${lineH}" w:lineRule="exact"/><w:jc w:val="${{ left:'left', center:'center', right:'right' }[s.titleAlign]}"/>${last ? '' : sect(pg.side)}</w:pPr>`;
+      paras.push(`<w:p>${ppr}${runs}${text}</w:p>`);
+      if (last) paras.push(sect(pg.side));
+    }
+    const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"';
+    const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document ${NS}><w:body>${paras.join('')}</w:body></w:document>`;
+    const files = [
+      { name:'[Content_Types].xml', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>` },
+      { name:'_rels/.rels', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>` },
+      { name:'word/document.xml', data:doc },
+      { name:'word/_rels/document.xml.rels', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${rels.join('')}</Relationships>` },
+      ...media,
+    ];
+    download(makeZip(files, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'), grades.length === 1 ? `yearbook_grade${grades[0].gi + 1}.docx` : 'yearbook.docx');
+  } catch (err) { alert('Word書き出しに失敗しました：' + err.message + '\n画質を下げると成功する場合があります。'); }
+  finally { overlay(false); }
+}
+
+/* PowerPoint：見開き1つ＝1スライド（スライドサイズ＝見開きの仕上がりサイズ） */
+async function exportPptx(){
+  const s = S.set;
+  try {
+    const grades = await collectOffice('PowerPoint'); if (!grades) return;
+    overlay(true, 'PowerPointファイルを作成中…', 1);
+    const SW = EMU(2 * s.pageW), SH = EMU(s.pageH);
+    if (SW > 51206400 || SH > 51206400) throw new Error('PowerPointのスライドは最大142cmまでです');
+    const P = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+    const XH = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+    const RELS = 'xmlns="http://schemas.openxmlformats.org/package/2006/relationships"';
+    const RT = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/';
+    const tree = inner => `<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree>`;
+    const font = OFFICE_FONT[s.titleFont];
+    const { title } = pageBoxes();
+    const files = [], ctSlides = [], presRels = [], sldIds = [];
+    let mediaN = 0;
+    grades.forEach(({ gi, items }, k) => {
+      const sn = k + 1, srels = [`<Relationship Id="rId1" Type="${RT}slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`];
+      let id = 2, shapes = '';
+      for (const it of items) {
+        const m = ++mediaN, rid = `rId${srels.length + 1}`;
+        files.push({ name:`ppt/media/image${m}.jpeg`, data:it.bytes });
+        srels.push(`<Relationship Id="${rid}" Type="${RT}image" Target="../media/image${m}.jpeg"/>`);
+        const c = it.c;
+        shapes += `<p:pic><p:nvPicPr><p:cNvPr id="${id++}" name="${xesc(it.name)}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>`
+          + `<p:blipFill><a:blip r:embed="${rid}"/><a:srcRect l="${it.src.l}" t="${it.src.t}" r="${it.src.r}" b="${it.src.b}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>`
+          + `<p:spPr><a:xfrm${c.rot ? ` rot="${Math.round(c.rot*60000)}"` : ''}><a:off x="${EMU(c.x)}" y="${EMU(c.y)}"/><a:ext cx="${EMU(c.w)}" cy="${EMU(c.h)}"/></a:xfrm>${geomXml(c.w, c.h)}</p:spPr></p:pic>`;
+      }
+      if (title && s.titles[gi]) {
+        shapes += `<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="タイトル"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>`
+          + `<p:spPr><a:xfrm><a:off x="${EMU(title.x)}" y="${EMU(title.y)}"/><a:ext cx="${EMU(title.w)}" cy="${EMU(title.h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>`
+          + `<p:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr"><a:noAutofit/></a:bodyPr><a:lstStyle/>`
+          + `<a:p><a:pPr algn="${{ left:'l', center:'ctr', right:'r' }[s.titleAlign]}"/><a:r><a:rPr lang="ja-JP" altLang="en-US" sz="${Math.round(s.titlePt * 100)}" b="1"><a:solidFill><a:srgbClr val="${hex(s.titleColor)}"/></a:solidFill><a:latin typeface="${xesc(font)}"/><a:ea typeface="${xesc(font)}"/></a:rPr><a:t>${xesc(s.titles[gi])}</a:t></a:r></a:p></p:txBody></p:sp>`;
+      }
+      const bg = `<p:bg><p:bgPr><a:solidFill><a:srgbClr val="${hex(s.bg)}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>`;
+      files.push({ name:`ppt/slides/slide${sn}.xml`, data:`${XH}<p:sld ${P}><p:cSld>${bg}${tree(shapes)}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>` });
+      files.push({ name:`ppt/slides/_rels/slide${sn}.xml.rels`, data:`${XH}<Relationships ${RELS}>${srels.join('')}</Relationships>` });
+      ctSlides.push(`<Override PartName="/ppt/slides/slide${sn}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`);
+      presRels.push(`<Relationship Id="rId${sn + 10}" Type="${RT}slide" Target="slides/slide${sn}.xml"/>`);
+      sldIds.push(`<p:sldId id="${255 + sn}" r:id="rId${sn + 10}"/>`);
+    });
+    const solid = '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>';
+    const theme = `${XH}<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Office"><a:themeElements>`
+      + `<a:clrScheme name="Office"><a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="44546A"/></a:dk2><a:lt2><a:srgbClr val="E7E6E6"/></a:lt2>`
+      + ['4472C4','ED7D31','A5A5A5','FFC000','5B9BD5','70AD47'].map((c, i) => `<a:accent${i+1}><a:srgbClr val="${c}"/></a:accent${i+1}>`).join('')
+      + `<a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme>`
+      + `<a:fontScheme name="Office"><a:majorFont><a:latin typeface="Calibri Light"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme>`
+      + `<a:fmtScheme name="Office"><a:fillStyleLst>${solid.repeat(3)}</a:fillStyleLst><a:lnStyleLst>${`<a:ln w="6350">${solid}</a:ln>`.repeat(3)}</a:lnStyleLst>`
+      + `<a:effectStyleLst>${'<a:effectStyle><a:effectLst/></a:effectStyle>'.repeat(3)}</a:effectStyleLst><a:bgFillStyleLst>${solid.repeat(3)}</a:bgFillStyleLst></a:fmtScheme>`
+      + `</a:themeElements></a:theme>`;
+    const clrMap = 'bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"';
+    files.unshift(
+      { name:'[Content_Types].xml', data:`${XH}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/>`
+        + `<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>`
+        + `<Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>`
+        + `<Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>`
+        + `<Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>`
+        + `<Override PartName="/ppt/presProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presProps+xml"/>`
+        + `<Override PartName="/ppt/viewProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml"/>`
+        + ctSlides.join('') + `</Types>` },
+      { name:'_rels/.rels', data:`${XH}<Relationships ${RELS}><Relationship Id="rId1" Type="${RT}officeDocument" Target="ppt/presentation.xml"/></Relationships>` },
+      { name:'ppt/presentation.xml', data:`${XH}<p:presentation ${P}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${sldIds.join('')}</p:sldIdLst><p:sldSz cx="${SW}" cy="${SH}"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>` },
+      { name:'ppt/_rels/presentation.xml.rels', data:`${XH}<Relationships ${RELS}><Relationship Id="rId1" Type="${RT}slideMaster" Target="slideMasters/slideMaster1.xml"/><Relationship Id="rId2" Type="${RT}theme" Target="theme/theme1.xml"/><Relationship Id="rId3" Type="${RT}presProps" Target="presProps.xml"/><Relationship Id="rId4" Type="${RT}viewProps" Target="viewProps.xml"/>${presRels.join('')}</Relationships>` },
+      { name:'ppt/presProps.xml', data:`${XH}<p:presentationPr ${P}/>` },
+      { name:'ppt/viewProps.xml', data:`${XH}<p:viewPr ${P}><p:normalViewPr><p:restoredLeft sz="15620"/><p:restoredTop sz="94660"/></p:normalViewPr><p:gridSpacing cx="72008" cy="72008"/></p:viewPr>` },
+      { name:'ppt/theme/theme1.xml', data:theme },
+      { name:'ppt/slideMasters/slideMaster1.xml', data:`${XH}<p:sldMaster ${P}><p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg>${tree('')}</p:cSld><p:clrMap ${clrMap}/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst></p:sldMaster>` },
+      { name:'ppt/slideMasters/_rels/slideMaster1.xml.rels', data:`${XH}<Relationships ${RELS}><Relationship Id="rId1" Type="${RT}slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="${RT}theme" Target="../theme/theme1.xml"/></Relationships>` },
+      { name:'ppt/slideLayouts/slideLayout1.xml', data:`${XH}<p:sldLayout ${P} type="blank" preserve="1"><p:cSld name="白紙">${tree('')}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>` },
+      { name:'ppt/slideLayouts/_rels/slideLayout1.xml.rels', data:`${XH}<Relationships ${RELS}><Relationship Id="rId1" Type="${RT}slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>` },
+    );
+    download(makeZip(files, 'application/vnd.openxmlformats-officedocument.presentationml.presentation'), grades.length === 1 ? `yearbook_grade${grades[0].gi + 1}.pptx` : 'yearbook.pptx');
+  } catch (err) { alert('PowerPoint書き出しに失敗しました：' + err.message + '\n画質を下げると成功する場合があります。'); }
+  finally { overlay(false); }
+}
+$('#expDocx').onclick = exportDocx;
+$('#expPptx').onclick = exportPptx;
+
+
+render();
+</script>
+</body>
+</html>
