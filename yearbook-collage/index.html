@@ -59,6 +59,12 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 .cell .star{position:absolute;left:3px;top:3px;border:0;border-radius:999px;padding:2px 7px;font-size:11px;background:rgba(0,0,0,.6);color:#fff;display:none;cursor:pointer}
 .cell:hover .star,.cell .star.on{display:block}
 .cell .star.on{background:#e0a106;color:#fff}
+.cell.featcell{cursor:move;outline:2px solid #e0a106;outline-offset:-2px}
+.cell .ftb{position:absolute;left:4px;bottom:4px;display:none;gap:3px;flex-wrap:wrap}
+.cell:hover .ftb{display:flex}
+.cell .ftb button{border:0;border-radius:6px;padding:3px 8px;font-size:12px;background:rgba(0,0,0,.7);color:#fff;cursor:pointer}
+.cell .ftb button:hover{background:#e0a106}
+.cell.moving{opacity:.85;z-index:5;outline:3px dashed #e0a106}
 .ttl{position:absolute;white-space:nowrap;overflow:hidden;line-height:1;display:flex;align-items:center;pointer-events:none}
 .empty{border:2px dashed #c9c1b4;border-radius:16px;padding:40px;text-align:center;color:var(--sub);background:rgba(255,255,255,.6);max-width:520px}
 .empty b{display:block;font-size:18px;color:var(--ink);margin-bottom:8px}
@@ -149,11 +155,15 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 
   <details open>
     <summary>★ 集合写真を大きく</summary>
-    <p class="note">写真にカーソルを乗せて「☆ 大きく」を押すと、その写真がページ幅いっぱいの大きな枠になります（集合写真向け）。1枚目は左ページ、2枚目は右ページに入ります。基本はトリミングなしで全体が入ります。</p>
-    <div class="row"><label>置く位置</label>
-      <select data-k="featPos"><option value="top">ページの上</option><option value="bottom">ページの下</option></select>
+    <p class="note">写真にカーソルを乗せて「☆ 大きく」を押すと、トリミングなしの大きな写真になります（集合写真向け）。<br>
+    ・<b>ドラッグ</b>で好きな場所へ移動（反対のページにも置けます）<br>
+    ・<b>ホイール</b>か「－／＋」で大きさを変更<br>
+    ・「上／中／下」でページの上・真ん中・下へ<br>
+    ほかの写真は、空いたところに自動で並び直します。</p>
+    <div class="row"><label>最初に置く位置</label>
+      <select data-k="featPos"><option value="top">ページの上</option><option value="middle">ページの真ん中</option><option value="bottom">ページの下</option></select>
     </div>
-    <div class="row"><label>最大の高さ（ページの%）</label><input type="number" data-k="featMax" step="5" min="15" max="100"></div>
+    <div class="row"><label>最初の高さ（ページの%まで）</label><input type="number" data-k="featMax" step="5" min="15" max="100"></div>
   </details>
 
   <details>
@@ -504,12 +514,86 @@ const layoutCache = new Map();
 function layoutSpread(photos, seed = 1){
   const st = S.set;
   const key = JSON.stringify([seed, st.style, st.variety, st.pageW, st.pageH, st.mOuter, st.mInner, st.mTop, st.mBottom, st.gap,
-    st.titlePos, st.titlePt, st.featPos, st.featMax, photos.map(p => [p.w, p.h, p.feat ? 1 : 0])]);
+    st.titlePos, st.titlePt, st.featPos, st.featMax, photos.map(p => [p.w, p.h, p.feat ? 1 : 0, p.feat && p.fp ? [p.fp.page, p.fp.w, p.fp.cx, p.fp.cy] : 0])]);
   if (layoutCache.has(key)) return structuredClone(layoutCache.get(key));
   const r = layoutSpreadRaw(photos, seed);
   if (layoutCache.size > 200) layoutCache.clear();
   layoutCache.set(key, r);
   return structuredClone(r);
+}
+// 大きく載せる写真の枠（トリミングなし）。fp = { page:0|1, w:ページ幅に対する割合, cx/cy:0=左/上 … 1=右/下 }
+const MIN_GAP = 25;   // 大きい写真の横・上下に残すすき間の最小幅(mm)。これより細いすき間は作らない
+// 1方向の位置合わせ：細いすき間ができるなら端に寄せる
+function snapAxis(pos, size, start, len, frac){
+  const a = pos - start, b = start + len - (pos + size);
+  if (a < MIN_GAP && b < MIN_GAP) {
+    if (a + b >= MIN_GAP) return frac <= .5 ? start : start + len - size;   // すき間を片側にまとめる
+    return pos;                                                              // ほぼ全幅：中央のまま
+  }
+  if (a < MIN_GAP) return start;
+  if (b < MIN_GAP) return start + len - size;
+  return pos;
+}
+function featRect(p, pg){
+  const fp = p.fp || { w:1, cx:.5, cy:0 }, ar = p.w / p.h;
+  let w = pg.w * fp.w, h = w / ar;
+  if (w > pg.w) { w = pg.w; h = w / ar; }
+  if (h > pg.h) { h = pg.h; w = h * ar; }
+  let x = pg.x + (pg.w - w) * fp.cx, y = pg.y + (pg.h - h) * fp.cy;
+  x = snapAxis(x, w, pg.x, pg.w, fp.cx);
+  y = snapAxis(y, h, pg.y, pg.h, fp.cy);
+  return { x, y, w, h };
+}
+// ページから大きい写真の場所を除いた「空き」を長方形の集まりに分ける
+function freeRectsRows(pg, occ){
+  const cl = (v, a, b) => Math.min(b, Math.max(a, v));
+  const xs = new Set([pg.x, pg.x + pg.w]), ys = new Set([pg.y, pg.y + pg.h]);
+  for (const o of occ) { xs.add(cl(o.x, pg.x, pg.x+pg.w)); xs.add(cl(o.x+o.w, pg.x, pg.x+pg.w)); ys.add(cl(o.y, pg.y, pg.y+pg.h)); ys.add(cl(o.y+o.h, pg.y, pg.y+pg.h)); }
+  const X = [...xs].sort((a, b) => a - b), Y = [...ys].sort((a, b) => a - b);
+  const free = (i, j) => { const cx = (X[i]+X[i+1])/2, cy = (Y[j]+Y[j+1])/2;
+    return X[i+1] - X[i] > 0.01 && Y[j+1] - Y[j] > 0.01 && !occ.some(o => cx > o.x && cx < o.x+o.w && cy > o.y && cy < o.y+o.h); };
+  const out = []; let open = new Map();
+  for (let j = 0; j < Y.length - 1; j++) {
+    const segs = []; let i = 0;
+    while (i < X.length - 1) { if (!free(i, j)) { i++; continue; } let k = i; while (k + 1 < X.length - 1 && free(k + 1, j)) k++; segs.push([i, k]); i = k + 1; }
+    const next = new Map();
+    for (const [i0, i1] of segs) {
+      const key = i0 + '-' + i1, r = open.get(key);
+      if (r) { r.h = Y[j+1] - r.y; next.set(key, r); open.delete(key); }
+      else next.set(key, { x:X[i0], y:Y[j], w:X[i1+1] - X[i0], h:Y[j+1] - Y[j] });
+    }
+    out.push(...open.values()); open = next;
+  }
+  out.push(...open.values());
+  return out.filter(r => r.w >= MIN_GAP - 2*S.set.gap - 1 && r.h >= MIN_GAP - 2*S.set.gap - 1).sort((a, b) => a.y - b.y || a.x - b.x);
+}
+// 空きの分け方は「横長の帯を優先」と「縦長の列を優先」の2通り（縦は x/y を入れ替えて同じ処理）
+function freeRects(pg, occ, byCols){
+  if (!byCols) return freeRectsRows(pg, occ);
+  const T = r => ({ x:r.y, y:r.x, w:r.h, h:r.w });
+  return freeRectsRows(T(pg), occ.map(T)).map(T).sort((a, b) => a.y - b.y || a.x - b.x);
+}
+// 写真（並び順のまま）を空きの長方形に面積の比で配り、それぞれをレイアウト
+function layoutRegions(ars, rects, gap, seed){
+  const m = ars.length;
+  if (!m || !rects.length) return { cells:[], score: m ? 5 : 0 };
+  const tot = rects.reduce((a, r) => a + r.w*r.h, 0);
+  const raw = rects.map(r => m * r.w*r.h / tot), cnt = raw.map(Math.floor);
+  let left = m - cnt.reduce((a, b) => a + b, 0);
+  raw.map((v, k) => [v - Math.floor(v), k]).sort((a, b) => b[0] - a[0]).forEach(([, k]) => { if (left > 0) { cnt[k]++; left--; } });
+  const cells = []; let score = 0, off = 0;
+  rects.forEach((r, k) => {
+    const sub = ars.slice(off, off + cnt[k]);
+    const res = layoutPage(sub, r.w, r.h, gap, seed*13 + k);
+    for (const c of res.cells) {
+      cells.push({ ...c, i:c.i + off, x:c.x + r.x, y:c.y + r.y });
+      score += Math.max(0, Math.abs(Math.log((c.w/c.h) / sub[c.i])) - 0.3) * 3 / m;   // 大きく切れる写真は強めに減点
+    }
+    score += res.score * sub.length / m;
+    if (!sub.length) score += 0.3 * (r.w*r.h) / tot;   // 空きが残るのは減点
+    off += cnt[k];
+  });
+  return { cells, score };
 }
 function layoutSpreadRaw(photos, seed){
   const s = S.set, gap = s.gap, { L, R } = pageBoxes();
@@ -517,34 +601,35 @@ function layoutSpreadRaw(photos, seed){
   const feat = [], norm = [];
   photos.forEach((p, i) => (p.feat ? feat : norm).push(i));
   const pages = [{ ...L, f:[] }, { ...R, f:[] }];
-  feat.forEach((i, k) => pages[k % 2].f.push(i));     // 1枚目→左ページ、2枚目→右ページ…
+  feat.forEach((i, k) => pages[photos[i].fp ? photos[i].fp.page : k % 2].f.push(i));
   const cells = [];
-  for (const pg of pages) {
-    if (!pg.f.length) continue;
-    const maxH = (pg.h * s.featMax / 100 - gap*(pg.f.length-1)) / pg.f.length;
-    const bands = pg.f.map(i => ({ i, h: Math.min(pg.w * photos[i].h / photos[i].w, maxH) }));
-    const total = bands.reduce((a, b) => a + b.h + gap, 0);
-    let y = s.featPos === 'bottom' ? pg.y + pg.h - total + gap : pg.y;
-    for (const b of bands) { cells.push({ i:b.i, x:pg.x, y, w:pg.w, h:b.h, feat:true }); y += b.h + gap; }
-    pg.h -= total; if (s.featPos !== 'bottom') pg.y += total;
-  }
+  pages.forEach((pg, pi) => {
+    const occ = [];
+    for (const i of pg.f) {
+      const r = featRect(photos[i], pg);
+      cells.push({ i, ...r, feat:true, page:pi });
+      occ.push({ x:r.x - gap, y:r.y - gap, w:r.w + 2*gap, h:r.h + 2*gap });
+    }
+    pg.options = pg.f.length ? [freeRects(pg, occ, false), freeRects(pg, occ, true)] : [[{ x:pg.x, y:pg.y, w:pg.w, h:pg.h }]];
+    pg.area = pg.options[0].reduce((a, r) => a + r.w*r.h, 0);
+  });
   const [A, B] = pages, ars = norm.map(i => photos[i].w / photos[i].h), m = ars.length;
-  const areaA = A.h > 15 ? A.w*A.h : 0, areaB = B.h > 15 ? B.w*B.h : 0;
-  const mid = Math.round(m * areaA / ((areaA + areaB) || 1));
+  const mid = Math.round(m * A.area / ((A.area + B.area) || 1));
   let lo = Math.max(0, mid-4), hi = Math.min(m, mid+4);
-  if (!areaA) lo = hi = 0; else if (!areaB) lo = hi = m;
+  if (!A.area) lo = hi = 0; else if (!B.area) lo = hi = m;
   let best = null;
   for (let sp = lo; sp <= hi; sp++) {
-    if (m >= 2 && areaA && areaB && (sp === 0 || sp === m)) continue;
-    const a = layoutPage(ars.slice(0, sp), A.w, A.h, gap, seed*2);
-    const b = layoutPage(ars.slice(sp), B.w, B.h, gap, seed*2 + 1);
+    if (m >= 2 && A.area && B.area && (sp === 0 || sp === m)) continue;
+    const pick = (sub, pg, sd) => pg.options.map(o => layoutRegions(sub, o, gap, sd)).reduce((x, y) => y.score < x.score ? y : x);
+    const a = pick(ars.slice(0, sp), A, seed*2);
+    const b = pick(ars.slice(sp), B, seed*2 + 1);
     const score = a.score + b.score + Math.abs(sp - mid)*0.03;
     if (!best || score < best.score) best = { score, a, b, sp };
   }
   if (!best) best = { score:0, a:{cells:[]}, b:{cells:[]}, sp:0 };
   cells.push(
-    ...best.a.cells.map(c => ({ ...c, i:norm[c.i], x:c.x + A.x, y:c.y + A.y })),
-    ...best.b.cells.map(c => ({ ...c, i:norm[c.i + best.sp], x:c.x + B.x, y:c.y + B.y })),
+    ...best.a.cells.map(c => ({ ...c, i:norm[c.i] })),
+    ...best.b.cells.map(c => ({ ...c, i:norm[c.i + best.sp] })),
   );
   if (s.style === 'scatter') {   // ちらし：少し大きくして傾け、重ねる
     const R = rng(seed*104729 + 7);
@@ -554,6 +639,8 @@ function layoutSpreadRaw(photos, seed){
       c.x -= c.w*(e-1)/2; c.y -= c.h*(e-1)/2; c.w *= e; c.h *= e;
     }
   }
+  // 大きい写真はいちばん上に重ねる
+  cells.sort((p, q) => (p.feat ? 1 : 0) - (q.feat ? 1 : 0));
   return { cells, score:best.score, split: best.sp + pages[0].f.length };
 }
 
@@ -610,9 +697,17 @@ function render(){
     if (strokeW()) { const f = document.createElement('div'); f.style.cssText = `position:absolute;inset:0;box-shadow:inset 0 0 0 ${D(strokeW())}px ${s.strokeColor};border-radius:inherit;pointer-events:none`; el.appendChild(f); }
     const x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.title = 'この写真を外す'; x.dataset.del = c.i;
     el.appendChild(x);
-    const st = document.createElement('button'); st.className = 'star' + (p.feat ? ' on' : '');
-    st.textContent = p.feat ? '★ 大きく中' : '☆ 大きく'; st.title = '集合写真などをページ幅いっぱいに大きく載せる'; st.dataset.feat = c.i;
-    el.appendChild(st);
+    if (c.feat) {
+      el.classList.add('featcell');
+      const tb = document.createElement('div'); tb.className = 'ftb';
+      tb.innerHTML = [['smaller','－','小さく'],['bigger','＋','大きく'],['top','上','ページの上へ'],['middle','中','ページの真ん中へ'],['bottom','下','ページの下へ'],['flip','⇆','反対のページへ'],['unfeat','★解除','普通の写真に戻す']]
+        .map(([k, t, ti]) => `<button data-cmd="${k}" data-i="${c.i}" title="${ti}">${t}</button>`).join('');
+      el.appendChild(tb);
+    } else {
+      const st = document.createElement('button'); st.className = 'star';
+      st.textContent = '☆ 大きく'; st.title = '集合写真などを大きく載せる（あとで大きさ・場所を自由に変えられます）'; st.dataset.feat = c.i;
+      el.appendChild(st);
+    }
   });
   stage.appendChild(sp);
   view = { scale, cells:lay.cells };
@@ -655,26 +750,57 @@ function renderStatus(lay){
   if (lay && lay.cells.length) txt += `　左${lay.split}枚・右${n-lay.split}枚`;
   $('#status').innerHTML = txt;
   $('#hint').textContent = S.mode === 'swap'
-    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外せます。☆で集合写真を大きく。'
+    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外せます。☆で大きく → 大きい写真はドラッグで移動・ホイールで拡大縮小。'
     : '写真をドラッグすると見せる位置がずれます。ホイールで拡大、ダブルクリックで元に戻ります。';
 }
 
 /* ---------- 操作（入れ替え・位置調整） ---------- */
-let drag = null;
+let drag = null, wheelT = 0;
+const clamp01 = v => Math.min(1, Math.max(0, v));
+function pageBox(page){ const b = pageBoxes(); return page ? b.R : b.L; }
+function defaultFp(g, p){
+  const cnt = [0, 0];
+  g.photos.forEach(q => { if (q.feat && q.fp) cnt[q.fp.page]++; });
+  const page = cnt[0] <= cnt[1] ? 0 : 1, pg = pageBox(page);
+  const w = Math.min(1, (pg.h * S.set.featMax / 100) * (p.w / p.h) / pg.w);
+  return { page, w, cx:.5, cy:{ top:0, middle:.5, bottom:1 }[S.set.featPos] ?? 0 };
+}
+// mm座標の位置・大きさから fp（ページ内の割合）を計算
+function placeFeat(p, page, x, y, w, h){
+  const pg = pageBox(page);
+  p.fp = { page, w:Math.min(1, w / pg.w),
+    cx: pg.w - w > 0.5 ? clamp01((x - pg.x) / (pg.w - w)) : .5,
+    cy: pg.h - h > 0.5 ? clamp01((y - pg.y) / (pg.h - h)) : .5 };
+}
+function featCommand(p, cmd, step = 1.1){
+  const fp = p.fp || (p.fp = defaultFp(S.grades[S.cur], p));
+  if (cmd === 'bigger') fp.w = Math.min(1, fp.w * step);
+  else if (cmd === 'smaller') fp.w = Math.max(0.15, fp.w / step);
+  else if (cmd === 'top') { fp.cy = 0; fp.cx = .5; }
+  else if (cmd === 'middle') { fp.cy = .5; fp.cx = .5; }
+  else if (cmd === 'bottom') { fp.cy = 1; fp.cx = .5; }
+  else if (cmd === 'flip') fp.page = 1 - fp.page;
+  else if (cmd === 'unfeat') { p.feat = false; p.fp = null; }
+}
 $('#stage').addEventListener('pointerdown', e => {
-  if (e.target.dataset.del != null || e.target.dataset.feat != null) return;
+  if (e.target.dataset.del != null || e.target.dataset.feat != null || e.target.closest('.ftb')) return;
   const cell = e.target.closest('.cell'); if (!cell || e.button !== 0) return;
   e.preventDefault();
   const idx = +cell.dataset.idx, p = S.grades[S.cur].photos[idx];
-  drag = { cell, idx, p, x0:e.clientX, y0:e.clientY, fx:p.fx, fy:p.fy, moved:false, tgt:null };
+  const move = S.mode === 'swap' && p.feat;   // 大きい写真はドラッグで自由に移動
+  drag = { cell, idx, p, x0:e.clientX, y0:e.clientY, fx:p.fx, fy:p.fy, moved:false, tgt:null, move,
+           l0:parseFloat(cell.style.left), t0:parseFloat(cell.style.top), c:view.cells.find(c => c.i === idx) };
   cell.setPointerCapture(e.pointerId);
-  if (S.mode === 'swap') cell.classList.add('src');
+  if (move) cell.classList.add('moving');
+  else if (S.mode === 'swap') cell.classList.add('src');
 });
 $('#stage').addEventListener('pointermove', e => {
   if (!drag) return;
   const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
   if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
-  if (S.mode === 'crop') {
+  if (drag.move) {
+    drag.cell.style.left = (drag.l0 + dx) + 'px'; drag.cell.style.top = (drag.t0 + dy) + 'px';
+  } else if (S.mode === 'crop') {
     const cw = drag.cell.clientWidth, ch = drag.cell.clientHeight, b = cropBox(drag.p, cw, ch);
     const clamp = v => Math.min(1, Math.max(0, v));
     if (cw - b.width < 0) drag.p.fx = clamp(drag.fx + dx/(cw - b.width));
@@ -691,7 +817,14 @@ $('#stage').addEventListener('pointermove', e => {
 function endDrag(){
   if (!drag) return;
   const d = drag; drag = null;
-  d.cell.classList.remove('src');
+  d.cell.classList.remove('src', 'moving');
+  if (d.move) {
+    if (!d.moved) return;
+    const sc = view.scale, c = d.c;
+    const x = c.x + (parseFloat(d.cell.style.left) - d.l0)/sc, y = c.y + (parseFloat(d.cell.style.top) - d.t0)/sc;
+    placeFeat(d.p, x + c.w/2 < S.set.pageW ? 0 : 1, x, y, c.w, c.h);
+    render(); return;
+  }
   if (S.mode === 'swap' && d.tgt) {
     const g = S.grades[S.cur], j = +d.tgt.dataset.idx;
     [g.photos[d.idx], g.photos[j]] = [g.photos[j], g.photos[d.idx]];
@@ -703,14 +836,22 @@ $('#stage').addEventListener('pointerup', endDrag);
 $('#stage').addEventListener('pointercancel', endDrag);
 $('#stage').addEventListener('click', e => {
   const fi = e.target.dataset.feat;
-  if (fi != null) { const p = S.grades[S.cur].photos[+fi]; p.feat = !p.feat; p.fx = p.fy = .5; p.z = 1; render(); return; }
+  if (fi != null) { const g = S.grades[S.cur], p = g.photos[+fi]; p.fp = defaultFp(g, p); p.feat = true; p.fx = p.fy = .5; p.z = 1; render(); return; }
+  const cmd = e.target.dataset.cmd;
+  if (cmd) { featCommand(S.grades[S.cur].photos[+e.target.dataset.i], cmd); render(); return; }
   const i = e.target.dataset.del; if (i == null) return;
   const g = S.grades[S.cur], [p] = g.photos.splice(+i, 1);
   URL.revokeObjectURL(p.thumb); render();
 });
 $('#stage').addEventListener('wheel', e => {
-  if (S.mode !== 'crop') return;
   const cell = e.target.closest('.cell'); if (!cell) return;
+  const fp = S.grades[S.cur].photos[+cell.dataset.idx];
+  if (S.mode === 'swap' && fp.feat) {   // 大きい写真はホイールで大きさ変更
+    e.preventDefault(); clearTimeout(wheelT);
+    featCommand(fp, e.deltaY < 0 ? 'bigger' : 'smaller', 1.04);
+    wheelT = setTimeout(render, 60); return;
+  }
+  if (S.mode !== 'crop') return;
   e.preventDefault();
   const p = S.grades[S.cur].photos[+cell.dataset.idx];
   p.z = Math.min(4, Math.max(1, p.z * (e.deltaY < 0 ? 1.08 : 1/1.08)));
