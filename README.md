@@ -39,6 +39,7 @@ Claude Codeを使ったプログラミング学習用のリポジトリです。
   - `data-sim.js` — 質問・診察の一覧と表の行との対応、痛みの性状・NRS、`data-say.js` — 表のセル→患者のセリフ
   - CATO表(`data-cato.js`)と暗記用ノート(`data-notes.js`)そのものは公開しないため、リポジトリには含めていない(`.gitignore`済み)。この2つを置いた非公開版(claude.aiのページ)だけで、症候別ノート・クイズ・BLSの並べ替え・Firstのヒント・結果画面のCATO表が使える
   - 成績はlocalStorageに保存。中断したステーションは続きから再開できる
+- **[yearbook-collage](yearbook-collage/index.html)** — 卒業アルバム用の見開きコラージュ作成ツール。写真を入れると1学年＝見開き1枚に自動配置（モザイク／ちらし／行／列）。集合写真の拡大、撮影日での学年振り分け、印刷用JPEG（塗り足し・dpi指定）とWord／PowerPoint書き出しに対応。写真はブラウザ内だけで処理し外部に送らない。
 - **[claude-code-guide.html](claude-code-guide.html)** — Claude Codeの使い方をまとめた個人用ガイド(Windows版)。
 - **[hello.txt](hello.txt)** — はじめの自己紹介メモ。
 
