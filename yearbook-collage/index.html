@@ -44,7 +44,18 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 .seg button.on{background:var(--ink);color:#fff}
 .status{margin-left:auto;color:var(--sub);font-size:13px}
 .status b.ok{color:var(--ok)} .status b.warn{color:var(--warn)}
-#stage{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:12px 16px 20px}
+#stage{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 16px 20px;gap:18px}
+#stage.multi{justify-content:flex-start;overflow:auto}
+.sprwrap{display:flex;flex-direction:column;gap:6px;flex:none}
+.sprlabel{font-size:12px;color:var(--sub)}
+.cell.other{opacity:.35;pointer-events:none;filter:grayscale(.6)}
+.otherlab{position:absolute;display:flex;justify-content:center;pointer-events:none}
+.otherlab span{background:rgba(255,255,255,.92);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;color:#5b544a;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.nopage{position:absolute;display:flex;align-items:center;justify-content:center;color:#9a9286;font-size:13px;background:repeating-linear-gradient(45deg,#eee9e0 0 8px,#f6f3ee 8px 16px)}
+.tab small{font-size:10px;margin-left:2px;opacity:.75}
+.pgrow{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:2px 0 4px}
+.pgrow label{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--sub);gap:2px}
+.pgrow select{width:100%;padding:3px 2px}
 .spread{position:relative;box-shadow:0 6px 30px rgba(0,0,0,.15);user-select:none;-webkit-user-select:none}
 .guide{position:absolute;pointer-events:none;border:1px dashed rgba(208,96,58,.7)}
 .gutter{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed rgba(0,0,0,.35);pointer-events:none}
@@ -147,7 +158,10 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
     <div class="row"><label>幅 / 高さ (mm)</label><input type="number" data-k="pageW" step="1"><input type="number" data-k="pageH" step="1"></div>
     <div class="row"><label>塗り足し (mm)</label><input type="number" data-k="bleed" step="0.5" min="0"></div>
     <div class="row"><label>書き出し解像度 (dpi)</label><input type="number" data-k="dpi" step="10" min="72" max="600"></div>
-    <div class="row"><label>目標枚数（1見開き）</label><input type="number" data-k="target" step="1" min="1"></div>
+    <div class="row"><label>学年ごとのページ数</label></div>
+    <div class="pgrow" id="pagesRow"></div>
+    <p class="note">例：5・6年だけ「3」にすると見開き1.5個分。ページは1年から順に左→右と並ぶので、5年の3ページ目と6年の1ページ目が同じ見開きになります。</p>
+    <div class="row"><label>目標枚数（見開き1つ＝2ページあたり）</label><input type="number" data-k="target" step="1" min="1"></div>
   </details>
 
   <details open>
@@ -184,7 +198,7 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
     <summary>⑤ タイトル</summary>
     <div class="row"><label>この学年のタイトル</label><input type="text" id="gradeTitle"></div>
     <div class="row"><label>置く場所</label>
-      <select data-k="titlePos"><option value="left">左ページの上</option><option value="right">右ページの上</option><option value="none">なし</option></select>
+      <select data-k="titlePos"><option value="left">学年の1ページ目の上</option><option value="right">学年の2ページ目の上</option><option value="none">なし</option></select>
     </div>
     <div class="row"><label>揃え</label>
       <select data-k="titleAlign"><option value="left">左</option><option value="center">中央</option><option value="right">右</option></select>
@@ -202,10 +216,10 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 
   <details open>
     <summary>⑥ 書き出し（JPEG）</summary>
-    <button class="block primary" id="expSpread">この学年を書き出す（見開き1枚）</button>
-    <button class="block" id="expPages">この学年を書き出す（左右ページ別）</button>
+    <button class="block primary" id="expSpread">この学年を書き出す（見開きごと）</button>
+    <button class="block" id="expPages">この学年を書き出す（1ページずつ）</button>
     <button class="block" id="expAll">全学年まとめて書き出す</button>
-    <p class="note">塗り足し込みのサイズ・指定dpiで出力します。複数ファイルのダウンロード許可を聞かれたら「許可」してください。</p>
+    <p class="note">塗り足し込みのサイズ・指定dpiで出力します。ファイル名は本の通し番号（spread07.jpg＝見開き7、page13.jpg＝13ページ）。学年の境目がある見開きは、両方の学年のページが入った1枚になります。複数ファイルのダウンロード許可を聞かれたら「許可」してください。</p>
   </details>
 
   <details open>
@@ -218,7 +232,7 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
       <select data-k="officeDpi"><option value="150">軽め（150dpi）</option><option value="220">標準（220dpi）</option><option value="300">高画質（300dpi）</option><option value="350">最高（350dpi・重い）</option></select>
     </div>
     <button class="block" id="expDocx">📄 Word（.docx）… 1ページずつ</button>
-    <button class="block" id="expPptx">📊 PowerPoint（.pptx）… 見開き1枚＝1スライド</button>
+    <button class="block" id="expPptx">📊 PowerPoint（.pptx）… 見開き1つ＝1スライド</button>
     <p class="note">Wordは背景色・角丸・フチも反映。塗り足しは入らないので、印刷所入稿はJPEG書き出しがおすすめです。</p>
   </details>
 </aside>
@@ -257,6 +271,7 @@ const DEFAULTS = {
   style:'mosaic', variety:1, featPos:'top', featMax:55, officeDpi:220, officeScope:'all',
   entryYear: new Date().getFullYear() - 6,
   titles: ['1年生','2年生','3年生','4年生','5年生','6年生'],
+  pages: [2, 2, 2, 2, 2, 2],   // 学年ごとのページ数（2＝見開き1つ、3＝見開き1.5個）
 };
 const FONTS = {
   gothic:'"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif',
@@ -380,7 +395,7 @@ function optimizeOrder(g, trials){
   let best = null, bestScore = Infinity;
   for (let t = 0; t < trials; t++) {
     for (let i = ph.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [ph[i], ph[j]] = [ph[j], ph[i]]; }
-    const sc = layoutSpread(ph, g.seed).score;
+    const sc = layoutGrade(S.grades.indexOf(g), ph, g.seed).score;
     if (sc < bestScore) { bestScore = sc; best = ph.slice(); }
   }
   if (best) g.photos = best;
@@ -434,15 +449,37 @@ function justify(ars, W, H, gap){
   });
   return { cells, score:best.score };
 }
-function pageBoxes(){
-  const s = S.set;
-  const titleH = s.titlePos === 'none' ? 0 : s.titlePt*PT2MM*1.35;
-  const w = s.pageW - s.mOuter - s.mInner, h = s.pageH - s.mTop - s.mBottom;
-  const L = { x:s.mOuter, y:s.mTop, w, h }, R = { x:s.pageW + s.mInner, y:s.mTop, w, h };
+/* ---------- ページ構成：学年ごとのページ数 → 本のページ番号(gp) → 見開き ---------- */
+function gradePages(gi){   // 学年 gi の最初のページ番号（0始まり、偶数＝左ページ）とページ数
+  const P = S.set.pages; let start = 0;
+  for (let k = 0; k < gi; k++) start += P[k] || 2;
+  return { start, n: P[gi] || 2 };
+}
+function totalPages(){ return gradePages(6).start; }
+function ownerOfPage(gp){
+  for (let k = 0; k < 6; k++) { const { start, n } = gradePages(k); if (gp >= start && gp < start + n) return k; }
+  return -1;
+}
+function spreadsOfGrade(gi){
+  const { start, n } = gradePages(gi), out = [];
+  for (let sp = Math.floor(start/2); sp <= Math.floor((start + n - 1)/2); sp++) out.push(sp);
+  return out;
+}
+function gradesOfSpread(sp){ return [...new Set([2*sp, 2*sp + 1].map(ownerOfPage).filter(k => k >= 0))]; }
+function titlePageIdx(gi){ const t = S.set.titlePos; return t === 'none' ? -1 : (t === 'right' && gradePages(gi).n > 1 ? 1 : 0); }
+function gradeTarget(gi){ return Math.round(S.set.target * gradePages(gi).n / 2); }
+// ページ gp（学年 gi）の写真を置ける範囲とタイトル枠。座標はそのページの左上が原点(mm)
+function pageGeom(gp, gi){
+  const s = S.set, left = gp % 2 === 0;
+  const box = { x: left ? s.mOuter : s.mInner, y:s.mTop, w:s.pageW - s.mOuter - s.mInner, h:s.pageH - s.mTop - s.mBottom };
   let title = null;
-  const T = s.titlePos === 'left' ? L : s.titlePos === 'right' ? R : null;
-  if (T) { title = { x:T.x, y:T.y, w:T.w, h:titleH }; T.y += titleH + Math.max(s.gap, 2); T.h -= titleH + Math.max(s.gap, 2); }
-  return { L, R, title };
+  const ti = titlePageIdx(gi);
+  if (ti >= 0 && gp === gradePages(gi).start + ti) {
+    const th = s.titlePt*PT2MM*1.35, g2 = Math.max(s.gap, 2);
+    title = { x:box.x, y:box.y, w:box.w, h:th };
+    box.y += th + g2; box.h -= th + g2;
+  }
+  return { box, title };
 }
 // photos: [{w,h,feat}]  feat=true の写真（集合写真など）はページ幅いっぱいの大きな枠に置く
 function rng(seed){   // 再現できる乱数（同じseedなら同じ配置）
@@ -517,17 +554,16 @@ function layoutPage(ars, W, H, gap, seed){
 }
 function strokeW(){ return S.set.style === 'scatter' ? Math.max(S.set.stroke, 2) : S.set.stroke; }
 const layoutCache = new Map();
-function layoutSpread(photos, seed = 1){
-  const st = S.set;
-  const key = JSON.stringify([seed, st.style, st.variety, st.pageW, st.pageH, st.mOuter, st.mInner, st.mTop, st.mBottom, st.gap,
+function layoutGrade(gi, photos = S.grades[gi].photos, seed = S.grades[gi].seed){
+  const st = S.set, gp = gradePages(gi);
+  const key = JSON.stringify([gi, gp.start, gp.n, seed, st.style, st.variety, st.pageW, st.pageH, st.mOuter, st.mInner, st.mTop, st.mBottom, st.gap,
     st.titlePos, st.titlePt, st.featPos, st.featMax, photos.map(p => [p.w, p.h, p.feat ? 1 : 0, p.feat && p.fp ? [p.fp.page, p.fp.w, p.fp.cx, p.fp.cy] : 0])]);
   if (layoutCache.has(key)) return structuredClone(layoutCache.get(key));
-  const r = layoutSpreadRaw(photos, seed);
-  if (layoutCache.size > 200) layoutCache.clear();
+  const r = layoutGradeRaw(gi, photos, seed);
+  if (layoutCache.size > 300) layoutCache.clear();
   layoutCache.set(key, r);
   return structuredClone(r);
 }
-// 大きく載せる写真の枠（トリミングなし）。fp = { page:0|1, w:ページ幅に対する割合, cx/cy:0=左/上 … 1=右/下 }
 const MIN_GAP = 25;   // 大きい写真の横・上下に残すすき間の最小幅(mm)。これより細いすき間は作らない
 // 1方向の位置合わせ：細いすき間ができるなら端に寄せる
 function snapAxis(pos, size, start, len, frac){
@@ -601,53 +637,66 @@ function layoutRegions(ars, rects, gap, seed){
   });
   return { cells, score };
 }
-function layoutSpreadRaw(photos, seed){
-  const s = S.set, gap = s.gap, { L, R } = pageBoxes();
-  if (!photos.length) return { cells:[], score:0, split:0 };
+// 学年の写真を、その学年のページ（2ページ以外も可）に配置する。セルの gp はページ番号、x/y はページ内座標
+function layoutGradeRaw(gi, photos, seed){
+  const s = S.set, gap = s.gap, { start, n } = gradePages(gi);
+  if (!photos.length) return { cells:[], score:0, counts:new Array(n).fill(0) };
   const feat = [], norm = [];
   photos.forEach((p, i) => (p.feat ? feat : norm).push(i));
-  const pages = [{ ...L, f:[] }, { ...R, f:[] }];
-  feat.forEach((i, k) => pages[photos[i].fp ? photos[i].fp.page : k % 2].f.push(i));
+  const pages = Array.from({ length:n }, (_, k) => ({ ...pageGeom(start + k, gi).box, f:[], gp:start + k }));
+  feat.forEach((i, k) => { const fp = photos[i].fp; pages[fp ? Math.min(n-1, Math.max(0, fp.page)) : k % n].f.push(i); });
   const cells = [];
-  pages.forEach((pg, pi) => {
+  pages.forEach(pg => {
     const occ = [];
     for (const i of pg.f) {
       const r = featRect(photos[i], pg);
-      cells.push({ i, ...r, feat:true, page:pi });
+      cells.push({ i, ...r, feat:true, gp:pg.gp });
       occ.push({ x:r.x - gap, y:r.y - gap, w:r.w + 2*gap, h:r.h + 2*gap });
     }
     pg.options = pg.f.length ? [freeRects(pg, occ, false), freeRects(pg, occ, true)] : [[{ x:pg.x, y:pg.y, w:pg.w, h:pg.h }]];
     pg.area = pg.options[0].reduce((a, r) => a + r.w*r.h, 0);
   });
-  const [A, B] = pages, ars = norm.map(i => photos[i].w / photos[i].h), m = ars.length;
-  const mid = Math.round(m * A.area / ((A.area + B.area) || 1));
-  let lo = Math.max(0, mid-4), hi = Math.min(m, mid+4);
-  if (!A.area) lo = hi = 0; else if (!B.area) lo = hi = m;
-  let best = null;
-  for (let sp = lo; sp <= hi; sp++) {
-    if (m >= 2 && A.area && B.area && (sp === 0 || sp === m)) continue;
-    const pick = (sub, pg, sd) => pg.options.map(o => layoutRegions(sub, o, gap, sd)).reduce((x, y) => y.score < x.score ? y : x);
-    const a = pick(ars.slice(0, sp), A, seed*2);
-    const b = pick(ars.slice(sp), B, seed*2 + 1);
-    const score = a.score + b.score + Math.abs(sp - mid)*0.03;
-    if (!best || score < best.score) best = { score, a, b, sp };
+  const ars = norm.map(i => photos[i].w / photos[i].h), m = ars.length;
+  const totA = pages.reduce((a, pg) => a + pg.area, 0);
+  const ideal = pages.map(pg => totA ? m * pg.area / totA : m / n);
+  let cnt = ideal.map(Math.floor), left = m - cnt.reduce((a, b) => a + b, 0);
+  ideal.map((v, k) => [v - Math.floor(v), k]).sort((a, b) => b[0] - a[0]).forEach(([, k]) => { if (left > 0) { cnt[k]++; left--; } });
+  const memo = new Map();
+  const evalPage = (k, a, b) => {
+    const key = k + ':' + a + ':' + b;
+    if (memo.has(key)) return memo.get(key);
+    const sub = ars.slice(a, b);
+    const r = !pages[k].area ? { cells:[], score: sub.length * 5 }
+      : pages[k].options.map(o => layoutRegions(sub, o, gap, seed*7 + k)).reduce((x, y) => y.score < x.score ? y : x);
+    memo.set(key, r); return r;
+  };
+  const total = c => { let off = 0, sc = 0; c.forEach((v, k) => { sc += evalPage(k, off, off + v).score + Math.abs(v - ideal[k])*0.05; off += v; }); return sc; };
+  let best = total(cnt);
+  for (let it = 0; it < 3 && n > 1; it++) {   // ページの境目を前後にずらして、一番きれいに収まる枚数配分を探す
+    let improved = false;
+    for (let j = 0; j < n - 1; j++) for (let d = -4; d <= 4; d++) {
+      if (!d) continue;
+      const c2 = cnt.slice(); c2[j] += d; c2[j+1] -= d;
+      if (c2[j] < 0 || c2[j+1] < 0) continue;
+      if (m >= n && ((!c2[j] && pages[j].area) || (!c2[j+1] && pages[j+1].area))) continue;
+      if (Math.abs(c2[j] - ideal[j]) > 3.5 || Math.abs(c2[j+1] - ideal[j+1]) > 3.5) continue;   // 枚数の偏りは±3枚まで
+      const sc = total(c2);
+      if (sc < best - 1e-9) { best = sc; cnt = c2; improved = true; }
+    }
+    if (!improved) break;
   }
-  if (!best) best = { score:0, a:{cells:[]}, b:{cells:[]}, sp:0 };
-  cells.push(
-    ...best.a.cells.map(c => ({ ...c, i:norm[c.i] })),
-    ...best.b.cells.map(c => ({ ...c, i:norm[c.i + best.sp] })),
-  );
+  let off = 0;
+  cnt.forEach((v, k) => { for (const c of evalPage(k, off, off + v).cells) cells.push({ ...c, i:norm[c.i + off], gp:pages[k].gp }); off += v; });
   if (s.style === 'scatter') {   // ちらし：少し大きくして傾け、重ねる
     const R = rng(seed*104729 + 7);
     for (const c of cells) {
-      const m = c.feat ? 0.35 : 1, e = 1 + 0.07*m;
-      c.rot = (R()*2 - 1) * 7 * m;
+      const mm = c.feat ? 0.35 : 1, e = 1 + 0.07*mm;
+      c.rot = (R()*2 - 1) * 7 * mm;
       c.x -= c.w*(e-1)/2; c.y -= c.h*(e-1)/2; c.w *= e; c.h *= e;
     }
   }
-  // 大きい写真はいちばん上に重ねる
-  cells.sort((p, q) => (p.feat ? 1 : 0) - (q.feat ? 1 : 0));
-  return { cells, score:best.score, split: best.sp + pages[0].f.length };
+  cells.sort((p, q) => (p.feat ? 1 : 0) - (q.feat ? 1 : 0));   // 大きい写真はいちばん上に重ねる
+  return { cells, score:best, counts: cnt.map((v, k) => v + pages[k].f.length) };
 }
 
 /* ---------- 画像の切り抜き計算（プレビューと書き出し共通） ---------- */
@@ -658,69 +707,103 @@ function cropBox(p, cw, ch){
 }
 
 /* ---------- 画面描画 ---------- */
-let view = null;   // { scale, ox, oy, cells }
+let view = null;   // { scale, cells: Map(写真番号 → セル), gi }
 function render(){
   renderTabs(); renderControls();
-  const g = S.grades[S.cur], s = S.set, stage = $('#stage');
+  const gi = S.cur, g = S.grades[gi], s = S.set, stage = $('#stage');
   stage.innerHTML = '';
+  const { start, n } = gradePages(gi);
   if (!g.photos.length) {
-    stage.innerHTML = `<div class="empty"><b>${esc(S.set.titles[S.cur])} の写真を入れてください</b>ここに写真をドラッグ＆ドロップ、<br>または左の「写真を追加」から選んでください。<br>入れた瞬間に自動でコラージュされます。</div>`;
+    stage.classList.remove('multi');
+    stage.innerHTML = `<div class="empty"><b>${esc(s.titles[gi])} の写真を入れてください</b>この学年は ${n} ページ（本の ${start+1}〜${start+n} ページ）です。<br>ここに写真をドラッグ＆ドロップ、または左の「写真を追加」から選んでください。<br>入れた瞬間に自動でコラージュされます。</div>`;
     view = null; renderStatus(); return;
   }
-  const lay = layoutSpread(g.photos, g.seed);
+  const spreads = spreadsOfGrade(gi), multi = spreads.length > 1;
+  stage.classList.toggle('multi', multi);
   const totalW = 2*s.pageW + 2*s.bleed, totalH = s.pageH + 2*s.bleed;
-  const sw = stage.clientWidth - 32, sh = stage.clientHeight - 32;
-  const scale = Math.max(0.5, Math.min(sw/totalW, sh/totalH));
-  const sp = document.createElement('div');
-  sp.className = 'spread';
-  sp.style.cssText = `width:${totalW*scale}px;height:${totalH*scale}px;background:${s.bg}`;
-  const o = s.bleed*scale, X = mm => o + mm*scale, Y = mm => o + mm*scale, D = mm => mm*scale;
+  const sw = stage.clientWidth - 32, sh = stage.clientHeight - 32 - 24;
+  const single = Math.min(sw/totalW, sh/totalH);
+  // 見開きが複数ある学年は、全部が1画面に収まる大きさ（小さくなりすぎるときはスクロール）
+  const fitAll = Math.min(sw/totalW, (sh - (spreads.length - 1)*44) / (spreads.length*totalH));
+  const scale = Math.max(0.5, multi ? Math.max(fitAll, single*0.55) : single);
+  const o = s.bleed*scale, D = mm => mm*scale;
+  const lays = {}, getLay = k => lays[k] || (lays[k] = layoutGrade(k));
   const guides = $('#showGuides').checked;
-  if (guides) {
-    add(sp, 'guide', { left:X(0), top:Y(0), width:D(2*s.pageW), height:D(s.pageH) });
-    const gt = document.createElement('div'); gt.className = 'gutter'; gt.style.left = X(s.pageW) + 'px'; sp.appendChild(gt);
-    const { L, R } = pageBoxes();
-    for (const b of [L, R]) add(sp, 'margin', { left:X(b.x), top:Y(b.y), width:D(b.w), height:D(b.h) });
-  }
-  const { title } = pageBoxes();
-  if (title) {
-    const t = add(sp, 'ttl', { left:X(title.x), top:Y(title.y), width:D(title.w), height:D(title.h) });
-    t.textContent = s.titles[S.cur];
-    t.style.fontSize = D(s.titlePt*PT2MM) + 'px';
-    t.style.color = s.titleColor; t.style.fontFamily = FONTS[s.titleFont]; t.style.fontWeight = '700';
-    t.style.justifyContent = { left:'flex-start', center:'center', right:'flex-end' }[s.titleAlign];
-  }
-  lay.cells.forEach((c, idx) => {
-    const p = g.photos[c.i];
-    const el = add(sp, 'cell', { left:X(c.x), top:Y(c.y), width:D(c.w), height:D(c.h) });
-    el.dataset.idx = c.i;
-    if (s.radius) el.style.borderRadius = D(s.radius) + 'px';
-    if (c.rot) el.style.transform = `rotate(${c.rot}deg)`;
-    if (s.style === 'scatter') el.style.boxShadow = `0 ${D(0.6)}px ${D(1.5)}px rgba(0,0,0,.35)`;
-    const im = document.createElement('img'); im.src = p.thumb; im.draggable = false;
-    placeImg(im, p, D(c.w), D(c.h));
-    el.appendChild(im);
-    if (strokeW()) { const f = document.createElement('div'); f.style.cssText = `position:absolute;inset:0;box-shadow:inset 0 0 0 ${D(strokeW())}px ${s.strokeColor};border-radius:inherit;pointer-events:none`; el.appendChild(f); }
-    const x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.title = 'この写真を外す'; x.dataset.del = c.i;
-    el.appendChild(x);
-    if (c.feat) {
-      el.classList.add('featcell');
-      const tb = document.createElement('div'); tb.className = 'ftb';
-      tb.innerHTML = [['smaller','－','小さく'],['bigger','＋','大きく'],['top','上','ページの上へ'],['middle','中','ページの真ん中へ'],['bottom','下','ページの下へ'],['flip','⇆','反対のページへ'],['unfeat','★解除','普通の写真に戻す']]
-        .map(([k, t, ti]) => `<button data-cmd="${k}" data-i="${c.i}" title="${ti}">${t}</button>`).join('');
-      el.appendChild(tb);
-      const rz = document.createElement('div'); rz.className = 'rz'; rz.title = 'ドラッグで大きさを変える'; el.appendChild(rz);
-      const sz = document.createElement('div'); sz.className = 'sz'; sz.textContent = Math.round(c.w) + '×' + Math.round(c.h) + 'mm'; el.appendChild(sz);
-    } else {
-      const st = document.createElement('button'); st.className = 'star';
-      st.textContent = '☆ 大きく'; st.title = '集合写真などを大きく載せる（あとで大きさ・場所を自由に変えられます）'; st.dataset.feat = c.i;
-      el.appendChild(st);
+  view = { scale, cells:new Map(), gi };
+  for (const spi of spreads) {
+    const wrap = document.createElement('div'); wrap.className = 'sprwrap';
+    const lab = document.createElement('div'); lab.className = 'sprlabel';
+    lab.textContent = `見開き${spi+1}（本の ${2*spi+1}〜${2*spi+2} ページ）： ` + [0, 1].map(side => {
+      const gp = 2*spi + side, k = ownerOfPage(gp);
+      return (side ? '右 ' : '左 ') + (k < 0 ? 'ページなし' : `${k+1}年 ${gp - gradePages(k).start + 1}ページ目`);
+    }).join(' ｜ ');
+    wrap.appendChild(lab);
+    const sp = document.createElement('div');
+    sp.className = 'spread'; sp.dataset.s = spi;
+    sp.style.cssText = `width:${totalW*scale}px;height:${totalH*scale}px;background:${s.bg}`;
+    const PX = (gp, mm) => o + ((gp % 2) * s.pageW + mm)*scale, PY = mm => o + mm*scale;
+    if (guides) {
+      add(sp, 'guide', { left:o, top:o, width:D(2*s.pageW), height:D(s.pageH) });
+      const gt = document.createElement('div'); gt.className = 'gutter'; gt.style.left = (o + D(s.pageW)) + 'px'; sp.appendChild(gt);
     }
-  });
-  stage.appendChild(sp);
-  view = { scale, cells:lay.cells };
-  sp.classList.toggle('mode-crop', S.mode === 'crop');
-  renderStatus(lay);
+    for (const side of [0, 1]) {
+      const gp = 2*spi + side, k = ownerOfPage(gp);
+      if (k < 0) { add(sp, 'nopage', { left:o + D(side*s.pageW), top:o, width:D(s.pageW), height:D(s.pageH) }).textContent = '（ページなし）'; continue; }
+      const geo = pageGeom(gp, k);
+      if (guides) add(sp, 'margin', { left:PX(gp, geo.box.x), top:PY(geo.box.y), width:D(geo.box.w), height:D(geo.box.h) });
+      if (geo.title && s.titles[k]) {
+        const t = add(sp, 'ttl', { left:PX(gp, geo.title.x), top:PY(geo.title.y), width:D(geo.title.w), height:D(geo.title.h) });
+        t.textContent = s.titles[k];
+        t.style.fontSize = D(s.titlePt*PT2MM) + 'px';
+        t.style.color = s.titleColor; t.style.fontFamily = FONTS[s.titleFont]; t.style.fontWeight = '700';
+        t.style.justifyContent = { left:'flex-start', center:'center', right:'flex-end' }[s.titleAlign];
+        if (k !== gi) t.style.opacity = .4;
+      }
+    }
+    for (const k of gradesOfSpread(spi)) {
+      const own = k === gi, gk = S.grades[k];
+      for (const c of getLay(k).cells) {
+        if (Math.floor(c.gp / 2) !== spi) continue;
+        const p = gk.photos[c.i];
+        const el = add(sp, 'cell' + (own ? '' : ' other'), { left:PX(c.gp, c.x), top:PY(c.y), width:D(c.w), height:D(c.h) });
+        if (s.radius) el.style.borderRadius = D(s.radius) + 'px';
+        if (c.rot) el.style.transform = `rotate(${c.rot}deg)`;
+        if (s.style === 'scatter') el.style.boxShadow = `0 ${D(0.6)}px ${D(1.5)}px rgba(0,0,0,.35)`;
+        const im = document.createElement('img'); im.src = p.thumb; im.draggable = false;
+        placeImg(im, p, D(c.w), D(c.h));
+        el.appendChild(im);
+        if (strokeW()) { const f = document.createElement('div'); f.style.cssText = `position:absolute;inset:0;box-shadow:inset 0 0 0 ${D(strokeW())}px ${s.strokeColor};border-radius:inherit;pointer-events:none`; el.appendChild(f); }
+        if (!own) continue;
+        el.dataset.idx = c.i;
+        view.cells.set(c.i, c);
+        const x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.title = 'この写真を外す'; x.dataset.del = c.i;
+        el.appendChild(x);
+        if (c.feat) {
+          el.classList.add('featcell');
+          const tb = document.createElement('div'); tb.className = 'ftb';
+          const cmds = [['smaller','－','小さく'],['bigger','＋','大きく'],['top','上','ページの上へ'],['middle','中','ページの真ん中へ'],['bottom','下','ページの下へ']];
+          if (n > 1) cmds.push(['flip','⇆', n > 2 ? 'この学年の次のページへ' : '反対のページへ']);
+          cmds.push(['unfeat','★解除','普通の写真に戻す']);
+          tb.innerHTML = cmds.map(([cm, t, ti]) => `<button data-cmd="${cm}" data-i="${c.i}" title="${ti}">${t}</button>`).join('');
+          el.appendChild(tb);
+          const rz = document.createElement('div'); rz.className = 'rz'; rz.title = 'ドラッグで大きさを変える'; el.appendChild(rz);
+          const sz = document.createElement('div'); sz.className = 'sz'; sz.textContent = Math.round(c.w) + '×' + Math.round(c.h) + 'mm'; el.appendChild(sz);
+        } else {
+          const st = document.createElement('button'); st.className = 'star';
+          st.textContent = '☆ 大きく'; st.title = '集合写真などを大きく載せる（あとで大きさ・場所を自由に変えられます）'; st.dataset.feat = c.i;
+          el.appendChild(st);
+        }
+      }
+    }
+    for (const side of [0, 1]) {   // 別の学年のページには名札を出す
+      const gp = 2*spi + side, k = ownerOfPage(gp);
+      if (k >= 0 && k !== gi) add(sp, 'otherlab', { left:o + D(side*s.pageW), top:o + D(s.pageH/2) - 14, width:D(s.pageW) }).innerHTML = `<span>${esc(s.titles[k] || (k+1) + '年')}のページ（${k+1}年のタブで編集）</span>`;
+    }
+    sp.classList.toggle('mode-crop', S.mode === 'crop');
+    wrap.appendChild(sp);
+    stage.appendChild(wrap);
+  }
+  renderStatus(getLay(gi));
 }
 function placeImg(im, p, cw, ch){
   const b = cropBox(p, cw, ch);
@@ -735,48 +818,49 @@ function esc(t){ return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 function renderTabs(){
   const tabs = $('#tabs'); tabs.innerHTML = '';
   S.grades.forEach((g, i) => {
-    const b = document.createElement('button');
+    const b = document.createElement('button'), n = gradePages(i).n;
     b.className = 'tab' + (i === S.cur ? ' on' : '');
-    const full = g.photos.length === S.set.target;
-    b.innerHTML = `${i+1}年 <span class="cnt${full ? ' full' : ''}">${g.photos.length}</span>`;
+    const full = g.photos.length === gradeTarget(i);
+    b.innerHTML = `${i+1}年${n !== 2 ? `<small>${n}p</small>` : ''} <span class="cnt${full ? ' full' : ''}">${g.photos.length}</span>`;
     b.onclick = () => { S.cur = i; render(); };
     tabs.appendChild(b);
   });
 }
 function renderControls(){
   $$('[data-k]').forEach(el => { if (document.activeElement !== el) el.value = S.set[el.dataset.k]; });
+  $$('[data-pg]').forEach(el => { el.value = S.set.pages[+el.dataset.pg]; });
   $('#preset').value = S.set.preset;
   $('#sortMode').value = S.grades[S.cur].sort;
   if (document.activeElement !== $('#gradeTitle')) $('#gradeTitle').value = S.set.titles[S.cur];
   if (document.activeElement !== $('#entryYear')) $('#entryYear').value = S.set.entryYear;
 }
 function renderStatus(lay){
-  const g = S.grades[S.cur], n = g.photos.length, t = S.set.target;
+  const g = S.grades[S.cur], n = g.photos.length, t = gradeTarget(S.cur);
   const cls = n === t ? 'ok' : 'warn';
   let txt = `<b class="${cls}">${n} / ${t} 枚</b>`;
   if (n && n !== t) txt += n < t ? `（あと${t-n}枚）` : `（${n-t}枚多い）`;
-  if (lay && lay.cells.length) txt += `　左${lay.split}枚・右${n-lay.split}枚`;
+  if (lay && lay.cells.length) txt += '　' + lay.counts.map((v, k) => `${k+1}p目 ${v}枚`).join('・');
   $('#status').innerHTML = txt;
   $('#hint').textContent = S.mode === 'swap'
-    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外せます。☆で大きく → 大きい写真はドラッグで移動、右下の角をドラッグ（またはホイール・－＋）で大きさ変更。'
+    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外せます。☆で大きく → 大きい写真はドラッグで移動（この学年の別ページにも）、右下の角をドラッグ（またはホイール・－＋）で大きさ変更。'
     : '写真をドラッグすると見せる位置がずれます。ホイールで拡大、ダブルクリックで元に戻ります。';
 }
 
 /* ---------- 操作（入れ替え・位置調整） ---------- */
 let drag = null, wheelT = 0;
 const clamp01 = v => Math.min(1, Math.max(0, v));
-function pageBox(page){ const b = pageBoxes(); return page ? b.R : b.L; }
+function pageBox(page, gi = S.cur){ return pageGeom(gradePages(gi).start + page, gi).box; }   // page＝学年内のページ番号
 function defaultFp(g, p, except){
-  const cnt = [0, 0];
-  g.photos.forEach(q => { if (q.feat && q.fp && q !== except) cnt[q.fp.page]++; });
-  const order = cnt[0] <= cnt[1] ? [0, 1] : [1, 0];
+  const gi = S.grades.indexOf(g), n = gradePages(gi).n, cnt = new Array(n).fill(0);
+  g.photos.forEach(q => { if (q.feat && q.fp && q !== except && q !== p) cnt[Math.min(n-1, q.fp.page)]++; });
+  const order = [...cnt.keys()].sort((a, b) => cnt[a] - cnt[b] || a - b);
   const pref = { top:0, middle:.5, bottom:1 }[S.set.featPos] ?? 0;
   // ほかの大きい写真と重ならない場所を探す：少ないページから、全幅→半分→3分の1の大きさで順に試す
   for (const page of order) {
-    const pg = pageBox(page);
-    const others = g.photos.filter(q => q.feat && q.fp && q !== except && q !== p && q.fp.page === page).map(q => featRect(q, pg));
-    const n = others.length;
-    const w0 = Math.min(1, (pg.h * S.set.featMax / 100 / (n + 1)) * (p.w / p.h) / pg.w);
+    const pg = pageBox(page, gi);
+    const others = g.photos.filter(q => q.feat && q.fp && q !== except && q !== p && Math.min(n-1, q.fp.page) === page).map(q => featRect(q, pg));
+    const k = others.length;
+    const w0 = Math.min(1, (pg.h * S.set.featMax / 100 / (k + 1)) * (p.w / p.h) / pg.w);
     const cands = [];
     for (const w of [w0, Math.min(w0, .55), Math.min(w0, .4)])
       for (const cy of [pref, 0, 1, .5])
@@ -789,7 +873,7 @@ function defaultFp(g, p, except){
   }
   return { page:order[0], w:.4, cx:.5, cy:.5 };   // どうしても空かなければ重ねて置く
 }
-// mm座標の位置・大きさから fp（ページ内の割合）を計算
+// ページ内 mm 座標の位置・大きさから fp（ページ内の割合）を計算
 function placeFeat(p, page, x, y, w, h){
   const pg = pageBox(page);
   p.fp = { page, w:Math.min(1, w / pg.w),
@@ -797,28 +881,34 @@ function placeFeat(p, page, x, y, w, h){
     cy: pg.h - h > 0.5 ? clamp01((y - pg.y) / (pg.h - h)) : .5 };
 }
 function featCommand(p, cmd, step = 1.1){
-  const fp = p.fp || (p.fp = defaultFp(S.grades[S.cur], p));
-  if (cmd === 'flip') { const np = 1 - fp.page, g = S.grades[S.cur]; p.fp = { ...fp, page:np }; const r = featRect(p, pageBox(np));
+  const g = S.grades[S.cur], n = gradePages(S.cur).n;
+  const fp = p.fp || (p.fp = defaultFp(g, p));
+  if (cmd === 'flip') {
+    const np = (fp.page + 1) % n; p.fp = { ...fp, page:np };
+    const r = featRect(p, pageBox(np));
     const hit = g.photos.some(q => q !== p && q.feat && q.fp && q.fp.page === np && (o => r.x < o.x + o.w && o.x < r.x + r.w && r.y < o.y + o.h && o.y < r.y + r.h)(featRect(q, pageBox(np))));
-    if (hit) { const c = defaultFp(g, p, p); if (c.page === np) p.fp = c; } return; }
+    if (hit) { const c = defaultFp(g, p, p); if (c.page === np) p.fp = c; }
+    return;
+  }
   if (cmd === 'bigger') fp.w = Math.min(1, fp.w * step);
   else if (cmd === 'smaller') fp.w = Math.max(0.15, fp.w / step);
   else if (cmd === 'top') { fp.cy = 0; fp.cx = .5; }
   else if (cmd === 'middle') { fp.cy = .5; fp.cx = .5; }
   else if (cmd === 'bottom') { fp.cy = 1; fp.cx = .5; }
-  else if (cmd === 'flip') fp.page = 1 - fp.page;
   else if (cmd === 'unfeat') { p.feat = false; p.fp = null; }
 }
 $('#stage').addEventListener('pointerdown', e => {
   if (e.target.dataset.del != null || e.target.dataset.feat != null || e.target.closest('.ftb')) return;
-  const cell = e.target.closest('.cell'); if (!cell || e.button !== 0) return;
+  const cell = e.target.closest('.cell'); if (!cell || cell.dataset.idx == null || e.button !== 0) return;
   e.preventDefault();
   const idx = +cell.dataset.idx, p = S.grades[S.cur].photos[idx];
   const resize = p.feat && !!e.target.closest('.rz');   // 右下の角：大きさ変更
   const move = S.mode === 'swap' && p.feat && !resize;   // 大きい写真はドラッグで自由に移動
-  drag = { cell, idx, p, x0:e.clientX, y0:e.clientY, fx:p.fx, fy:p.fy, moved:false, tgt:null, move, resize,
+  const rect = cell.getBoundingClientRect();
+  drag = { cell, idx, p, x0:e.clientX, y0:e.clientY, x:e.clientX, y:e.clientY, fx:p.fx, fy:p.fy, moved:false, tgt:null, move, resize,
            w0:parseFloat(cell.style.width), h0:parseFloat(cell.style.height),
-           l0:parseFloat(cell.style.left), t0:parseFloat(cell.style.top), c:view.cells.find(c => c.i === idx) };
+           l0:parseFloat(cell.style.left), t0:parseFloat(cell.style.top), c:view.cells.get(idx),
+           grabX:e.clientX - rect.left, grabY:e.clientY - rect.top };
   cell.setPointerCapture(e.pointerId);
   if (move || resize) cell.classList.add('moving');
   else if (S.mode === 'swap') cell.classList.add('src');
@@ -826,6 +916,12 @@ $('#stage').addEventListener('pointerdown', e => {
 $('#stage').addEventListener('pointermove', e => {
   if (!drag) return;
   const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+  drag.x = e.clientX; drag.y = e.clientY;
+  if (drag.move) {   // 画面の端まで来たら自動スクロール（下の見開きへ運べるように）
+    const st = $('#stage'), r = st.getBoundingClientRect();
+    const dv = e.clientY > r.bottom - 50 ? 18 : e.clientY < r.top + 50 ? -18 : 0;
+    if (dv) { const before = st.scrollTop; st.scrollTop += dv; drag.t0 -= 0; drag.scrolled = (drag.scrolled || 0) + (st.scrollTop - before); }
+  }
   if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
   if (drag.resize) {   // 縦横比を保って、左上を固定したまま拡大縮小
     const k = Math.max(0.15, Math.max((drag.w0 + dx) / drag.w0, (drag.h0 + dy) / drag.h0));
@@ -833,7 +929,8 @@ $('#stage').addEventListener('pointermove', e => {
     const im = drag.cell.querySelector('img'); placeImg(im, drag.p, drag.w0*k, drag.h0*k);
     const sz = drag.cell.querySelector('.sz'); if (sz) sz.textContent = Math.round(drag.c.w*k) + '×' + Math.round(drag.c.h*k) + 'mm';
   } else if (drag.move) {
-    drag.cell.style.left = (drag.l0 + dx) + 'px'; drag.cell.style.top = (drag.t0 + dy) + 'px';
+    drag.cell.style.pointerEvents = 'none';   // 下にある見開きを探せるように
+    drag.cell.style.left = (drag.l0 + dx) + 'px'; drag.cell.style.top = (drag.t0 + dy + (drag.scrolled || 0)) + 'px';
   } else if (S.mode === 'crop') {
     const cw = drag.cell.clientWidth, ch = drag.cell.clientHeight, b = cropBox(drag.p, cw, ch);
     const clamp = v => Math.min(1, Math.max(0, v));
@@ -844,25 +941,32 @@ $('#stage').addEventListener('pointermove', e => {
     const under = document.elementFromPoint(e.clientX, e.clientY);
     const t = under && under.closest('.cell');
     if (drag.tgt && drag.tgt !== t) drag.tgt.classList.remove('tgt');
-    drag.tgt = t && t !== drag.cell ? t : null;
+    drag.tgt = t && t !== drag.cell && t.dataset.idx != null ? t : null;
     if (drag.tgt) drag.tgt.classList.add('tgt');
   }
 });
 function endDrag(){
   if (!drag) return;
   const d = drag; drag = null;
-  d.cell.classList.remove('src', 'moving');
+  d.cell.classList.remove('src', 'moving'); d.cell.style.pointerEvents = '';
+  const s = S.set, sc = view.scale, c = d.c;
   if (d.resize) {
     if (!d.moved) return;
-    const c = d.c, k = parseFloat(d.cell.style.width) / d.w0, page = d.p.fp ? d.p.fp.page : (c.x + c.w/2 < S.set.pageW ? 0 : 1);
-    placeFeat(d.p, page, c.x, c.y, c.w*k, c.h*k);
+    const k = parseFloat(d.cell.style.width) / d.w0;
+    placeFeat(d.p, c.gp - gradePages(S.cur).start, c.x, c.y, c.w*k, c.h*k);
     render(); return;
   }
   if (d.move) {
     if (!d.moved) return;
-    const sc = view.scale, c = d.c;
-    const x = c.x + (parseFloat(d.cell.style.left) - d.l0)/sc, y = c.y + (parseFloat(d.cell.style.top) - d.t0)/sc;
-    placeFeat(d.p, x + c.w/2 < S.set.pageW ? 0 : 1, x, y, c.w, c.h);
+    // 指を離した場所の見開き・ページを調べる（この学年のページなら別の見開きにも移せる）
+    const spEl = document.elementsFromPoint(d.x, d.y).map(el => el.closest && el.closest('.spread')).find(Boolean);
+    const { start, n } = gradePages(S.cur);
+    if (spEl) {
+      const r = spEl.getBoundingClientRect();
+      const xs = (d.x - d.grabX - r.left)/sc - s.bleed, ys = (d.y - d.grabY - r.top)/sc - s.bleed;
+      const gp = 2*(+spEl.dataset.s) + (xs + c.w/2 >= s.pageW ? 1 : 0), page = gp - start;
+      if (page >= 0 && page < n) placeFeat(d.p, page, xs - (gp % 2)*s.pageW, ys, c.w, c.h);
+    }
     render(); return;
   }
   if (S.mode === 'swap' && d.tgt) {
@@ -940,6 +1044,10 @@ $$('[data-k]').forEach(el => el.addEventListener('input', () => {
   if (k === 'pageW' || k === 'pageH') S.set.preset = 'custom';
   saveSettings(); render();
 }));
+$('#pagesRow').innerHTML = [0,1,2,3,4,5].map(i => `<label>${i+1}年<select data-pg="${i}">${[1,2,3,4].map(v => `<option value="${v}">${v}p</option>`).join('')}</select></label>`).join('');
+$$('[data-pg]').forEach(el => el.addEventListener('change', () => {
+  S.set.pages[+el.dataset.pg] = +el.value; saveSettings(); render();
+}));
 $('#preset').onchange = e => {
   const v = e.target.value; S.set.preset = v;
   if (PRESETS[v]) [S.set.pageW, S.set.pageH] = PRESETS[v];
@@ -985,26 +1093,34 @@ function roundRectPath(ctx, x, y, w, h, r){
   ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r);
   ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath();
 }
-async function renderSpreadCanvas(gi, onProg){
-  const g = S.grades[gi], s = S.set, ppm = s.dpi / 25.4;
+// 見開き spi を1枚の画像に描く（学年の境目が見開きの途中でも、両方の学年のページを描く）
+async function renderSpreadCanvas(spi, onProg){
+  const s = S.set, ppm = s.dpi / 25.4;
   const W = Math.round((2*s.pageW + 2*s.bleed) * ppm), H = Math.round((s.pageH + 2*s.bleed) * ppm);
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
   ctx.fillStyle = s.bg; ctx.fillRect(0, 0, W, H);
-  ctx.setTransform(ppm, 0, 0, ppm, s.bleed*ppm, s.bleed*ppm);   // 以降は mm 単位（仕上がり左上が原点）
+  ctx.setTransform(ppm, 0, 0, ppm, s.bleed*ppm, s.bleed*ppm);   // 以降は mm 単位（見開きの仕上がり左上が原点）
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-  const { title } = pageBoxes();
-  if (title && s.titles[gi]) {
-    const fs = s.titlePt*PT2MM;
-    ctx.font = `700 ${fs}px ${FONTS[s.titleFont]}`; ctx.fillStyle = s.titleColor; ctx.textBaseline = 'middle';
-    ctx.textAlign = s.titleAlign;
-    const tx = s.titleAlign === 'left' ? title.x : s.titleAlign === 'center' ? title.x + title.w/2 : title.x + title.w;
-    ctx.fillText(s.titles[gi], tx, title.y + title.h/2);
+  const list = [];
+  for (const side of [0, 1]) {
+    const gp = 2*spi + side, k = ownerOfPage(gp);
+    if (k < 0) continue;
+    const title = pageGeom(gp, k).title;
+    if (title && s.titles[k]) {
+      const fs = s.titlePt*PT2MM, ox = side * s.pageW;
+      ctx.font = `700 ${fs}px ${FONTS[s.titleFont]}`; ctx.fillStyle = s.titleColor; ctx.textBaseline = 'middle';
+      ctx.textAlign = s.titleAlign;
+      const tx = s.titleAlign === 'left' ? title.x : s.titleAlign === 'center' ? title.x + title.w/2 : title.x + title.w;
+      ctx.fillText(s.titles[k], ox + tx, title.y + title.h/2);
+    }
   }
-  const lay = layoutSpread(g.photos, g.seed);
+  for (const k of gradesOfSpread(spi)) {
+    const g = S.grades[k];
+    for (const c of layoutGrade(k).cells) if (Math.floor(c.gp / 2) === spi) list.push({ p:g.photos[c.i], c:{ ...c, x:c.x + (c.gp % 2)*s.pageW } });
+  }
   let n = 0;
-  for (const c of lay.cells) {
-    const p = g.photos[c.i];
+  for (const { p, c } of list) {
     const url = URL.createObjectURL(p.file);
     try {
       const img = await loadImg(url);
@@ -1027,7 +1143,7 @@ async function renderSpreadCanvas(gi, onProg){
       ctx.restore();
       img.src = '';
     } finally { URL.revokeObjectURL(url); }
-    onProg && onProg(++n / lay.cells.length);
+    onProg && onProg(++n / list.length);
   }
   return cv;
 }
@@ -1049,20 +1165,32 @@ function download(blob, name){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
-async function exportGrades(list, pages){
-  const todo = list.filter(gi => S.grades[gi].photos.length);
-  if (!todo.length) { alert('写真が入っている学年がありません。'); return; }
-  const s = S.set, ppm = s.dpi / 25.4;
+const pad2 = n => String(n).padStart(2, '0');
+function spreadsWithPhotos(){
+  const nS = Math.ceil(totalPages() / 2);
+  return [...Array(nS).keys()].filter(spi => gradesOfSpread(spi).some(k => S.grades[k].photos.length));
+}
+// scope: 'cur'（この学年）/'all'。pagesMode: true＝1ページずつ、false＝見開き
+// ファイル名は本のページ番号・見開き番号（英数字のみ）： spread07.jpg / page13.jpg
+async function exportJpeg(scope, pagesMode){
+  const s = S.set, ppm = s.dpi / 25.4, tp = totalPages();
+  const spreads = (scope === 'cur' ? spreadsOfGrade(S.cur) : spreadsWithPhotos())
+    .filter(spi => gradesOfSpread(spi).some(k => S.grades[k].photos.length));
+  if (!spreads.length) { alert('写真が入っている学年がありません。'); return; }
   try {
-    for (let k = 0; k < todo.length; k++) {
-      const gi = todo[k], name = `grade${gi+1}`;   // ファイル名は環境差が出ないよう英数字のみ
-      const cv = await renderSpreadCanvas(gi, f => overlay(true, `${s.titles[gi]} を書き出し中…`, (k + f*0.9)/todo.length));
-      if (pages) {
+    for (let k = 0; k < spreads.length; k++) {
+      const spi = spreads[k];
+      const cv = await renderSpreadCanvas(spi, f => overlay(true, `見開き${spi+1} を書き出し中…`, (k + f*0.9)/spreads.length));
+      if (pagesMode) {
         const pw = Math.round((s.pageW + 2*s.bleed) * ppm);
-        download(await toJpeg(crop(cv, 0, pw), s.dpi), `${name}_left.jpg`);
-        download(await toJpeg(crop(cv, cv.width - pw, pw), s.dpi), `${name}_right.jpg`);
+        for (const side of [0, 1]) {
+          const gp = 2*spi + side, own = ownerOfPage(gp);
+          if (gp >= tp || own < 0) continue;
+          if (scope === 'cur' ? own !== S.cur : !S.grades[own].photos.length) continue;
+          download(await toJpeg(crop(cv, side ? cv.width - pw : 0, pw), s.dpi), `page${pad2(gp+1)}.jpg`);
+        }
       } else {
-        download(await toJpeg(cv, s.dpi), `${name}_spread.jpg`);
+        download(await toJpeg(cv, s.dpi), `spread${pad2(spi+1)}.jpg`);
       }
       cv.width = cv.height = 0;
     }
@@ -1070,12 +1198,12 @@ async function exportGrades(list, pages){
     alert('書き出しに失敗しました：' + err.message + '\n解像度(dpi)を下げると成功する場合があります。');
   } finally { overlay(false); }
 }
-$('#expSpread').onclick = () => exportGrades([S.cur], false);
-$('#expPages').onclick = () => exportGrades([S.cur], true);
+$('#expSpread').onclick = () => exportJpeg('cur', false);
+$('#expPages').onclick = () => exportJpeg('cur', true);
 $('#expAll').onclick = () => {
-  const both = confirm('全学年を書き出します。\n\nOK → 見開き1枚ずつ\nキャンセル → 次の確認へ（左右ページ別）');
-  if (both) exportGrades([0,1,2,3,4,5], false);
-  else if (confirm('左右ページ別で全学年を書き出しますか？')) exportGrades([0,1,2,3,4,5], true);
+  const both = confirm('全学年を書き出します。\n\nOK → 見開き1枚ずつ\nキャンセル → 次の確認へ（1ページずつ）');
+  if (both) exportJpeg('all', false);
+  else if (confirm('1ページずつ全学年を書き出しますか？')) exportJpeg('all', true);
 };
 
 /* ---------- Word / PowerPoint 書き出し（ライブラリ不使用・オフライン） ---------- */
@@ -1112,7 +1240,7 @@ const OFFICE_FONT = { gothic:'Yu Gothic', maru:'HG丸ｺﾞｼｯｸM-PRO', minc
 
 // 各写真を「トリミング前の全体」で書き出し解像度に縮小し、トリミング量(srcRect)を添える
 async function officePhotos(gi, ppm, onProg){
-  const g = S.grades[gi], lay = layoutSpread(g.photos, g.seed), items = [];
+  const g = S.grades[gi], lay = layoutGrade(gi), items = [];
   let n = 0;
   for (const c of lay.cells) {
     const p = g.photos[c.i], url = URL.createObjectURL(p.file);
@@ -1148,14 +1276,14 @@ function geomXml(w, h){
   if (s.style === 'scatter') g += `<a:effectLst><a:outerShdw blurRad="${EMU(1.5)}" dist="${EMU(0.6)}" dir="5400000" algn="t" rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="35000"/></a:srgbClr></a:outerShdw></a:effectLst>`;
   return g;
 }
-async function collectOffice(label){
+async function collectOffice(label, gis){
   const s = S.set, ppm = (+s.officeDpi || 220) / 25.4;
-  const list = (s.officeScope === 'cur' ? [S.cur] : [0,1,2,3,4,5]).filter(gi => S.grades[gi].photos.length);
+  const list = [...new Set(gis)].filter(gi => gi >= 0 && S.grades[gi].photos.length);
   if (!list.length) { alert('写真が入っている学年がありません。'); return null; }
-  const out = [];
+  const out = new Map();
   for (let k = 0; k < list.length; k++) {
     const gi = list[k];
-    out.push({ gi, items: await officePhotos(gi, ppm, f => overlay(true, `${label}：${s.titles[gi]} の写真を準備中…`, (k + f) / list.length)) });
+    out.set(gi, await officePhotos(gi, ppm, f => overlay(true, `${label}：${s.titles[gi]} の写真を準備中…`, (k + f) / list.length)));
   }
   return out;
 }
@@ -1164,7 +1292,10 @@ async function collectOffice(label){
 async function exportDocx(){
   const s = S.set;
   try {
-    const grades = await collectOffice('Word'); if (!grades) return;
+    let gps = [];
+    if (s.officeScope === 'cur') { const { start, n } = gradePages(S.cur); for (let k = 0; k < n; k++) gps.push(start + k); }
+    else gps = [...Array(totalPages()).keys()].filter(gp => S.grades[ownerOfPage(gp)].photos.length);
+    const photoMap = await collectOffice('Word', gps.map(ownerOfPage)); if (!photoMap) return;
     overlay(true, 'Wordファイルを作成中…', 1);
     const media = [], rels = [];
     let id = 1;
@@ -1183,21 +1314,19 @@ async function exportDocx(){
       + `<pic:spPr><a:xfrm${rot ? ` rot="${Math.round(rot*60000)}"` : ''}><a:off x="0" y="0"/><a:ext cx="${EMU(w)}" cy="${EMU(h)}"/></a:xfrm>${behind ? '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>' : geomXml(w, h)}</pic:spPr>`
       + `</pic:pic></a:graphicData></a:graphic></wp:anchor></w:drawing></w:r>`; };
     const bgRid = s.bg.toLowerCase() !== '#ffffff' ? addMedia(await solidJpeg(s.bg)) : null;
-    const { title } = pageBoxes();
-    const titleLeft = title && title.x < s.pageW;
     const sect = side => `<w:sectPr><w:pgSz w:w="${TW(s.pageW)}" w:h="${TW(s.pageH)}"${s.pageW > s.pageH ? ' w:orient="landscape"' : ''}/>`
       + `<w:pgMar w:top="${TW(s.mTop)}" w:right="${TW(side === 'L' ? s.mInner : s.mOuter)}" w:bottom="${TW(Math.min(s.mBottom, 5))}" w:left="${TW(side === 'L' ? s.mOuter : s.mInner)}" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr>`;
     const font = OFFICE_FONT[s.titleFont];
     const paras = [];
-    const pages = [];
-    grades.forEach(({ gi, items }) => { pages.push({ gi, side:'L' }, { gi, side:'R' }); pages.at(-2).items = items.filter(it => it.c.x + it.c.w/2 < s.pageW); pages.at(-1).items = items.filter(it => it.c.x + it.c.w/2 >= s.pageW); });
+    const pages = gps.map(gp => { const k = ownerOfPage(gp);
+      return { gp, gi:k, side: gp % 2 === 0 ? 'L' : 'R', title: pageGeom(gp, k).title, items:(photoMap.get(k) || []).filter(it => it.c.gp === gp) }; });
     for (let pi = 0; pi < pages.length; pi++) {
-      const pg = pages[pi], last = pi === pages.length - 1, ox = pg.side === 'L' ? 0 : s.pageW;
+      const pg = pages[pi], last = pi === pages.length - 1, ox = 0, title = pg.title;
       let runs = '';
       if (bgRid) runs += anchor(bgRid, 0, 0, s.pageW, s.pageH, null, true, '背景');
       for (const it of pg.items) runs += anchor(addMedia(it.bytes), it.c.x - ox, it.c.y, it.c.w, it.c.h, it.src, false, it.name, it.c.rot);
       let text = '';
-      const hasTitle = title && s.titles[pg.gi] && ((pg.side === 'L') === titleLeft);
+      const hasTitle = title && s.titles[pg.gi];
       const tsz = Math.round(s.titlePt * 2);
       if (hasTitle) text = `<w:r><w:rPr><w:rFonts w:ascii="${xesc(font)}" w:hAnsi="${xesc(font)}" w:eastAsia="${xesc(font)}"/><w:b/><w:color w:val="${hex(s.titleColor)}"/><w:sz w:val="${tsz}"/><w:szCs w:val="${tsz}"/></w:rPr><w:t xml:space="preserve">${xesc(s.titles[pg.gi])}</w:t></w:r>`;
       const lineH = title ? TW(title.h) : 240;
@@ -1214,7 +1343,7 @@ async function exportDocx(){
       { name:'word/_rels/document.xml.rels', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${rels.join('')}</Relationships>` },
       ...media,
     ];
-    download(makeZip(files, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'), grades.length === 1 ? `yearbook_grade${grades[0].gi + 1}.docx` : 'yearbook.docx');
+    download(makeZip(files, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'), s.officeScope === 'cur' ? `yearbook_grade${S.cur + 1}.docx` : 'yearbook.docx');
   } catch (err) { alert('Word書き出しに失敗しました：' + err.message + '\n画質を下げると成功する場合があります。'); }
   finally { overlay(false); }
 }
@@ -1223,7 +1352,14 @@ async function exportDocx(){
 async function exportPptx(){
   const s = S.set;
   try {
-    const grades = await collectOffice('PowerPoint'); if (!grades) return;
+    const spreads = s.officeScope === 'cur' ? spreadsOfGrade(S.cur) : spreadsWithPhotos();
+    const photoMap = await collectOffice('PowerPoint', spreads.flatMap(gradesOfSpread)); if (!photoMap) return;
+    const slides = spreads.map(spi => ({
+      items: gradesOfSpread(spi).flatMap(k => (photoMap.get(k) || []).filter(it => Math.floor(it.c.gp / 2) === spi)
+        .map(it => ({ ...it, c:{ ...it.c, x:it.c.x + (it.c.gp % 2) * s.pageW } }))),
+      titles: [0, 1].map(side => { const gp = 2*spi + side, k = ownerOfPage(gp); if (k < 0) return null;
+        const t = pageGeom(gp, k).title; return t && s.titles[k] ? { ...t, x:t.x + side * s.pageW, text:s.titles[k] } : null; }).filter(Boolean),
+    }));
     overlay(true, 'PowerPointファイルを作成中…', 1);
     const SW = EMU(2 * s.pageW), SH = EMU(s.pageH);
     if (SW > 51206400 || SH > 51206400) throw new Error('PowerPointのスライドは最大142cmまでです');
@@ -1233,10 +1369,9 @@ async function exportPptx(){
     const RT = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/';
     const tree = inner => `<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${inner}</p:spTree>`;
     const font = OFFICE_FONT[s.titleFont];
-    const { title } = pageBoxes();
     const files = [], ctSlides = [], presRels = [], sldIds = [];
     let mediaN = 0;
-    grades.forEach(({ gi, items }, k) => {
+    slides.forEach(({ items, titles }, k) => {
       const sn = k + 1, srels = [`<Relationship Id="rId1" Type="${RT}slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`];
       let id = 2, shapes = '';
       for (const it of items) {
@@ -1248,11 +1383,11 @@ async function exportPptx(){
           + `<p:blipFill><a:blip r:embed="${rid}"/><a:srcRect l="${it.src.l}" t="${it.src.t}" r="${it.src.r}" b="${it.src.b}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>`
           + `<p:spPr><a:xfrm${c.rot ? ` rot="${Math.round(c.rot*60000)}"` : ''}><a:off x="${EMU(c.x)}" y="${EMU(c.y)}"/><a:ext cx="${EMU(c.w)}" cy="${EMU(c.h)}"/></a:xfrm>${geomXml(c.w, c.h)}</p:spPr></p:pic>`;
       }
-      if (title && s.titles[gi]) {
+      for (const title of titles) {
         shapes += `<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="タイトル"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>`
           + `<p:spPr><a:xfrm><a:off x="${EMU(title.x)}" y="${EMU(title.y)}"/><a:ext cx="${EMU(title.w)}" cy="${EMU(title.h)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>`
           + `<p:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr"><a:noAutofit/></a:bodyPr><a:lstStyle/>`
-          + `<a:p><a:pPr algn="${{ left:'l', center:'ctr', right:'r' }[s.titleAlign]}"/><a:r><a:rPr lang="ja-JP" altLang="en-US" sz="${Math.round(s.titlePt * 100)}" b="1"><a:solidFill><a:srgbClr val="${hex(s.titleColor)}"/></a:solidFill><a:latin typeface="${xesc(font)}"/><a:ea typeface="${xesc(font)}"/></a:rPr><a:t>${xesc(s.titles[gi])}</a:t></a:r></a:p></p:txBody></p:sp>`;
+          + `<a:p><a:pPr algn="${{ left:'l', center:'ctr', right:'r' }[s.titleAlign]}"/><a:r><a:rPr lang="ja-JP" altLang="en-US" sz="${Math.round(s.titlePt * 100)}" b="1"><a:solidFill><a:srgbClr val="${hex(s.titleColor)}"/></a:solidFill><a:latin typeface="${xesc(font)}"/><a:ea typeface="${xesc(font)}"/></a:rPr><a:t>${xesc(title.text)}</a:t></a:r></a:p></p:txBody></p:sp>`;
       }
       const bg = `<p:bg><p:bgPr><a:solidFill><a:srgbClr val="${hex(s.bg)}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>`;
       files.push({ name:`ppt/slides/slide${sn}.xml`, data:`${XH}<p:sld ${P}><p:cSld>${bg}${tree(shapes)}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>` });
@@ -1291,7 +1426,7 @@ async function exportPptx(){
       { name:'ppt/slideLayouts/slideLayout1.xml', data:`${XH}<p:sldLayout ${P} type="blank" preserve="1"><p:cSld name="白紙">${tree('')}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>` },
       { name:'ppt/slideLayouts/_rels/slideLayout1.xml.rels', data:`${XH}<Relationships ${RELS}><Relationship Id="rId1" Type="${RT}slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>` },
     );
-    download(makeZip(files, 'application/vnd.openxmlformats-officedocument.presentationml.presentation'), grades.length === 1 ? `yearbook_grade${grades[0].gi + 1}.pptx` : 'yearbook.pptx');
+    download(makeZip(files, 'application/vnd.openxmlformats-officedocument.presentationml.presentation'), s.officeScope === 'cur' ? `yearbook_grade${S.cur + 1}.pptx` : 'yearbook.pptx');
   } catch (err) { alert('PowerPoint書き出しに失敗しました：' + err.message + '\n画質を下げると成功する場合があります。'); }
   finally { overlay(false); }
 }
