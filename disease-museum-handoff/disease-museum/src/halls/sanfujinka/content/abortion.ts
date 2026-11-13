@@ -5,12 +5,12 @@ const M = { review: "draft" as const, sources: [] as string[] };
 
 export const abortionContent: GridData = {
   rowLabels: ["子宮口 閉じている", "子宮口 開いている"],
-  colLabels: ["胎児は生きている", "胎児は亡くなっている", "一部が出た", "全部出た"],
+  colLabels: ["心拍あり", "まだ出ていない", "一部が出た", "全部出た"],
   cells: [
     { id: "threat", row: 0, col: 0, label: "切迫流産" },
-    { id: "missed", row: 0, col: 1, label: "稽留流産" },
+    { id: "missed", row: 0, col: 1, label: "稽留流産", sub: "心拍なし・無症状" },
     { id: "complete", row: 0, col: 3, label: "完全流産" },
-    { id: "inevitable", row: 1, col: 1, label: "進行流産" },
+    { id: "inevitable", row: 1, col: 1, label: "進行流産", sub: "止められない" },
     { id: "incomplete", row: 1, col: 2, label: "不全流産" },
   ],
   question: "どの流産？",
@@ -23,7 +23,7 @@ export const abortionContent: GridData = {
     { ...M, id: "missed", who: "10週", signs: ["症状なし", "健診で胎児心拍が見えない", "子宮口は閉じている"], cell: "missed", treatment: 1,
       explanation: "胎児が亡くなって子宮内にとどまっている。" },
     { ...M, id: "inevitable", who: "9週", signs: ["出血が増え、下腹部が痛い", "子宮口が開いている"], cell: "inevitable", treatment: 1,
-      explanation: "子宮口が開き、流産が止められない状態。" },
+      explanation: "子宮口が開き、流産が止められない状態。胎児や付属物はまだ子宮内にある（心拍の有無は問わない）。" },
     { ...M, id: "incomplete", who: "11週", signs: ["組織のかたまりが出た", "まだ出血が続く", "子宮内に残りがある"], cell: "incomplete", treatment: 1,
       explanation: "一部が残っているので出血が続く。" },
     { ...M, id: "complete", who: "7週", signs: ["かたまりが出たあと出血がおさまった", "子宮内は空", "子宮口は閉じた"], cell: "complete", treatment: 2,

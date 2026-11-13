@@ -29,7 +29,7 @@ export const hyponatremiaContent: ExhibitOf<"AlgorithmBoard">["data"] = {
       explanation: "体液量正常で尿が濃くNaも出ている。抗利尿ホルモンの不適切な分泌（SIADH）。水制限。急な補正は浸透圧性脱髄症候群を起こす。" },
     { ...M, card: { 年齢: "78", 経過: "心不全", 所見: "下腿浮腫・頸静脈怒張", Na: "126", 尿Na: "8" }, path: ["osm", "vol", "una", "goal"], answers: { osm: "low", vol: "high", una: "low" }, treatments: [4],
       explanation: "体の水とNaは多いが、有効循環血液量が少なくADHが出る。心不全の治療と水分制限。" },
-    { ...M, card: { 年齢: "45", 経過: "長年のステロイド内服を急に中止", 所見: "低血圧・高K", Na: "124", 尿Na: "50" }, path: ["osm", "vol", "una", "goal"], answers: { osm: "low", vol: "low", una: "high" }, treatments: [2],
-      explanation: "副腎不全（ミネラルコルチコイド不足）で腎からNaを失う。ステロイドを補充。" },
+    { ...M, card: { 年齢: "45", 経過: "Addison病。補充の薬を数日飲めていない", 所見: "低血圧・高K・色素沈着", Na: "124", 尿Na: "50" }, path: ["osm", "vol", "una", "goal"], answers: { osm: "low", vol: "low", una: "high" }, treatments: [2],
+      explanation: "原発性の副腎不全ではアルドステロンも足りず、腎からNaを失いKがたまる。ステロイドを補充。（ステロイド中止による二次性ではアルドステロンは保たれ、高Kは目立たない）" },
   ],
 };

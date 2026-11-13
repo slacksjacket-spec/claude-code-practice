@@ -16,6 +16,7 @@ export const triageContent: TriageData = {
     p("g", "腰が痛いが、言われて自分で歩いて移動できた。", true, true, 16, true, 1, true),
     p("h", "歩けない。呼吸数 20回/分、手首の脈は触れるが、爪を押して赤みが戻るまで4秒。", false, true, 20, true, 4, true),
     p("i", "気道を確保したら、息をし始めた。呼吸数 12回/分。手首の脈は触れる。指示には従えない。", false, true, 12, true, 2, false),
+    p("k", "歩けない。呼吸数 8回/分で、浅くゆっくり。手首の脈は触れ、名前は言える。", false, true, 8, true, 1, true),
     p("j", "腹部を打って歩けない。呼吸数 26回/分、手首の脈は触れ、毛細血管再充満は2秒。名前を言える。", false, true, 26, true, 2, true),
   ],
 };

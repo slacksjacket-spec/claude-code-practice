@@ -60,7 +60,7 @@ export const hall: Hall = {
         { id: "triage", no: 6, type: "Custom", kind: "triage", title: "トリアージタッグを付けろ", stampLabel: "トリアージ",
           how: "多数傷病者の現場。1人ずつSTART法で色を付けよう。6人中5人以上で合格、通算2回合格でスタンプ。",
           cheatSheet: { ...D, title: "START法",
-            html: `<ol><li>歩ける → 緑</li><li>気道を確保しても呼吸がない → 黒</li><li>呼吸数が30回/分を超える → 赤</li><li>橈骨動脈が触れない、または毛細血管再充満時間が2秒を超える → 赤</li><li>簡単な指示に従えない → 赤</li><li>それ以外 → 黄</li></ol>` },
+            html: `<ol><li>歩ける → 緑</li><li>気道を確保しても呼吸がない → 黒</li><li>呼吸数が30回/分以上、または10回/分未満 → 赤</li><li>橈骨動脈が触れない、または毛細血管再充満時間が2秒を超える → 赤</li><li>簡単な指示に従えない → 赤</li><li>それ以外 → 黄</li></ol>` },
           data: triageContent },
         { id: "order", no: 7, type: "Custom", kind: "order", title: "順番に並べよ", stampLabel: "手順",
           how: "一次救命処置、外傷の初期診療、化学物質の除染。正しい順にタップしよう。ノーミスを通算3問でスタンプ。", data: orderContent },

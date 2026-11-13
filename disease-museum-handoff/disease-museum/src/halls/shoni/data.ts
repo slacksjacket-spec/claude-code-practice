@@ -76,7 +76,7 @@ export const hall: Hall = {
       { ...D, id: "mr", name: "MRワクチン", rarity: 1, weight: 22, color: "#FF7AB6", text: "麻疹と風疹。1歳と就学前の2回。生ワクチン。" },
       { ...D, id: "hib", name: "Hibワクチン", rarity: 2, weight: 14, color: "#3D5AFE", text: "インフルエンザ菌b型。喉頭蓋炎と髄膜炎が激減した。" },
       { ...D, id: "pcv", name: "肺炎球菌ワクチン", rarity: 2, weight: 14, color: "#22C1A0", text: "乳児の髄膜炎や菌血症を防ぐ結合型ワクチン。" },
-      { ...D, id: "bcg", name: "BCG", rarity: 1, weight: 12, color: "#C8453B", text: "結核。管針で9つの跡。川崎病で赤くなることも。" },
+      { ...D, id: "bcg", name: "BCG", rarity: 1, weight: 12, color: "#C8453B", text: "結核。9本針の管針を2回押すので、跡は18個。川崎病で赤くなることも。" },
       { ...D, id: "rota", name: "ロタウイルスワクチン", rarity: 2, weight: 10, color: "#FFC933", text: "飲むワクチン。腸重積に注意して早めに。" },
       { ...D, id: "vzv", name: "水痘ワクチン", rarity: 3, weight: 8, color: "#8BD450", text: "生ワクチン。2回接種。" },
       { ...D, id: "hbv", name: "B型肝炎ワクチン", rarity: 3, weight: 7, color: "#FF5A36", text: "生後2か月から。母子感染予防では出生直後にも。" },
