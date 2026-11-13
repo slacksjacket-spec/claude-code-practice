@@ -1,7 +1,7 @@
 // 診断基準チェック（共通ゲーム criteria）。TODO(review) 川崎病診断の手引き（改訂第6版）の主要症状と判定、熱性けいれんの複雑型の要素
 import type { CriteriaData } from "../../../engine/games/criteria.schema";
 
-const M = { review: "draft" as const, sources: [] as string[] };
+const M = { review: "draft" as const, sources: ["川崎病診断の手引き 改訂第6版（日本川崎病学会）https://jskd.umin.jp/info/pdf/tebiki201906.pdf", "熱性けいれん（熱性発作）診療ガイドライン2023（複雑型の定義は二次資料で確認）"] };
 
 export const criteriaContent: CriteriaData = {
   stampAt: 3,

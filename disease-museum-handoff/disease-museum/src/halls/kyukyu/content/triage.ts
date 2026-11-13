@@ -1,7 +1,7 @@
 // トリアージ（共通ゲーム triage）。傷病者は架空。TODO(review) START法の基準
 import type { TriageData } from "../../../engine/games/triage.schema";
 
-const M = { review: "draft" as const, sources: [] as string[] };
+const M = { review: "draft" as const, sources: ["和歌山県 トリアージ講義資料（START法：30回/分以上または9回/分以下）https://www.pref.wakayama.lg.jp/prefg/050100/d00210677_d/fil/kougi04.pdf"] };
 const p = (id: string, desc: string, walks: boolean, breathes: boolean, rr: number, radial: boolean, crt: number, obeys: boolean) => ({ ...M, id, desc, walks, breathes, rr, radial, crt, obeys });
 
 export const triageContent: TriageData = {

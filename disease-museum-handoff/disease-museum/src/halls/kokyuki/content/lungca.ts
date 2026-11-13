@@ -3,7 +3,7 @@
 // 肺癌診療ガイドライン（日本肺癌学会）で照合が必要。PD-L1による使い分けと周術期治療は単純化して省いた
 import type { ExhibitOf } from "../../../engine/schema";
 
-const M = { review: "draft" as const, sources: [] as string[] };
+const M = { review: "draft" as const, sources: ["肺癌診療ガイドライン2024年版 小細胞肺癌（日本肺癌学会）https://www.haigan.gr.jp/publication/guideline/examination/2024/1/3/240103010100.html", "同 進展型小細胞肺癌 https://www.haigan.gr.jp/publication/guideline/examination/2024/1/3/240103020100.html"] };
 
 export const lungcaContent: ExhibitOf<"AlgorithmBoard">["data"] = {
   stampAt: 4,

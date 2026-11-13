@@ -2,7 +2,7 @@
 // TODO(review) 自己負担の割合（年齢・所得の区分）は記憶から書いた。制度改正で変わるので要確認
 import type { ExhibitOf } from "../../../engine/schema";
 
-const M = { review: "draft" as const, sources: [] as string[] };
+const M = { review: "draft" as const, sources: ["厚生労働省 医療費の一部負担（自己負担）割合について https://www.mhlw.go.jp/bunya/shakaihosho/iryouseido01/dl/info02d-37.pdf", "厚生労働省 後期高齢者の窓口負担割合の変更（令和4年10月）https://www.mhlw.go.jp/content/000937919.pdf"] };
 
 export const insuranceContent: ExhibitOf<"AlgorithmBoard">["data"] = {
   stampAt: 4,
