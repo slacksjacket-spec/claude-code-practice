@@ -2,7 +2,7 @@
 // TODO(review) 条文の内容（届出の期限、保存年限、病床数、健診の時期、産業医の選任基準）は記憶から書いた。改正に注意
 import type { GridData } from "../../../engine/games/grid.schema";
 
-const M = { review: "draft" as const, sources: [] as string[] };
+const M = { review: "draft" as const, sources: ["医師法 第19〜24条・医療法 第1条の5、第4条、第4条の2、第6条の10・労働安全衛生法 第13条、第66条の10（e-Gov法令検索 https://laws.e-gov.go.jp/ ）"] };
 const c = (id: string, text: string, cell: string, explanation: string) => ({ ...M, id, who: "きまり", signs: [text], cell, explanation });
 
 export const lawContent: GridData = {

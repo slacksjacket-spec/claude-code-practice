@@ -41,7 +41,7 @@ export const lungcaContent: ExhibitOf<"AlgorithmBoard">["data"] = {
       explanation: "ドライバー遺伝子がなければ免疫チェックポイント阻害薬（抗PD-1/PD-L1抗体）が中心。PD-L1の発現が高ければ単剤、そうでなければ化学療法と併用。" },
     { ...M, card: { 年齢: "64", 経過: "喫煙45年。肺門部の腫瘤", 組織: "小細胞癌", 転移: "同じ側の縦隔リンパ節まで" },
       path: ["hist", "extent", "goal"], answers: { hist: "sclc", extent: "ld" }, treatments: [5],
-      explanation: "限局型の小細胞癌は化学放射線療法（シスプラチン＋エトポシド）。よく効いたら、脳転移を防ぐ予防的全脳照射。手術はごく早期（I期）だけ。" },
+      explanation: "限局型の小細胞癌は化学放射線療法（シスプラチン＋エトポシド）。よく効いたら、脳転移を防ぐ予防的全脳照射。手術はリンパ節転移のないごく早期（I〜IIA期）だけ。" },
     { ...M, card: { 年齢: "69", 経過: "低Na血症（SIADH）で見つかった", 組織: "小細胞癌", 転移: "肝・骨・反対側の肺" },
       path: ["hist", "extent", "goal"], answers: { hist: "sclc", extent: "ed" }, treatments: [6],
       explanation: "進展型は薬物療法。増殖が速く早くから転移するが、抗がん薬と放射線はよく効く。SIADH、異所性ACTH、Lambert-Eaton症候群を合併する。" },
