@@ -5,7 +5,8 @@ import type { CalcData } from "./calc.schema";
 import { solve } from "./calc.consts";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const COINS = 18;
+import { SINGLE_COINS } from "../../../engine/games/twoStep";
+const COINS = SINGLE_COINS;
 
 export const infusionCalc: CustomModule<CalcData> = {
   mount(root, ex, ctx) {

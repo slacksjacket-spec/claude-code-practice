@@ -1,5 +1,6 @@
 // 運動器ホール（NO.17）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { rootContent } from "./content/root";
 import { nerveContent } from "./content/nerve";
 import { backContent } from "./content/back";
@@ -28,7 +29,7 @@ export const hall: Hall = {
         <text x="400" y="240" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">骨と関節</text>` },
       { go: "w-er", label: "運動器ERへ",
         svg: `<circle cx="300" cy="320" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="333" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="315" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 332, 0.7)}
         <text x="300" y="384" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">運動器ER</text>` },
     ],
   },
@@ -36,14 +37,22 @@ export const hall: Hall = {
     { id: "w-nerve", label: "神経と脊椎", color: "sun", headline: "しびれの地図",
       exhibits: [
         { id: "root", no: 1, type: "Custom", kind: "root", title: "神経根レベル", stampLabel: "神経根",
-          how: "筋力低下・反射・感覚の低下（図の色）から、障害された神経根を当て、続けて質問に答えよう。両方正解を通算4人でスタンプ。", data: rootContent },
+          how: "筋力低下・反射・感覚の低下（図の色）から、障害された神経根を当て、続けて質問に答えよう。両方正解を通算4人でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "神経根の目印",
+            html: `<table><tr><th>C5</th><td>三角筋・上腕二頭筋。上腕二頭筋反射。上腕の外側</td></tr><tr><th>C6</th><td>手首を反らす。腕橈骨筋反射。親指</td></tr><tr><th>C7</th><td>上腕三頭筋。上腕三頭筋反射。中指</td></tr><tr><th>C8</th><td>指を曲げる。小指と前腕の内側</td></tr><tr><th>L4</th><td>大腿四頭筋。膝蓋腱反射。すねの内側</td></tr><tr><th>L5</th><td>足首・親指を反らす（かかと歩き）。足の甲</td></tr><tr><th>S1</th><td>つま先立ち。アキレス腱反射。足の外側</td></tr></table><p>L4/5のヘルニアはL5、L5/S1のヘルニアはS1を圧迫することが多い。</p>` },
+          data: rootContent },
         { id: "nerve", no: 2, type: "Custom", kind: "tapMap", title: "末梢神経はどこで傷んだ？", stampLabel: "末梢神経",
           how: "症状から、末梢神経が傷んだ場所をタップしよう。通算4回正解でスタンプ。",
           cheatSheet: { ...D, title: "手の3つの麻痺",
             html: `<table><tr><th>橈骨神経</th><td>下垂手。手の甲の親指側のしびれ</td></tr><tr><th>正中神経</th><td>猿手（母指球の萎縮）、祝祷肢位。親指〜薬指の親指側</td></tr><tr><th>尺骨神経</th><td>鷲手、Froment徴候。小指と薬指の小指側</td></tr></table>` },
           data: nerveContent },
         { id: "back", no: 3, type: "DiagnosisLab", title: "腰痛ラボ", stampLabel: "腰痛",
-          how: "腰痛の患者が次々やってくる。危険なサインを見逃さず、予算内で検査を選んで診断しよう。4人正解でスタンプ。", data: backContent },
+          how: "腰痛の患者が次々やってくる。危険なサインを見逃さず、予算内で検査を選んで診断しよう。4人正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "腰痛の危険なサイン",
+            html: `<ul><li>発熱（化膿性脊椎炎）</li><li>体重減少、癌の既往（転移）</li><li>じっとしていても痛い、夜に痛い</li><li>高齢者の軽い外傷、ステロイドの使用（圧迫骨折）</li><li>尿や便が出にくい、おしりのまわりのしびれ（馬尾症候群：緊急手術）</li><li>進んでいく足の麻痺</li></ul><p>これらがなければ、はじめから画像検査は要らないことが多い。</p>` },
+          data: backContent },
         { id: "versus", no: 4, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
           how: "ヒントがどちらの病気のものか左右で答えよう。6問中5問以上でスタンプ。", data: versusContent },
       ] },

@@ -14,7 +14,7 @@ export const designContent: GridData = {
     { id: "meta", row: 1, col: 1, label: "メタアナリシス" },
   ],
   question: "どの研究デザイン？",
-  stampAt: 5,
+  stampAt: 4,
   cases: [
     { ...M, id: "c1", who: "要旨", signs: ["ある日の健診受診者1万人", "睡眠時間と血圧を同時に調べた"], cell: "cross",
       explanation: "ある時点の調査。原因と結果の時間の前後がわからない。有病率がわかる。" },

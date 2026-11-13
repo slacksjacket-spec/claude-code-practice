@@ -1,5 +1,6 @@
 // 血液ホール（NO.07）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { smearContent } from "./content/smear";
 import { anemiaContent } from "./content/anemia";
 import { pancytoContent } from "./content/pancyto";
@@ -7,13 +8,14 @@ import { memoryContent } from "./content/memory";
 import { coagContent } from "./content/coag";
 import { transfusionContent } from "./content/transfusion";
 import { versusContent } from "./content/versus";
+import { tumorContent } from "./content/tumor";
 import { scenarioContent } from "./content/scenario";
 
 const D = { review: "draft" as const, sources: [] as string[] };
 
 export const hall: Hall = {
   id: "ketsueki", no: 7, title: "血液ホール",
-  catch: "一滴の血を、顕微鏡と数字で読む。展示をクリアしてスタンプを8つ集めよう。",
+  catch: "一滴の血を、顕微鏡と数字で読む。展示をクリアしてスタンプを9つ集めよう。",
   ticketNote: "血球の形に、病気のサインがある。まちがいは収蔵庫へ",
   map: {
     viewBox: "0 0 600 400", ariaLabel: "血液ホールの館内図", hint: "タップすると、その展示室へ移動します",
@@ -26,14 +28,14 @@ export const hall: Hall = {
       { go: "w-marrow", label: "骨髄と腫瘍のウィングへ",
         svg: `<path d="M260 90 C240 70 230 100 250 110 L330 190 C320 210 350 220 356 200 C376 206 380 176 360 170 L280 90 C290 70 260 60 260 90Z" fill="#F3EEDF" stroke="#1C1537" stroke-width="4"/>
         <circle cx="305" cy="140" r="9" fill="#C8453B"/><circle cx="290" cy="125" r="5" fill="#9C7CC4"/>
-        <text x="300" y="250" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">骨髄と腫瘍</text>` },
+        <text x="300" y="250" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">骨髄と腫瘍</text>${face(320, 163, 0.5)}` },
       { go: "w-coag", label: "止血と輸血のウィングへ",
         svg: `<rect x="440" y="70" width="90" height="120" rx="20" fill="#C8453B" stroke="#1C1537" stroke-width="4"/><rect x="474" y="54" width="22" height="18" rx="4" fill="#fff" stroke="#1C1537" stroke-width="4"/>
         <rect x="452" y="92" width="66" height="34" rx="6" fill="#fff" stroke="#1C1537" stroke-width="3"/><text x="485" y="116" text-anchor="middle" font-family="Dela Gothic One" font-size="18" fill="#1C1537">O＋</text>
-        <text x="485" y="224" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">止血と輸血</text>` },
+        <text x="485" y="224" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">止血と輸血</text>${face(485, 156, 0.7)}` },
       { go: "w-er", label: "血液ERへ",
         svg: `<circle cx="300" cy="320" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="333" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="315" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 332, 0.7)}
         <text x="300" y="384" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">血液ER</text>` },
     ],
   },
@@ -54,22 +56,27 @@ export const hall: Hall = {
           how: "3系統とも少ない患者が次々やってくる。予算内で検査を選んで診断しよう。4人正解でスタンプ。", data: pancytoContent },
         { id: "memory", no: 4, type: "MemoryMatch", title: "染色体と血液腫瘍 神経衰弱", stampLabel: "染色体",
           how: "遺伝子・染色体の異常と、血液腫瘍のカードをペアにしよう。全部そろえるとスタンプ。", data: memoryContent },
+        { id: "tumor", no: 5, type: "Custom", kind: "clueRace", title: "血液腫瘍 早押し問診", stampLabel: "血液腫瘍",
+          how: "リンパ腫、骨髄腫、白血病。カードが1枚ずつめくれる。わかった瞬間に答えよう。3枚以内の正解を通算4人でスタンプ。",
+          cheatSheet: { ...D, title: "リンパ腫と骨髄腫の目印",
+            html: `<table><tr><th>Hodgkinリンパ腫</th><td>Reed-Sternberg細胞。連続して広がる。ABVD</td></tr><tr><th>びまん性大細胞型B細胞</th><td>最も多い。週〜月で進む。R-CHOP</td></tr><tr><th>濾胞性</th><td>年単位。t(14;18) BCL2</td></tr><tr><th>成人T細胞白血病</th><td>HTLV-1。花細胞、高Ca、皮疹</td></tr><tr><th>多発性骨髄腫</th><td>CRAB＝高Ca・腎障害・貧血・骨病変。M蛋白、連銭形成</td></tr><tr><th>慢性骨髄性白血病</th><td>t(9;22)。各段階の顆粒球、好塩基球、NAP低値</td></tr></table><p>B症状：発熱、寝汗、体重減少。</p>` },
+          data: tumorContent },
       ] },
     { id: "w-coag", label: "止血と輸血", color: "sun", headline: "止める、入れる",
       exhibits: [
-        { id: "coag", no: 5, type: "Custom", kind: "tapMap", title: "凝固カスケードのどこ？", stampLabel: "凝固",
+        { id: "coag", no: 6, type: "Custom", kind: "tapMap", title: "凝固カスケードのどこ？", stampLabel: "凝固",
           how: "PT・APTT・血小板の結果から、障害されている場所をカスケードの図でタップしよう。通算4回正解でスタンプ。", data: coagContent },
-        { id: "transfusion", no: 6, type: "Custom", kind: "transfusion", title: "輸血バッグを選べ", stampLabel: "輸血",
+        { id: "transfusion", no: 7, type: "Custom", kind: "transfusion", title: "輸血バッグを選べ", stampLabel: "輸血",
           how: "受血者の血液型と製剤（赤血球・血漿）を見て、入れても溶血しないバッグを全部選ぼう（実際は原則同型）。全部正しく選べたら1回、通算4回でスタンプ。",
           cheatSheet: { ...D, title: "ABOの向き",
             html: `<table><tr><th>赤血球</th><td>ドナーの赤血球の抗原が、受血者の抗体に当たらない（O型は誰にでも）</td></tr><tr><th>血漿</th><td>ドナーの血漿の抗体が、受血者の赤血球に当たらない（AB型は誰にでも）</td></tr><tr><th>Rh</th><td>Rh陰性の人の赤血球はRh陰性から</td></tr></table>` },
           data: transfusionContent },
-        { id: "versus", no: 7, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
+        { id: "versus", no: 8, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
           how: "ヒントがどちらの病気のものか左右で答えよう。6問中5問以上でスタンプ。", data: versusContent },
       ] },
     { id: "w-er", label: "血液ER", color: "cobalt", labelText: "light", headline: "一刻を争う血液の急変",
       exhibits: [
-        { id: "er", no: 8, type: "Custom", kind: "scenario", title: "血液ER", stampLabel: "ER",
+        { id: "er", no: 9, type: "Custom", kind: "scenario", title: "血液ER", stampLabel: "ER",
           how: "発熱性好中球減少症、輸血中の急変、腫瘍崩壊症候群。次の一手を選ぼう。ミス1回までならクリア、通算2シナリオでスタンプ。", data: scenarioContent },
       ] },
   ],
@@ -89,5 +96,5 @@ export const hall: Hall = {
       { ...D, id: "mega", name: "巨核球", rarity: 4, weight: 6, color: "#B8A0E0", text: "骨髄の巨人。ちぎれて血小板になる。" },
     ],
   },
-  stampOrder: ["smear", "anemia", "pancyto", "memory", "coag", "transfusion", "versus", "er"],
+  stampOrder: ["smear", "anemia", "pancyto", "memory", "tumor", "coag", "transfusion", "versus", "er"],
 };

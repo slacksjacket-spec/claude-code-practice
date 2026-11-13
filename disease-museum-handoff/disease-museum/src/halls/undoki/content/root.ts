@@ -13,7 +13,7 @@ export const rootContent: RootData = {
       followUp: { question: "障害されやすい椎間は？", options: ["C5/6", "C3/4", "C7/T1", "L4/5"], answer: 0 },
       explanation: "頸椎の神経根は同じ番号の椎体の上を出るので、C5/6でC6が障害される。" },
     { ...M, id: "c7", story: "55歳 男性。右の中指がしびれ、腕立て伏せがしにくい。", root: "C7",
-      followUp: { question: "頸椎椎間板ヘルニアで最も多い高位の一つは？", options: ["C6/7", "C1/2", "T12/L1", "L5/S1"], answer: 0 },
+      followUp: { question: "C7が障害されやすい椎間は？", options: ["C6/7", "C1/2", "T12/L1", "L5/S1"], answer: 0 },
       explanation: "C7はC6/7で障害される。上腕三頭筋の筋力低下と反射低下。" },
     { ...M, id: "c8", story: "60歳 男性。右の小指がしびれ、ボタンがとめにくい。", root: "C8",
       followUp: { question: "尺骨神経障害との違いは？", options: ["前腕の内側までしびれる（尺骨神経は手まで）", "親指がしびれる", "反射が亢進する", "違いはない"], answer: 0 },

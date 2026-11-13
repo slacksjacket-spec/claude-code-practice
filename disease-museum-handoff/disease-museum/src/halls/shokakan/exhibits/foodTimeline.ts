@@ -4,7 +4,8 @@ import type { CustomModule } from "../../../engine/exhibits/types";
 import type { FoodTimelineData } from "./foodTimeline.schema";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const MEAL_COINS = 10, BUG_COINS = 15;
+import { STEP1_COINS, STEP2_COINS } from "../../../engine/games/twoStep";
+const MEAL_COINS = STEP1_COINS, BUG_COINS = STEP2_COINS;
 const W = 640, X0 = 20, X1 = 600, MINH = 0.5, MAXH = 240; // 右端が発症。対数の目盛り
 const x = (h: number) => X1 - ((Math.log(h) - Math.log(MINH)) / (Math.log(MAXH) - Math.log(MINH))) * (X1 - X0);
 const TICKS: [number, string][] = [[1, "1時間"], [3, "3時間"], [6, "6時間"], [12, "12時間"], [24, "1日"], [48, "2日"], [96, "4日"], [192, "8日"]];

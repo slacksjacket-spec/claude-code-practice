@@ -38,7 +38,7 @@ export const triage: CustomModule<TriageData> = {
         $$<HTMLButtonElement>(".tags button", root).forEach((x) => (x.disabled = true));
         const pass = score >= d.passScore;
         if (pass) { ctx.award(PASS_BONUS, $(".triCard", root)); ctx.cheat.rewardIfUnpeeked(ex.id, $(".triCard", root)); if (ctx.prog(okKey) >= d.stampAt) ctx.stamp(ex.id); }
-        ctx.feedback($(".fbBox", root), pass, pass ? `合格！ ${score} / ${list.length}` : `${score} / ${list.length}。${d.passScore}人以上で合格`, `歩ける→緑、呼吸なし→黒、呼吸数30超・循環不良・指示に従えない→赤、それ以外→黄。<div style="margin-top:8px"><button class="btn next">次の現場</button></div>`);
+        ctx.feedback($(".fbBox", root), pass, pass ? `合格！ ${score} / ${list.length}` : `${score} / ${list.length}。${d.passScore}人以上で合格`, `歩ける→緑、呼吸なし→黒、呼吸数30以上か10未満・循環不良・指示に従えない→赤、それ以外→黄。<div style="margin-top:8px"><button class="btn next">次の現場</button></div>`);
         $(".next", root).onclick = round;
       }));
     }

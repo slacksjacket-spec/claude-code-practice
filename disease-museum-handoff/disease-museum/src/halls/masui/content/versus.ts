@@ -15,7 +15,7 @@ export const versusContent: ExhibitOf<"VersusQuiz">["data"] = {
         { text: "カテーテルを残して術後も鎮痛を続けられる", side: "b" },
         { text: "あとで頭を上げると強くなる頭痛（硬膜穿刺後頭痛）が典型", side: "a" },
         { text: "少ない量の局所麻酔薬で数分で効く", side: "a" },
-        { text: "抗凝固薬の内服中は血腫に注意（どちらも）。抜くときにも注意", side: "b" },
+        { text: "局所麻酔薬の量を足して、効く範囲と時間を調節できる", side: "b" },
       ] },
     { ...M, id: "mh-nms", title: "悪性高熱症 vs 悪性症候群",
       a: { name: "悪性高熱症", color: "tomato", traits: ["麻酔中", "数分〜数時間", "EtCO₂上昇"] },

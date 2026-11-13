@@ -1,5 +1,6 @@
 // 神経ホール（NO.08）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { localizeContent } from "./content/localize";
 import { visualContent } from "./content/visual";
 import { gcsContent } from "./content/gcs";
@@ -7,13 +8,14 @@ import { strokeContent } from "./content/stroke";
 import { weaknessContent } from "./content/weakness";
 import { memoryContent } from "./content/memory";
 import { versusContent } from "./content/versus";
+import { dementiaContent } from "./content/dementia";
 import { scenarioContent } from "./content/scenario";
 
 const D = { review: "draft" as const, sources: [] as string[] };
 
 export const hall: Hall = {
   id: "shinkei", no: 8, title: "神経ホール",
-  catch: "症状から、病変の場所を当てる。局在診断の探偵になろう。展示をクリアしてスタンプを8つ集めよう。",
+  catch: "症状から、病変の場所を当てる。局在診断の探偵になろう。展示をクリアしてスタンプを9つ集めよう。",
   ticketNote: "どこが壊れると、何が起こる？ まちがいは収蔵庫へ",
   map: {
     viewBox: "0 0 600 400", ariaLabel: "神経ホールの館内図", hint: "タップすると、その展示室へ移動します",
@@ -26,14 +28,14 @@ export const hall: Hall = {
         <text x="155" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">局在診断</text>` },
       { go: "w-stroke", label: "脳卒中と意識のウィングへ",
         svg: `<path d="M360 60 L340 120 L370 120 L350 190" stroke="var(--sun)" stroke-width="12" fill="none" stroke-linejoin="round"/><path d="M360 60 L340 120 L370 120 L350 190" stroke="#1C1537" stroke-width="3" fill="none" stroke-linejoin="round"/>
-        <text x="360" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">脳卒中と意識</text>` },
+        <text x="360" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">脳卒中と意識</text>${face(355, 118, 0.45)}` },
       { go: "w-dz", label: "神経の病気のウィングへ",
         svg: `<circle cx="500" cy="110" r="20" fill="#C8D8F4" stroke="#1C1537" stroke-width="4"/><path d="M520 110 L570 110 M480 110 L440 90 M480 110 L440 130 M500 90 L500 60" stroke="#1C1537" stroke-width="4"/>
         <circle cx="574" cy="110" r="6" fill="var(--mint)" stroke="#1C1537" stroke-width="3"/>
-        <text x="505" y="176" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">神経の病気</text>` },
+        <text x="505" y="176" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">神経の病気</text>${face(500, 108, 0.55)}` },
       { go: "w-er", label: "神経ERへ",
         svg: `<circle cx="300" cy="310" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="323" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="305" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 322, 0.7)}
         <text x="300" y="374" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">神経ER</text>` },
     ],
   },
@@ -41,7 +43,7 @@ export const hall: Hall = {
     { id: "w-loc", label: "局在診断", color: "pink", headline: "症状から場所を当てる",
       exhibits: [
         { id: "localize", no: 1, type: "Custom", kind: "tapMap", title: "病変はどこだ？", stampLabel: "局在",
-          how: "失語、失調、感覚の解離。症状から大脳・脳幹・小脳・脊髄のどこが壊れたかをタップしよう。通算5回正解でスタンプ。",
+          how: "失語、失調、感覚の解離。症状から大脳・脳幹・小脳・脊髄のどこが壊れたかをタップしよう。通算4回正解でスタンプ。",
           cheatSheet: { ...D, title: "脊髄の通り道",
             html: `<table><tr><th>後索</th><td>振動覚・位置覚。延髄で交叉</td></tr><tr><th>脊髄視床路</th><td>温痛覚。入ってすぐ反対側へ交叉</td></tr><tr><th>外側皮質脊髄路</th><td>運動。延髄の錐体で交叉</td></tr><tr><th>前角</th><td>下位運動ニューロン</td></tr></table>` },
           data: localizeContent },
@@ -51,7 +53,11 @@ export const hall: Hall = {
     { id: "w-stroke", label: "脳卒中と意識", color: "sun", headline: "時間が脳を救う",
       exhibits: [
         { id: "gcs", no: 3, type: "Custom", kind: "gcs", title: "GCSを付けろ", stampLabel: "GCS",
-          how: "患者の様子を読んで、開眼・言葉・運動を採点しよう。E・V・Mすべて正解を通算4人でスタンプ。", data: gcsContent },
+          how: "患者の様子を読んで、開眼・言葉・運動を採点しよう。E・V・Mすべて正解を通算4人でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "Glasgow Coma Scale",
+            html: `<table><tr><th>E 開眼</th><td>4 自発的に／3 呼びかけで／2 痛みで／1 開けない</td></tr><tr><th>V 言葉</th><td>5 見当識あり／4 混乱した会話／3 不適当な単語／2 うめき声／1 なし</td></tr><tr><th>M 運動</th><td>6 指示に従う／5 痛みの場所へ手をもっていく／4 逃避／3 異常屈曲（除皮質）／2 伸展（除脳）／1 なし</td></tr></table><p>合計3〜15点。8点以下は重症で、気道確保を考える。</p>` },
+          data: gcsContent },
         { id: "stroke", no: 4, type: "Custom", kind: "grid", title: "脳梗塞の3病型", stampLabel: "脳梗塞",
           how: "経過と背景から病型を決め、再発予防を選ぼう。両方正解を通算4人でスタンプ。", data: strokeContent },
       ] },
@@ -63,10 +69,15 @@ export const hall: Hall = {
           how: "自己抗体と病気のカードをペアにしよう。全部そろえるとスタンプ。", data: memoryContent },
         { id: "versus", no: 7, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
           how: "ヒントがどちらの病気のものか左右で答えよう。6問中5問以上でスタンプ。", data: versusContent },
+        { id: "dementia", no: 8, type: "Custom", kind: "grid", title: "認知症を見分けろ", stampLabel: "認知症",
+          how: "経過と症状から認知症の種類をマスで選び、対応を決めよう。治る認知症を見逃すな。両方正解を通算4人でスタンプ。",
+          cheatSheet: { ...D, title: "認知症の見分け方",
+            html: `<table><tr><th>Alzheimer型</th><td>近時記憶障害、物盗られ妄想、取り繕い。海馬の萎縮</td></tr><tr><th>Lewy小体型</th><td>幻視、変動、パーキンソニズム、レム睡眠行動異常症。MIBG低下</td></tr><tr><th>前頭側頭型</th><td>脱抑制、常同行動。若年</td></tr><tr><th>血管性</th><td>階段状、まだら、感情失禁</td></tr><tr><th>正常圧水頭症</th><td>歩行障害・認知障害・尿失禁。シャントで治る</td></tr></table><p>まず除く「治る認知症」：慢性硬膜下血腫、甲状腺機能低下症、ビタミンB₁₂欠乏、神経梅毒、うつ病、せん妄。</p>` },
+          data: dementiaContent },
       ] },
     { id: "w-er", label: "神経ER", color: "tomato", labelText: "light", headline: "Time is brain",
       exhibits: [
-        { id: "er", no: 8, type: "Custom", kind: "scenario", title: "神経ER", stampLabel: "ER",
+        { id: "er", no: 9, type: "Custom", kind: "scenario", title: "神経ER", stampLabel: "ER",
           how: "急性期脳梗塞、てんかん重積、くも膜下出血。次の一手を選ぼう。ミス1回までならクリア、通算2シナリオでスタンプ。", data: scenarioContent },
       ] },
   ],
@@ -86,5 +97,5 @@ export const hall: Hall = {
       { ...D, id: "cn1", name: "嗅神経（I）", rarity: 4, weight: 6, color: "#F3EEDF", text: "においを運ぶ。Kallmann症候群やParkinson病で早くから低下。" },
     ],
   },
-  stampOrder: ["localize", "vf", "gcs", "stroke", "weak", "memory", "versus", "er"],
+  stampOrder: ["localize", "vf", "gcs", "stroke", "weak", "memory", "versus", "dementia", "er"],
 };

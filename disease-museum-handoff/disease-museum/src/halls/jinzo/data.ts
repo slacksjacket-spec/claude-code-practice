@@ -1,5 +1,6 @@
 // 腎・泌尿器ホール（NO.05）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { sedimentContent } from "./content/sediment";
 import { glomerularContent } from "./content/glomerular";
 import { nephronContent } from "./content/nephron";
@@ -21,7 +22,7 @@ export const hall: Hall = {
       { go: "w-urine", label: "尿を見るウィングへ",
         svg: `<rect x="60" y="230" width="90" height="120" rx="12" fill="#FFF1B8" stroke="#1C1537" stroke-width="4"/><path d="M60 270 L150 270" stroke="#E0C060" stroke-width="40" opacity=".5"/>
         <circle cx="140" cy="120" r="44" fill="#F3EEDF" stroke="#1C1537" stroke-width="8"/><rect x="134" y="160" width="12" height="40" fill="#1C1537"/>
-        <text x="105" y="380" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">尿を見る</text>` },
+        <text x="105" y="380" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">尿を見る</text>${face(105, 310, 0.7)}` },
       { go: "w-nephron", label: "ネフロンと電解質のウィングへ",
         svg: `<path d="M260 90 C210 90 196 170 230 210 C252 236 262 220 270 200 C278 176 300 176 300 150 C300 120 290 90 260 90Z" fill="var(--liver)" stroke="#1C1537" stroke-width="4"/>
         <path d="M340 90 C390 90 404 170 370 210 C348 236 338 220 330 200 C322 176 300 176 300 150 C300 120 310 90 340 90Z" fill="var(--liver)" stroke="#1C1537" stroke-width="4"/>
@@ -34,10 +35,10 @@ export const hall: Hall = {
       { go: "w-aki", label: "腎不全と泌尿器のウィングへ",
         svg: `<rect x="440" y="70" width="110" height="80" rx="16" fill="var(--mint)" stroke="#1C1537" stroke-width="4"/>
         <text x="495" y="118" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#1C1537">AKI</text>
-        <text x="495" y="176" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">腎不全と泌尿器</text>` },
+        <text x="495" y="176" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">腎不全と泌尿器</text>${face(495, 134, 0.5)}` },
       { go: "w-er", label: "腎・泌尿器ERへ",
         svg: `<circle cx="495" cy="280" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="495" y="293" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="495" y="275" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(495, 292, 0.7)}
         <text x="495" y="344" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">腎・泌尿器ER</text>` },
     ],
   },
@@ -55,7 +56,11 @@ export const hall: Hall = {
     { id: "w-nephron", label: "ネフロンと電解質", color: "mint", headline: "塩と水と酸をあやつる",
       exhibits: [
         { id: "nephron", no: 3, type: "Custom", kind: "tapMap", title: "ネフロンのどこ？", stampLabel: "ネフロン",
-          how: "利尿薬が働く場所や、遺伝性の尿細管の病気の場所を、ネフロンの図でタップしよう。通算4回正解でスタンプ。", data: nephronContent },
+          how: "利尿薬が働く場所や、遺伝性の尿細管の病気の場所を、ネフロンの図でタップしよう。通算4回正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "利尿薬と働く場所",
+            html: `<table><tr><th>近位尿細管</th><td>アセタゾラミド（代謝性アシドーシス）、SGLT2阻害薬</td></tr><tr><th>ヘンレ係蹄の太い上行脚</th><td>ループ利尿薬（Na-K-2Cl）。低K、アルカローシス、Caは尿へ</td></tr><tr><th>遠位曲尿細管</th><td>サイアザイド（Na-Cl）。低K、低Na、Caは体に残る</td></tr><tr><th>集合管</th><td>スピロノラクトン（高K）、トルバプタン（水だけ出す）</td></tr></table><p>Bartter症候群はループ利尿薬、Gitelman症候群はサイアザイドを飲み続けたのと似た状態。</p>` },
+          data: nephronContent },
         { id: "na", no: 4, type: "AlgorithmBoard", title: "低ナトリウム血症すごろく", stampLabel: "低Na",
           how: "浸透圧 → 体液量 → 尿Na の順に分かれ道を進んで、原因と対応を決めよう。まちがえるとコマが戻る。4人ゴールでスタンプ。",
           cheatSheet: { ...D, title: "低Na血症の考え方",

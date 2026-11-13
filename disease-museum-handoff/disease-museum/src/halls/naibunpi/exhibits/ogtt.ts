@@ -3,9 +3,10 @@ import "./ogtt.css";
 import type { CustomModule } from "../../../engine/exhibits/types";
 import type { OgttData } from "./ogtt.schema";
 import { OGTT_LABEL, TIMES, type OgttType } from "./ogtt.consts";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { esc } from "../../../engine/dom";
+import { twoStep } from "../../../engine/games/twoStep";
 
-const TYPE_COINS = 12, Q_COINS = 12;
+const OGTT_IDS = Object.keys(OGTT_LABEL) as OgttType[];
 const W = 320, H = 200, L = 40, Rt = 290, T = 14, B = 172, GMAX = 400;
 const x = (t: number) => L + (t / 120) * (Rt - L);
 const y = (g: number, max = GMAX) => B - (Math.min(g, max) / max) * (B - T);
@@ -30,37 +31,12 @@ function chart(c: OgttData["cases"][number]) {
 
 export const ogtt: CustomModule<OgttData> = {
   mount(root, ex, ctx) {
-    const d = ex.data, okKey = `${ex.id}.ok`;
-    let q = shuffle(d.cases), qi = 0;
-    function render() {
-      const c = q[qi % q.length];
-      let typeOk = false, stage = 0;
-      ctx.cheat.reset(ex.id);
-      root.innerHTML = `<div class="pcard"><span class="tagk">${esc(c.who)}</span><div style="margin-top:6px;font-weight:800">${esc(c.story)}</div>${c.hba1c !== undefined ? `<div class="signs"><span class="chip">HbA1c ${c.hba1c}%</span></div>` : ""}</div>
-        ${chart(c)}
-        <div class="stepLabel">① 75g糖負荷試験の判定は？</div>
-        <div class="ogttTypes">${(Object.keys(OGTT_LABEL) as OgttType[]).map((k) => `<button class="opt" data-k="${k}">${OGTT_LABEL[k]}</button>`).join("")}</div>
-        <div class="step2"></div>`;
-      $$<HTMLButtonElement>(".ogttTypes .opt", root).forEach((b) => (b.onclick = () => {
-        if (stage) return;
-        stage = 1;
-        typeOk = b.dataset.k === c.answer;
-        $$<HTMLButtonElement>(".ogttTypes .opt", root).forEach((x) => { x.disabled = true; if (x.dataset.k === c.answer) x.classList.add("right"); });
-        if (typeOk) { ctx.sound.ding(); ctx.award(TYPE_COINS, b); } else { b.classList.add("wrong"); ctx.sound.boo(); }
-        const f = c.followUp, box = $(".step2", root);
-        box.innerHTML = `<div class="stepLabel">② ${esc(f.question)}</div><div class="opts">${f.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div><div class="fbBox"></div>`;
-        $$<HTMLButtonElement>(".opt", box).forEach((o) => (o.onclick = () => {
-          const ok = +o.dataset.i! === f.correct;
-          $$<HTMLButtonElement>(".opt", box).forEach((x) => { x.disabled = true; if (+x.dataset.i! === f.correct) x.classList.add("right"); });
-          if (ok) { ctx.sound.ding(); ctx.award(Q_COINS, o); ctx.cheat.rewardIfUnpeeked(ex.id, o); } else { o.classList.add("wrong"); ctx.sound.boo(); }
-          if (!ok || !typeOk) ctx.miss({ id: `${ex.id}-${c.id}`, src: ex.title, q: `${c.who}：空腹時 ${c.glucose[0]}、2時間値 ${c.glucose[3]} mg/dL${c.hba1c !== undefined ? `、HbA1c ${c.hba1c}%` : ""}。${f.question}`, opts: shuffle([f.options[f.correct], ...shuffle(f.options.filter((_, i) => i !== f.correct)).slice(0, 2)]), ans: f.options[f.correct] });
-          if (ok && typeOk && ctx.prog(okKey) >= d.stampAt) ctx.stamp(ex.id);
-          const fb = $(".fbBox", box);
-          ctx.feedback(fb, ok && typeOk, ok && typeOk ? "両方正解！" : ok ? "②は正解！" : `正解は「${esc(f.options[f.correct])}」`, `判定：${OGTT_LABEL[c.answer]}（空腹時 ${c.glucose[0]}、2時間値 ${c.glucose[3]}）。${esc(c.explanation)}<div style="margin-top:8px"><button class="btn next">次へ</button></div>`);
-          $(".next", fb).onclick = () => { qi++; if (qi % q.length === 0) q = shuffle(d.cases); render(); };
-        }));
-      }));
-    }
-    render();
+    twoStep(root, ex, ctx, ex.data.cases, ex.data.stampAt, (c) => ({
+      head: `<div class="pcard"><span class="tagk">${esc(c.who)}</span><div style="margin-top:6px;font-weight:800">${esc(c.story)}</div>${c.hba1c !== undefined ? `<div class="signs"><span class="chip">HbA1c ${c.hba1c}%</span></div>` : ""}</div>${chart(c)}`,
+      q1: "75g糖負荷試験の判定は？", o1: OGTT_IDS.map((k) => OGTT_LABEL[k]), a1: OGTT_IDS.indexOf(c.answer), s1Class: "ogttTypes",
+      f: { question: c.followUp.question, options: c.followUp.options, answer: c.followUp.correct },
+      lead: `判定：${OGTT_LABEL[c.answer]}（空腹時 ${c.glucose[0]}、2時間値 ${c.glucose[3]}）`, expl: c.explanation,
+      miss: `${c.who}：空腹時 ${c.glucose[0]}、2時間値 ${c.glucose[3]} mg/dL${c.hba1c !== undefined ? `、HbA1c ${c.hba1c}%` : ""}。`,
+    }));
   },
 };

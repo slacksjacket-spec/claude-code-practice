@@ -1,6 +1,7 @@
 // 肝胆膵ホール（NO.03）。reference/kantansui_hall_v2.html（試作 ver.2）から移植。
 // 医学内容はすべて未レビュー（review: "draft"）。要レビューの箇所は TODO(review) と ROADMAP の一覧を参照。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 
 export const hall: Hall = {
   id: "kantansui",
@@ -20,7 +21,7 @@ export const hall: Hall = {
       {
         go: "w-marker", label: "マーカーの間へ",
         svg: `<path d="M300 250 C250 250 236 300 250 340 C266 386 360 392 380 350" fill="none" stroke="#FFB38A" stroke-width="44" stroke-linecap="round"/>
-        <text x="228" y="398" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">十二指腸（マーカーの間）</text>`,
+        <text x="228" y="398" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">十二指腸（マーカーの間）</text>${face(250, 305, 0.6)}`,
       },
       {
         go: "w-pan", label: "膵ウィングへ",
@@ -32,7 +33,7 @@ export const hall: Hall = {
       {
         go: "w-duct", label: "胆管ウィングへ",
         svg: `<path d="M300 170 C302 210 296 240 290 280" stroke="var(--bile)" stroke-width="18" fill="none" stroke-linecap="round"/>
-        <text x="312" y="236" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">胆管</text>`,
+        <text x="312" y="236" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">胆管</text>${face(298, 215, 0.4)}`,
       },
       {
         go: "w-liver", label: "肝ウィングへ",
@@ -52,7 +53,7 @@ export const hall: Hall = {
       {
         go: "w-vs", label: "対決の間へ",
         svg: `<circle cx="530" cy="150" r="44" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="530" y="164" text-anchor="middle" font-family="Dela Gothic One" font-size="34" fill="#fff">VS</text>
+        <text x="530" y="145" text-anchor="middle" font-family="Dela Gothic One" font-size="22" fill="#fff">VS</text>${face(530, 163, 0.77)}
         <text x="530" y="214" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">対決の間</text>`,
       },
     ],
@@ -459,7 +460,7 @@ export const hall: Hall = {
           cheatSheet: {
             review: "draft", sources: ["肝癌診療ガイドライン 2021年版"],
             title: "肝細胞癌 治療アルゴリズム（2021年版の骨格）",
-            html: `<table><tr><th>Child-Pugh C</th><td>ミラノ基準内なら肝移植、外なら緩和ケア</td></tr><tr><th>肝外転移あり</th><td>薬物療法</td></tr><tr><th>脈管侵襲あり</th><td>肝切除、塞栓、薬物療法（動注を含む）</td></tr><tr><th>1個</th><td>肝切除、焼灼</td></tr><tr><th>2〜3個・3cm以内</th><td>肝切除、焼灼</td></tr><tr><th>2〜3個・3cm超</th><td>肝切除、塞栓</td></tr><tr><th>4個以上</th><td>塞栓、薬物療法（動注を含む）</td></tr></table><p>確認する順番：肝予備能 → 肝外転移 → 脈管侵襲 → 腫瘍数 → 腫瘍径。</p><p style="color:var(--sub)">2025年版（第6版）でオプション治療・粒子線・Child-Pugh Bの肝移植などが加わり改訂。</p>`,
+            html: `<table><tr><th>Child-Pugh C</th><td>ミラノ基準内（65歳以下）なら肝移植、移植できなければ緩和ケア</td></tr><tr><th>肝外転移あり</th><td>薬物療法</td></tr><tr><th>脈管侵襲あり</th><td>切除できれば肝切除、できなければ薬物療法（塞栓・動注も選択肢）</td></tr><tr><th>1〜3個・3cm以内</th><td>肝切除、焼灼</td></tr><tr><th>1〜3個・3cm超</th><td>肝切除、塞栓</td></tr><tr><th>4個以上</th><td>塞栓、動注または薬物療法</td></tr></table><p>確認する順番：肝予備能 → 肝外転移 → 脈管侵襲 → 腫瘍数 → 腫瘍径。</p><p style="color:var(--sub)">2025年版（第6版）でオプション治療・粒子線・Child-Pugh Bの肝移植などが加わり改訂。</p>`,
           },
           // TODO(review) 肝癌診療ガイドライン2021年版の骨格。2025年版（第6版）に合わせるか要判断（ROADMAP）
           data: {
@@ -506,15 +507,14 @@ export const hall: Hall = {
                 label: "腫瘍数",
                 question: "腫瘍数は？",
                 options: [
-                  { value: "1", label: "1個" },
-                  { value: "23", label: "2〜3個" },
+                  { value: "13", label: "1〜3個" },
                   { value: "4", label: "4個以上" },
                 ],
               },
               {
                 id: "size",
                 label: "腫瘍径",
-                question: "腫瘍径は？（2〜3個のとき）",
+                question: "腫瘍径は？（1〜3個のとき）",
                 options: [
                   { value: "le3", label: "3cm以内" },
                   { value: "gt3", label: "3cm超" },
@@ -526,30 +526,30 @@ export const hall: Hall = {
             patients: [
               {
                 review: "draft",
-                sources: [],
+                sources: ["肝癌診療ガイドライン2021年版 第2章 治療アルゴリズム（日本肝臓学会）https://www.jsh.or.jp/lib/files/medical/guidelines/jsh_guidlines/medical/guideline_jp_2021_v3.pdf"],
                 card: { 年齢: "64", "Child-Pugh": "A", 腫瘍: "1個・2.5cm", 脈管侵襲: "なし", 肝外転移: "なし" },
-                path: ["cp", "meta", "vasc", "num", "goal"],
-                answers: { cp: "AB", meta: "0", vasc: "0", num: "1" },
+                path: ["cp", "meta", "vasc", "num", "size", "goal"],
+                answers: { cp: "AB", meta: "0", vasc: "0", num: "13", size: "le3" },
                 treatments: [0, 1],
-                explanation: "単発なら切除または焼灼。3cm以内なら焼灼も有力。",
+                explanation: "1〜3個で3cm以内なら切除または焼灼。",
               },
               {
                 review: "draft",
                 sources: [],
                 card: { 年齢: "70", "Child-Pugh": "A", 腫瘍: "3個・最大2cm", 脈管侵襲: "なし", 肝外転移: "なし" },
                 path: ["cp", "meta", "vasc", "num", "size", "goal"],
-                answers: { cp: "AB", meta: "0", vasc: "0", num: "23", size: "le3" },
+                answers: { cp: "AB", meta: "0", vasc: "0", num: "13", size: "le3" },
                 treatments: [0, 1],
-                explanation: "2〜3個で3cm以内なら切除または焼灼。",
+                explanation: "1〜3個で3cm以内なら切除または焼灼。",
               },
               {
                 review: "draft",
                 sources: [],
                 card: { 年齢: "68", "Child-Pugh": "B", 腫瘍: "2個・最大4.5cm", 脈管侵襲: "なし", 肝外転移: "なし" },
                 path: ["cp", "meta", "vasc", "num", "size", "goal"],
-                answers: { cp: "AB", meta: "0", vasc: "0", num: "23", size: "gt3" },
+                answers: { cp: "AB", meta: "0", vasc: "0", num: "13", size: "gt3" },
                 treatments: [0, 2],
-                explanation: "2〜3個で3cm超なら切除または塞栓（TACE）。",
+                explanation: "1〜3個でも3cmを超えると、第一選択は切除、第二選択が塞栓（TACE）。焼灼は外れる。",
               },
               {
                 review: "draft",

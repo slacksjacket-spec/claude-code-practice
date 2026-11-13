@@ -1,5 +1,6 @@
 // 免疫・膠原病ホール（NO.09）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { anaContent } from "./content/ana";
 import { memoryContent } from "./content/memory";
 import { feverContent } from "./content/fever";
@@ -27,7 +28,7 @@ export const hall: Hall = {
         svg: `<rect x="270" y="50" width="34" height="80" rx="16" fill="#F6D9BE" stroke="#1C1537" stroke-width="4"/><rect x="270" y="140" width="34" height="70" rx="16" fill="#F6D9BE" stroke="#1C1537" stroke-width="4"/>
         <ellipse cx="287" cy="135" rx="26" ry="14" fill="var(--tomato)" opacity=".6" stroke="#1C1537" stroke-width="3"/>
         <path d="M340 60 C360 100 330 140 350 200" stroke="var(--liver)" stroke-width="10" fill="none" stroke-linecap="round"/>
-        <text x="310" y="236" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">関節と血管</text>` },
+        <text x="310" y="236" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">関節と血管</text>${face(287, 85, 0.5)}` },
       { go: "w-allergy", label: "アレルギーのウィングへ",
         svg: `<circle cx="490" cy="120" r="50" fill="var(--sun)" stroke="#1C1537" stroke-width="4"/>
         ${[[0, -64], [56, -32], [56, 32], [0, 64], [-56, 32], [-56, -32]].map(([x, y]) => `<circle cx="${490 + x}" cy="${120 + y}" r="12" fill="var(--pink)" stroke="#1C1537" stroke-width="3"/>`).join("")}
@@ -35,7 +36,7 @@ export const hall: Hall = {
         <text x="490" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">アレルギー</text>` },
       { go: "w-er", label: "免疫ERへ",
         svg: `<circle cx="300" cy="310" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="323" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="305" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 322, 0.7)}
         <text x="300" y="374" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">免疫ER</text>` },
     ],
   },
@@ -43,7 +44,11 @@ export const hall: Hall = {
     { id: "w-ab", label: "自己抗体", color: "mint", headline: "光る核を読む",
       exhibits: [
         { id: "ana", no: 1, type: "Custom", kind: "ana", title: "抗核抗体の光り方", stampLabel: "抗核抗体",
-          how: "蛍光顕微鏡の細胞の光り方から染色型を当て、関係する抗体や病気を答えよう。両方正解を通算4回でスタンプ。", data: anaContent },
+          how: "蛍光顕微鏡の細胞の光り方から染色型を当て、関係する抗体や病気を答えよう。両方正解を通算4回でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "抗核抗体の染色型",
+            html: `<table><tr><th>均質型</th><td>抗DNA抗体・抗ヒストン抗体（SLE、薬剤性ループス）</td></tr><tr><th>辺縁型</th><td>抗dsDNA抗体（SLE）</td></tr><tr><th>斑紋型</th><td>抗U1-RNP、抗Sm、抗SS-A、抗SS-B抗体（MCTD、SLE、Sjögren症候群）</td></tr><tr><th>散在斑紋型</th><td>抗セントロメア抗体（限局皮膚硬化型の全身性強皮症）</td></tr><tr><th>核小体型</th><td>全身性強皮症</td></tr></table>` },
+          data: anaContent },
         { id: "memory", no: 2, type: "MemoryMatch", title: "自己抗体 神経衰弱", stampLabel: "抗体",
           how: "自己抗体と病気のカードをペアにしよう。全部そろえるとスタンプ。", data: memoryContent },
         { id: "fever", no: 3, type: "DiagnosisLab", title: "熱と関節痛ラボ", stampLabel: "膠原病",
@@ -54,7 +59,7 @@ export const hall: Hall = {
         { id: "hand", no: 4, type: "Custom", kind: "tapMap", title: "手の関節をタップ", stampLabel: "関節",
           how: "症状から、侵されている手の関節をタップしよう。複数あれば全部選んで決定。通算4回正解でスタンプ。", data: handContent },
         { id: "vasc", no: 5, type: "Custom", kind: "grid", title: "血管炎の太さ", stampLabel: "血管炎",
-          how: "症状と検査から、血管炎を大きさで分けよう。通算5人正解でスタンプ。",
+          how: "症状と検査から、血管炎を大きさで分けよう。通算4人正解でスタンプ。",
           cheatSheet: { ...D, title: "血管炎の分類（Chapel Hill 2012）",
             html: `<table><tr><th>大型</th><td>高安動脈炎、巨細胞性動脈炎</td></tr><tr><th>中型</th><td>結節性多発動脈炎、川崎病</td></tr><tr><th>小型（ANCA）</th><td>顕微鏡的多発血管炎、多発血管炎性肉芽腫症、好酸球性多発血管炎性肉芽腫症</td></tr><tr><th>小型（免疫複合体）</th><td>IgA血管炎、クリオグロブリン血症性血管炎、抗GBM病</td></tr></table>` },
           data: vasculitisContent },
@@ -64,7 +69,11 @@ export const hall: Hall = {
     { id: "w-allergy", label: "アレルギー", color: "sun", headline: "4つの型",
       exhibits: [
         { id: "allergy", no: 7, type: "Custom", kind: "grid", title: "アレルギーの4つの型", stampLabel: "アレルギー",
-          how: "病気がどの型のアレルギー反応かを選ぼう。通算5人正解でスタンプ。", data: allergyContent },
+          how: "病気がどの型のアレルギー反応かを選ぼう。通算4人正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "アレルギーの4つの型（Coombs分類）",
+            html: `<table><tr><th>I型</th><td>IgEと肥満細胞。数分。アナフィラキシー、じんましん、花粉症、喘息</td></tr><tr><th>II型</th><td>細胞の表面への抗体。自己免疫性溶血性貧血、ITP、Goodpasture症候群、不適合輸血</td></tr><tr><th>III型</th><td>免疫複合体。血清病、SLE、溶連菌感染後糸球体腎炎</td></tr><tr><th>IV型</th><td>T細胞。1〜2日。接触皮膚炎、ツベルクリン反応、移植片対宿主病</td></tr></table><p>受容体に対する抗体（バセドウ病、重症筋無力症）はII型に入れるか、V型として分ける。</p>` },
+          data: allergyContent },
       ] },
     { id: "w-er", label: "免疫ER", color: "cobalt", labelText: "light", headline: "暴走を止める",
       exhibits: [

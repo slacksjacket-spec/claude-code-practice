@@ -1,5 +1,6 @@
 // 耳鼻咽喉ホール（NO.16）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { audioContent } from "./content/audio";
 import { otitisContent } from "./content/otitis";
 import { facialContent } from "./content/facial";
@@ -25,13 +26,13 @@ export const hall: Hall = {
         <text x="150" y="262" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">耳</text>` },
       { go: "w-balance", label: "めまいのウィングへ",
         svg: `${[0, 1, 2].map((i) => `<ellipse cx="320" cy="120" rx="${60 - i * 4}" ry="${26 + i * 4}" transform="rotate(${i * 60} 320 120)" fill="none" stroke="var(--mint)" stroke-width="7"/>`).join("")}<circle cx="320" cy="120" r="10" fill="var(--sun)" stroke="#1C1537" stroke-width="3"/>
-        <text x="320" y="210" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">めまい</text>` },
+        <text x="320" y="210" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">めまい</text>${face(320, 116, 0.7)}` },
       { go: "w-throat", label: "鼻とのどのウィングへ",
         svg: `<path d="M480 60 C460 100 450 140 470 160 C480 170 500 170 510 160" fill="#F6D9BE" stroke="#1C1537" stroke-width="4"/><path d="M490 180 V260" stroke="var(--pink)" stroke-width="16" stroke-linecap="round"/>
-        <text x="495" y="290" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">鼻とのど</text>` },
+        <text x="495" y="290" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">鼻とのど</text>${face(480, 112, 0.6)}` },
       { go: "w-er", label: "耳鼻咽喉ERへ",
         svg: `<circle cx="300" cy="320" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="333" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="315" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 332, 0.7)}
         <text x="300" y="384" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">耳鼻咽喉ER</text>` },
     ],
   },
@@ -46,12 +47,20 @@ export const hall: Hall = {
         { id: "otitis", no: 2, type: "Custom", kind: "grid", title: "中耳炎のマス", stampLabel: "中耳炎",
           how: "鼓膜の様子と痛みから中耳炎の種類を選び、対応を決めよう。両方正解を通算4人でスタンプ。", data: otitisContent },
         { id: "facial", no: 3, type: "Custom", kind: "tapMap", title: "顔面神経のどこ？", stampLabel: "顔面神経",
-          how: "涙・音の響き・味覚の残り方から、顔面神経の障害の場所をタップしよう。通算4回正解でスタンプ。", data: facialContent },
+          how: "涙・音の響き・味覚の残り方から、顔面神経の障害の場所をタップしよう。通算4回正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "顔面神経の枝（中枢から順）",
+            html: `<ol><li>大錐体神経：涙（膝神経節から出る）</li><li>アブミ骨筋神経：麻痺すると音が響く（聴覚過敏）</li><li>鼓索神経：舌の前2/3の味覚、唾液</li><li>茎乳突孔を出て耳下腺の中を通り、表情筋へ</li></ol><p>障害の場所より下の枝がすべて落ちる。中枢性の麻痺では額のしわ寄せが保たれる。</p>` },
+          data: facialContent },
       ] },
     { id: "w-balance", label: "めまい", color: "mint", headline: "回る？ふらつく？",
       exhibits: [
         { id: "vertigo", no: 4, type: "DiagnosisLab", title: "めまいラボ", stampLabel: "めまい",
-          how: "めまいの患者が次々やってくる。予算内で検査を選んで診断しよう。中枢性を見逃すな。4人正解でスタンプ。", data: vertigoContent },
+          how: "めまいの患者が次々やってくる。予算内で検査を選んで診断しよう。中枢性を見逃すな。4人正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "めまいの見分け方",
+            html: `<table><tr><th>良性発作性頭位めまい症</th><td>頭を動かしたとき、1分以内。難聴なし</td></tr><tr><th>メニエール病</th><td>数時間、くり返す。低音の難聴・耳鳴り・耳閉感</td></tr><tr><th>前庭神経炎</th><td>数日続く。難聴なし。かぜのあと</td></tr><tr><th>突発性難聴</th><td>1回きり。高度の難聴</td></tr><tr><th>中枢性（小脳・脳幹）</th><td>向きの変わる眼振や垂直の眼振、ろれつ・手足の失調、立てない</td></tr></table>` },
+          data: vertigoContent },
         { id: "versus", no: 5, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
           how: "ヒントがどちらの病気のものか左右で答えよう。6問中5問以上でスタンプ。", data: versusContent },
       ] },

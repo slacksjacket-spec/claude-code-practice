@@ -1,5 +1,6 @@
 // 麻酔・輸液ホール（NO.19）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { fluidContent } from "./content/fluid";
 import { calcContent } from "./content/calc";
 import { airwayContent } from "./content/airway";
@@ -26,13 +27,13 @@ export const hall: Hall = {
       { go: "w-airway", label: "気道と麻酔のウィングへ",
         svg: `<rect x="270" y="60" width="140" height="80" rx="12" fill="#0B0F14" stroke="#1C1537" stroke-width="4"/>
         <path d="M280 120 L295 120 L298 84 L330 80 L334 120 L350 120 L353 84 L385 80 L389 120 L400 120" stroke="#FFD84A" stroke-width="4" fill="none"/>
-        <text x="340" y="176" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">気道と麻酔</text>` },
+        <text x="340" y="176" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">気道と麻酔</text>${face(340, 72, 0.6, "#fff")}` },
       { go: "w-drug", label: "麻酔の薬のウィングへ",
         svg: `<rect x="470" y="80" width="90" height="34" rx="17" fill="var(--sun)" stroke="#1C1537" stroke-width="4"/><path d="M560 97 H585" stroke="#1C1537" stroke-width="4"/><path d="M470 97 H450" stroke="#1C1537" stroke-width="6"/>
-        <text x="515" y="160" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">麻酔の薬</text>` },
+        <text x="515" y="160" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">麻酔の薬</text>${face(515, 93, 0.6)}` },
       { go: "w-er", label: "麻酔ERへ",
         svg: `<circle cx="430" cy="300" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="430" y="313" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="430" y="295" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(430, 312, 0.7)}
         <text x="430" y="364" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">麻酔ER</text>` },
     ],
   },
@@ -52,9 +53,17 @@ export const hall: Hall = {
         { id: "airway", no: 3, type: "Custom", kind: "mallampati", title: "Mallampatiを判定せよ", stampLabel: "気道評価",
           how: "口の中の見え方からMallampati分類を当て、気道の評価や準備を答えよう。両方正解を通算4人でスタンプ。", data: airwayContent },
         { id: "capno", no: 4, type: "Custom", kind: "capnogram", title: "カプノグラムを読め", stampLabel: "カプノグラム",
-          how: "麻酔中の呼気CO₂の波形から何が起きているかを当て、対応を答えよう。両方正解を通算4回でスタンプ。波形は合成した模式。", data: capnoContent },
+          how: "麻酔中の呼気CO₂の波形から何が起きているかを当て、対応を答えよう。両方正解を通算4回でスタンプ。波形は合成した模式。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "カプノグラムの形",
+            html: `<table><tr><th>数回だけ出て消える</th><td>食道挿管</td></tr><tr><th>上り坂がなだらか（サメのひれ）</th><td>気管支けいれん・呼気の閉塞</td></tr><tr><th>基線が0に戻らない</th><td>再呼吸（吸収剤の消耗、弁の故障）</td></tr><tr><th>どんどん高くなる</th><td>悪性高熱症、低換気</td></tr><tr><th>急に0になる</th><td>回路の外れ、閉塞、心停止</td></tr><tr><th>蘇生中に急に上がる</th><td>自己心拍の再開</td></tr><tr><th>高原部のくぼみ</th><td>自発呼吸が出てきた</td></tr></table><p>正常の呼気終末CO₂は35〜45 mmHg。</p>` },
+          data: capnoContent },
         { id: "asa", no: 5, type: "Custom", kind: "grid", title: "ASA-PS分類", stampLabel: "ASA",
-          how: "術前の患者の状態をASA-PSで分けよう。通算4人正解でスタンプ。", data: asaContent },
+          how: "術前の患者の状態をASA-PSで分けよう。通算4人正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "ASA-PS分類",
+            html: `<table><tr><th>I</th><td>健康</td></tr><tr><th>II</th><td>軽い全身疾患（よく管理された高血圧・糖尿病、喫煙、妊娠、軽い肥満）</td></tr><tr><th>III</th><td>重い全身疾患（透析、管理の悪い糖尿病、BMI 40以上、3か月より前の心筋梗塞）</td></tr><tr><th>IV</th><td>常に命を脅かす全身疾患（3か月以内の心筋梗塞・脳卒中、重い心不全）</td></tr><tr><th>V</th><td>手術をしなければ助からない</td></tr><tr><th>VI</th><td>脳死の臓器提供者</td></tr></table><p>緊急手術には E を付ける。</p>` },
+          data: asaContent },
       ] },
     { id: "w-drug", label: "麻酔の薬", color: "mint", headline: "眠らせ、止め、もどす",
       exhibits: [

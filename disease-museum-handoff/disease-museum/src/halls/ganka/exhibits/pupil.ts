@@ -3,9 +3,10 @@ import "./pupil.css";
 import type { CustomModule } from "../../../engine/exhibits/types";
 import type { PupilData } from "./pupil.schema";
 import { ptosis, pupils, STATE_LABEL, STATES, type State } from "./pupil.consts";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { $, $$, esc } from "../../../engine/dom";
+import { twoStep } from "../../../engine/games/twoStep";
 
-const C1 = 12, C2 = 12, MM = 4.2; // 1 mm = 4.2 px（虹彩の半径 26 px）
+const MM = 4.2; // 1 mm = 4.2 px（虹彩の半径 26 px）
 
 function eyeSvg(cx: number, r: number, droop: number, devOut: boolean, isRight: boolean, id: string) {
   const dx = devOut ? (isRight ? -9 : 9) : 0, dy = devOut ? 6 : 0;
@@ -18,14 +19,12 @@ function eyeSvg(cx: number, r: number, droop: number, devOut: boolean, isRight: 
 
 export const pupil: CustomModule<PupilData> = {
   mount(root, ex, ctx) {
-    const d = ex.data, okKey = `${ex.id}.ok`;
-    let q = shuffle(d.cases), qi = 0;
-    function render() {
-      const c = q[qi % q.length], droop = ptosis(c.pattern), dev = c.pattern === "cn3";
-      let st: State = "bright", stage = 0, ok1 = false;
-      ctx.cheat.reset(ex.id);
+    twoStep(root, ex, ctx, ex.data.cases, ex.data.stampAt, (c) => {
+      const droop = ptosis(c.pattern), dev = c.pattern === "cn3";
+      let st: State = "bright";
       const [r0, l0] = pupils(c.pattern, c.side, st);
-      root.innerHTML = `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
+      return {
+        head: `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
         <svg class="eyes" viewBox="0 0 340 140" role="img" aria-label="患者の両眼。図の左が患者の右眼" style="background:#FFF4DA">
           <rect x="0" y="0" width="340" height="140" fill="transparent"/>
           ${eyeSvg(90, r0 * MM, c.side === "R" ? droop : 0, dev && c.side === "R", true, "R")}
@@ -34,10 +33,10 @@ export const pupil: CustomModule<PupilData> = {
           <g class="beam"></g>
         </svg>
         <div class="pupRead"></div>
-        <div class="pupBtns">${STATES.map((s) => `<button data-s="${s}" aria-pressed="${s === st}">${STATE_LABEL[s]}</button>`).join("")}</div>
-        <div class="stepLabel">① 原因は？（ボタンでいろいろ試してから）</div>
-        <div class="opts s1">${c.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div>
-        <div class="step2"></div>`;
+        <div class="pupBtns">${STATES.map((s) => `<button data-s="${s}" aria-pressed="${s === st}">${STATE_LABEL[s]}</button>`).join("")}</div>`,
+        q1: "原因は？（ボタンでいろいろ試してから）", o1: c.options, a1: c.answer,
+        f: c.followUp, expl: c.explanation, miss: `${c.options[c.answer]}。`, miss1: `${c.story} 瞳孔の所見から考える原因は？`, next: "次の患者",
+        after: () => {
       const show = () => {
         const [r, l] = pupils(c.pattern, c.side, st);
         $(`.pup[data-e="R"]`, root).setAttribute("r", String(r * MM));
@@ -53,24 +52,8 @@ export const pupil: CustomModule<PupilData> = {
         ctx.sound.beep(st === "dark" ? 380 : 640, 0.05, "triangle", 0.04);
         show();
       }));
-      $$<HTMLButtonElement>(".s1 .opt", root).forEach((b) => (b.onclick = () => {
-        if (stage) return;
-        stage = 1; ok1 = +b.dataset.i! === c.answer;
-        $$<HTMLButtonElement>(".s1 .opt", root).forEach((x) => { x.disabled = true; if (+x.dataset.i! === c.answer) x.classList.add("right"); });
-        if (ok1) { ctx.sound.ding(); ctx.award(C1, b); } else { b.classList.add("wrong"); ctx.sound.boo(); }
-        const f = c.followUp, box = $(".step2", root);
-        box.innerHTML = `<div class="stepLabel">② ${esc(f.question)}</div><div class="opts">${f.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div><div class="fbBox"></div>`;
-        $$<HTMLButtonElement>(".opt", box).forEach((o) => (o.onclick = () => {
-          const ok = +o.dataset.i! === f.answer;
-          $$<HTMLButtonElement>(".opt", box).forEach((x) => { x.disabled = true; if (+x.dataset.i! === f.answer) x.classList.add("right"); });
-          if (ok) { ctx.sound.ding(); ctx.award(C2, o); ctx.cheat.rewardIfUnpeeked(ex.id, o); } else { o.classList.add("wrong"); ctx.sound.boo(); }
-          if (!ok || !ok1) ctx.miss({ id: `${ex.id}-${c.id}`, src: ex.title, q: `${c.story} 瞳孔の所見から考える原因は？`, opts: shuffle([c.options[c.answer], ...shuffle(c.options.filter((_, i) => i !== c.answer)).slice(0, 2)]), ans: c.options[c.answer] });
-          if (ok && ok1 && ctx.prog(okKey) >= d.stampAt) ctx.stamp(ex.id);
-          ctx.feedback($(".fbBox", box), ok && ok1, ok && ok1 ? "両方正解！" : ok ? "②は正解！" : `正解は「${esc(f.options[f.answer])}」`, `①の答え：${esc(c.options[c.answer])}。${esc(c.explanation)}<div style="margin-top:8px"><button class="btn next">次の患者</button></div>`);
-          $(".next", box).onclick = () => { qi++; if (qi % q.length === 0) q = shuffle(d.cases); render(); };
-        }));
-      }));
-    }
-    render();
+        },
+      };
+    });
   },
 };

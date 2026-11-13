@@ -12,7 +12,7 @@ export const occupationalContent: GridData = {
     { id: "health", row: 0, col: 2, label: "健康", sub: "働く人の体を見る" },
   ],
   question: "どの管理？",
-  stampAt: 5,
+  stampAt: 4,
   cases: [
     { ...M, id: "lev", who: "有機溶剤を使う工場", signs: ["局所排気装置をつける"], cell: "env", explanation: "有害物を発生源で取り除くのは作業環境管理。" },
     { ...M, id: "meas", who: "粉じん作業場", signs: ["作業環境測定"], cell: "env", explanation: "職場の有害物の濃度を測る。" },

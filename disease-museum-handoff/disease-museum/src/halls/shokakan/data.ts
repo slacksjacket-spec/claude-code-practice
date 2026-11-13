@@ -1,6 +1,7 @@
 // 消化管ホール（NO.02）。Phase 2 で新しく作ったホール。医学内容はすべて未レビュー（review: "draft"）。
 // 展示のうち6つはこのホール専用のゲーム（exhibits/）。データは content/ に分けてある。
 import type { Hall } from "../../engine/schema";
+import { face as organFace } from "../../engine/face";
 import { revealContent } from "./content/reveal";
 import { endoscopyContent } from "./content/endoscopy";
 import { depthContent } from "./content/depth";
@@ -63,7 +64,7 @@ export const hall: Hall = {
       {
         go: "w-abd", label: "急性腹症ERへ",
         svg: `<circle cx="84" cy="96" r="44" fill="var(--cobalt)" stroke="#1C1537" stroke-width="4"/>
-        <text x="84" y="110" text-anchor="middle" font-family="Dela Gothic One" font-size="34" fill="#fff">ER</text>
+        <text x="84" y="91" text-anchor="middle" font-family="Dela Gothic One" font-size="22" fill="#fff">ER</text>${organFace(84, 109, 0.77)}
         <text x="84" y="160" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">急性腹症ER</text>`,
       },
     ],
@@ -80,7 +81,7 @@ export const hall: Hall = {
           how: "内視鏡を進めると病変が次々に現れる。見つけたら、どうするかを即決しよう。5つ中4つ正しければ検査クリアでスタンプ。",
           // TODO(review) Forrest分類と止血の適応
           cheatSheet: { review: "draft", sources: [], title: "上部消化管出血：Forrest分類",
-            html: `<table><tr><th>Ia</th><td>噴出性の出血</td></tr><tr><th>Ib</th><td>湧き出るような出血</td></tr><tr><th>IIa</th><td>露出血管（いまは止まっている）</td></tr><tr><th>IIb</th><td>凝血塊が付いている</td></tr><tr><th>IIc</th><td>潰瘍底に黒い点（平坦な色素沈着）</td></tr><tr><th>III</th><td>潰瘍底はきれい（白苔のみ）</td></tr></table><p>Ia・Ib・IIa は内視鏡的止血の適応。IIb は凝血塊を除いて判断。IIc・III は止血不要。</p><p>止血のあとはPPIで治療し、ピロリ菌を調べて除菌する。</p>` },
+            html: `<table><tr><th>Ia</th><td>噴出性の出血</td></tr><tr><th>Ib</th><td>湧き出るような出血</td></tr><tr><th>IIa</th><td>露出血管（いまは止まっている）</td></tr><tr><th>IIb</th><td>凝血塊が付いている</td></tr><tr><th>IIc</th><td>潰瘍底に黒い点（平坦な色素沈着）</td></tr><tr><th>III</th><td>潰瘍底はきれい（白苔のみ）</td></tr></table><p>Ia・Ib・IIa は内視鏡的止血の適応。IIb は凝血塊を除いて判断。IIc・III は止血不要。</p><p>止血のあとはPPIで治療し、ピロリ菌を調べて除菌する。</p>${organFace(285, 60, 0.45)}` },
           data: endoscopyContent },
         { id: "depth", no: 3, type: "Custom", kind: "depth", title: "深達度タップ", stampLabel: "深達度",
           how: "壁の断面図で、がんがどこまで届いたかをタップ。それから治療を選ぼう。両方正解を通算4症例でスタンプ。",

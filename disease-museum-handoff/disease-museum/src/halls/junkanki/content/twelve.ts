@@ -13,7 +13,7 @@ const T = {
 };
 
 export const twelveContent: TwelveData = {
-  stampAt: 5,
+  stampAt: 4,
   territories: Object.values(T),
   stCases: [
     { ...M, pattern: "antMI", territory: T.antsep, explanation: "V1〜V4のST上昇は前壁中隔。左前下行枝の閉塞。" },

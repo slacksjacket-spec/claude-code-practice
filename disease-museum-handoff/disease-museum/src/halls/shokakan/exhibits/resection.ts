@@ -6,7 +6,8 @@ import type { Segment } from "./resection.consts";
 import { SEGMENTS } from "./resection.consts";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const COINS = 20;
+import { SINGLE_COINS } from "../../../engine/games/twoStep";
+const COINS = SINGLE_COINS;
 // 大腸の模式図（見る人の左が患者の右）。区間ごとの線
 const PATHS: Record<Segment, string> = {
   ileum: "M20 300 L88 300",

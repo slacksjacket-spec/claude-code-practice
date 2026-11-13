@@ -4,7 +4,7 @@ import type { AxisData } from "../../../engine/games/axis.schema";
 const M = { review: "draft" as const, sources: [] as string[] };
 
 export const axisContent: AxisData = {
-  stampAt: 5,
+  stampAt: 4,
   axes: {
     hpa: { title: "視床下部-下垂体-副腎皮質系", levels: [{ id: "h", organ: "視床下部", hormone: "CRH" }, { id: "p", organ: "下垂体前葉", hormone: "ACTH" }, { id: "t", organ: "副腎皮質", hormone: "コルチゾール" }] },
     hpt: { title: "視床下部-下垂体-甲状腺系", levels: [{ id: "h", organ: "視床下部", hormone: "TRH" }, { id: "p", organ: "下垂体前葉", hormone: "TSH" }, { id: "t", organ: "甲状腺", hormone: "FT4" }] },

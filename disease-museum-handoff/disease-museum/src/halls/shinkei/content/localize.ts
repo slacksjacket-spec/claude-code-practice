@@ -18,7 +18,7 @@ const cord = `<rect width="320" height="240" fill="#FFF8F0"/>
 
 export const localizeContent: TapMapData = {
   question: "病変はどこ？",
-  stampAt: 5,
+  stampAt: 4,
   figures: {
     brain: { viewBox: "0 0 320 240", ariaLabel: "左の大脳半球を横から見た模式図", svg: brain, note: "左大脳半球を左から見た模式図",
       regions: [

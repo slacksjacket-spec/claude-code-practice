@@ -1,5 +1,6 @@
 // 皮膚ホール（NO.14）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { eruptionContent } from "./content/eruption";
 import { moleContent } from "./content/mole";
 import { blisterContent } from "./content/blister";
@@ -25,14 +26,14 @@ export const hall: Hall = {
         <text x="140" y="214" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">皮疹を見る</text>` },
       { go: "w-burn", label: "熱傷のウィングへ",
         svg: `<path d="M400 190 C350 190 340 140 370 110 C370 140 390 140 390 120 C390 90 410 70 420 50 C430 90 470 100 460 150 C456 176 440 190 400 190Z" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/><path d="M402 186 C380 186 376 160 392 146 C396 160 410 160 410 150 C420 160 426 186 402 186Z" fill="var(--sun)"/>
-        <text x="410" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">熱傷</text>` },
+        <text x="410" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">熱傷</text>${face(402, 164, 0.6)}` },
       { go: "w-body", label: "皮膚と全身のウィングへ",
         svg: `<circle cx="160" cy="290" r="30" fill="#F6D9BE" stroke="#1C1537" stroke-width="4"/><rect x="134" y="320" width="52" height="50" rx="12" fill="var(--mint)" stroke="#1C1537" stroke-width="4"/>
         ${[[150, 284], [170, 296], [158, 302]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="var(--pink)"/>`).join("")}
-        <text x="160" y="392" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">皮膚と全身</text>` },
+        <text x="160" y="392" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">皮膚と全身</text>${face(160, 282, 0.7)}` },
       { go: "w-er", label: "皮膚ERへ",
         svg: `<circle cx="420" cy="320" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="420" y="333" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="420" y="315" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(420, 332, 0.7)}
         <text x="420" y="384" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">皮膚ER</text>` },
     ],
   },
@@ -40,16 +41,28 @@ export const hall: Hall = {
     { id: "w-look", label: "皮疹を見る", color: "pink", headline: "形・色・深さ",
       exhibits: [
         { id: "eruption", no: 1, type: "Custom", kind: "reveal", title: "原発疹の影絵当て", stampLabel: "原発疹",
-          how: "ぼやけた断面と表面の模式図が少しずつくっきりする。わかった瞬間に原発疹の名前を答えよう。一発正解を通算4枚でスタンプ。", data: eruptionContent },
+          how: "ぼやけた断面と表面の模式図が少しずつくっきりする。わかった瞬間に原発疹の名前を答えよう。一発正解を通算4枚でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "原発疹と続発疹",
+            html: `<table><tr><th>紅斑・紫斑</th><td>押して消えるのが紅斑、消えないのが紫斑</td></tr><tr><th>丘疹・結節</th><td>1 cm未満が丘疹、それ以上が結節</td></tr><tr><th>水疱・膿疱</th><td>透明な液か、膿か</td></tr><tr><th>膨疹</th><td>数時間で消えるむくみ（じんましん）</td></tr><tr><th>びらん</th><td>表皮まで。跡を残さず治る</td></tr><tr><th>潰瘍</th><td>真皮より深い。瘢痕が残る</td></tr><tr><th>鱗屑・痂皮</th><td>はがれかけた角質／乾いた滲出液や血</td></tr></table>` },
+          data: eruptionContent },
         { id: "mole", no: 2, type: "Custom", kind: "mole", title: "ほくろのABCDE", stampLabel: "ABCDE",
           how: "色素斑の絵を見て、メラノーマを疑うサイン（A非対称・B境界・C色むら・D 6 mm超・E変化）を全部選び、対応を答えよう。両方正解を通算4回でスタンプ。", data: moleContent },
         { id: "blister", no: 3, type: "Custom", kind: "grid", title: "水疱症の4マス", stampLabel: "水疱症",
-          how: "水疱がどこで裂けるか、原因は何かで4マスに分け、治療を選ぼう。両方正解を通算4人でスタンプ。", data: blisterContent },
+          how: "水疱がどこで裂けるか、原因は何かで4マスに分け、治療を選ぼう。両方正解を通算4人でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "天疱瘡と類天疱瘡",
+            html: `<table><tr><th>尋常性天疱瘡</th><td>抗デスモグレイン3（＋1）抗体。表皮内で裂ける。破れやすい水疱、口の中のびらん、Nikolsky現象。表皮細胞の間にIgG</td></tr><tr><th>落葉状天疱瘡</th><td>抗デスモグレイン1抗体。浅いびらんとかさぶた。粘膜は保たれる</td></tr><tr><th>水疱性類天疱瘡</th><td>抗BP180抗体。表皮の下で裂ける。張りつめた水疱、高齢者、かゆい。基底膜に線状のIgG・C3</td></tr></table>` },
+          data: blisterContent },
       ] },
     { id: "w-burn", label: "熱傷", color: "tomato", labelText: "light", headline: "深さと広さ",
       exhibits: [
         { id: "burn", no: 4, type: "Custom", kind: "depth", title: "熱傷の深さ", stampLabel: "熱傷深度",
-          how: "見た目と痛みから、熱傷がどの層まで届いたかをタップし、治療を選ぼう。両方正解を通算4人でスタンプ。", data: burnContent },
+          how: "見た目と痛みから、熱傷がどの層まで届いたかをタップし、治療を選ぼう。両方正解を通算4人でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "熱傷の深さと面積",
+            html: `<table><tr><th>I度</th><td>表皮。赤い・痛い。数日で治る</td></tr><tr><th>浅達性II度</th><td>真皮の浅い層。水疱の底が赤い・強く痛い。1〜2週、跡は残りにくい</td></tr><tr><th>深達性II度</th><td>真皮の深い層。水疱の底が白い・痛みが鈍い。3〜4週、瘢痕</td></tr><tr><th>III度</th><td>皮膚の全層。白〜黒・痛くない。植皮</td></tr></table><p>9の法則（成人）：頭9、腕は各9、体幹の前18・後ろ18、脚は各18、陰部1。小児は5の法則。</p><p>Parkland法：4 mL × 体重(kg) × 面積(%)。半分を最初の8時間で。</p>` },
+          data: burnContent },
         { id: "nines", no: 5, type: "Custom", kind: "tapMap", title: "9の法則", stampLabel: "9の法則",
           how: "やけどした場所を全部選び、面積を計算しよう。両方正解を通算4人でスタンプ。", data: ninesContent },
       ] },

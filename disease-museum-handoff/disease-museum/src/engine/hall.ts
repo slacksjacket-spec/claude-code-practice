@@ -34,7 +34,7 @@ function topbarHTML(total: number) {
   <div style="display:flex;gap:6px;align-items:center">
     <span class="coinPill" id="coinPill"><i class="coin"></i><span id="coins">0</span></span>
     <button class="snd" id="snd" aria-label="効果音の切り替え">♪</button>
-    <button class="stampPill" id="stampPill" aria-label="スタンプカードを開く"><span class="dots" id="dots"></span><span id="stampCount">0/${total}</span></button>
+    <button class="stampPill${total > 9 ? " many" : ""}" id="stampPill" aria-label="スタンプカードを開く"><span class="dots" id="dots"></span><span id="stampCount">0/${total}</span></button>
   </div>
 </div></div>`;
 }

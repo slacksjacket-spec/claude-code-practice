@@ -4,7 +4,8 @@ import type { CustomModule } from "../../../engine/exhibits/types";
 import type { MoleData } from "./mole.schema";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const PICK_COINS = 15, Q_COINS = 10, PX = 12; // 1 mm = 12 px
+import { STEP1_COINS, STEP2_COINS } from "../../../engine/games/twoStep";
+const PICK_COINS = STEP1_COINS, Q_COINS = STEP2_COINS, PX = 12; // 1 mm = 12 px
 const KEYS = [["A", "非対称"], ["B", "境界が不整"], ["C", "色むら"], ["D", "6 mm超"], ["E", "変化"]] as const;
 type L = MoleData["cases"][number]["lesion"];
 const truth = (l: L) => ({ A: l.asym, B: l.border, C: l.colors >= 2, D: l.size > 6, E: l.evolving });

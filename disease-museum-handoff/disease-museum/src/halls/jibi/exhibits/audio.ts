@@ -3,9 +3,11 @@ import "./audio.css";
 import type { CustomModule } from "../../../engine/exhibits/types";
 import type { AudioData } from "./audio.schema";
 import { AIR_F, BONE_F, HL_LABEL, type HlType } from "./audio.consts";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { esc } from "../../../engine/dom";
+import { twoStep } from "../../../engine/games/twoStep";
 
-const C1 = 12, C2 = 12, W = 340, H = 300, L = 40, R = 324, T = 26, B = 284;
+const HL_IDS = Object.keys(HL_LABEL) as HlType[];
+const W = 340, H = 300, L = 40, R = 324, T = 26, B = 284;
 const x = (f: number) => L + (Math.log2(f / 125) / 6) * (R - L);
 const y = (db: number) => T + ((db + 10) / 130) * (B - T);
 
@@ -25,35 +27,10 @@ function chart(c: AudioData["cases"][number]) {
 
 export const audiogram: CustomModule<AudioData> = {
   mount(root, ex, ctx) {
-    const d = ex.data, okKey = `${ex.id}.ok`;
-    let q = shuffle(d.cases), qi = 0;
-    function render() {
-      const c = q[qi % q.length];
-      let stage = 0, ok1 = false;
-      ctx.cheat.reset(ex.id);
-      root.innerHTML = `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
-        ${chart(c)}
-        <div class="stepLabel">① 聴力の型は？</div>
-        <div class="hlTypes">${(Object.keys(HL_LABEL) as HlType[]).map((k) => `<button class="opt" data-k="${k}">${HL_LABEL[k]}</button>`).join("")}</div>
-        <div class="step2"></div>`;
-      $$<HTMLButtonElement>(".hlTypes .opt", root).forEach((b) => (b.onclick = () => {
-        if (stage) return;
-        stage = 1; ok1 = b.dataset.k === c.answer;
-        $$<HTMLButtonElement>(".hlTypes .opt", root).forEach((x) => { x.disabled = true; if (x.dataset.k === c.answer) x.classList.add("right"); });
-        if (ok1) { ctx.sound.ding(); ctx.award(C1, b); } else { b.classList.add("wrong"); ctx.sound.boo(); }
-        const f = c.followUp, box = $(".step2", root);
-        box.innerHTML = `<div class="stepLabel">② ${esc(f.question)}</div><div class="opts">${f.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div><div class="fbBox"></div>`;
-        $$<HTMLButtonElement>(".opt", box).forEach((o) => (o.onclick = () => {
-          const ok = +o.dataset.i! === f.answer;
-          $$<HTMLButtonElement>(".opt", box).forEach((x) => { x.disabled = true; if (+x.dataset.i! === f.answer) x.classList.add("right"); });
-          if (ok) { ctx.sound.ding(); ctx.award(C2, o); ctx.cheat.rewardIfUnpeeked(ex.id, o); } else { o.classList.add("wrong"); ctx.sound.boo(); }
-          if (!ok || !ok1) ctx.miss({ id: `${ex.id}-${c.id}`, src: ex.title, q: `${c.story}（${HL_LABEL[c.answer]}）${f.question}`, opts: shuffle([f.options[f.answer], ...shuffle(f.options.filter((_, i) => i !== f.answer)).slice(0, 2)]), ans: f.options[f.answer] });
-          if (ok && ok1 && ctx.prog(okKey) >= d.stampAt) ctx.stamp(ex.id);
-          ctx.feedback($(".fbBox", box), ok && ok1, ok && ok1 ? "両方正解！" : ok ? "②は正解！" : `正解は「${esc(f.options[f.answer])}」`, `型：${HL_LABEL[c.answer]}。${esc(c.explanation)}<div style="margin-top:8px"><button class="btn next">次へ</button></div>`);
-          $(".next", box).onclick = () => { qi++; if (qi % q.length === 0) q = shuffle(d.cases); render(); };
-        }));
-      }));
-    }
-    render();
+    twoStep(root, ex, ctx, ex.data.cases, ex.data.stampAt, (c) => ({
+      head: `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>${chart(c)}`,
+      q1: "聴力の型は？", o1: HL_IDS.map((k) => HL_LABEL[k]), a1: HL_IDS.indexOf(c.answer), s1Class: "hlTypes",
+      f: c.followUp, lead: `型：${HL_LABEL[c.answer]}`, expl: c.explanation, miss: `${c.story}（${HL_LABEL[c.answer]}）`,
+    }));
   },
 };

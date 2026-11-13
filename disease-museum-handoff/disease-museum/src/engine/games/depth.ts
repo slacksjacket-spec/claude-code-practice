@@ -4,7 +4,8 @@ import type { CustomModule } from "../exhibits/types";
 import type { DepthData } from "./depth.schema";
 import { $, $$, esc, shuffle } from "../dom";
 
-const DEPTH_COINS = 10, TX_COINS = 15;
+import { STEP1_COINS, STEP2_COINS } from "./twoStep";
+const DEPTH_COINS = STEP1_COINS, TX_COINS = STEP2_COINS;
 const FILLS = ["#F7B8B0", "#FBE3C4", "#E8A0A0", "#FFF1D6", "#F3D1C0", "#E7E0F5"];
 
 /** 壁の断面：上が内腔。がんは上から target 層の中ほどまで届く */

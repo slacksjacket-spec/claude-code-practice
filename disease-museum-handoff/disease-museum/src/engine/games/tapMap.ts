@@ -4,7 +4,8 @@ import type { CustomModule } from "../exhibits/types";
 import type { TapMapData } from "./tapMap.schema";
 import { $, $$, esc, shuffle } from "../dom";
 
-const TAP_COINS = 15, FOLLOW_COINS = 10;
+import { STEP1_COINS, STEP2_COINS } from "./twoStep";
+const TAP_COINS = STEP1_COINS, FOLLOW_COINS = STEP2_COINS;
 
 export const tapMap: CustomModule<TapMapData> = {
   mount(root, ex, ctx) {

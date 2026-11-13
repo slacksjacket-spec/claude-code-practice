@@ -6,7 +6,8 @@ import type { CutoffData } from "./cutoff.schema";
 import { best, density, METRIC_LABEL, table, type Metric } from "./cutoff.consts";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const C1 = 20, C2 = 10, W = 340, H = 150, L = 10, R = 330, T = 10, B = 128, TOL = 0.03;
+import { STEP1_COINS, STEP2_COINS } from "../../../engine/games/twoStep";
+const C1 = STEP1_COINS, C2 = STEP2_COINS, W = 340, H = 150, L = 10, R = 330, T = 10, B = 128, TOL = 0.03;
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 const x = (v: number) => L + (v / 100) * (R - L);
 

@@ -3,7 +3,7 @@ import "./growth.css";
 import type { CustomModule } from "../../../engine/exhibits/types";
 import type { FeverData } from "./fever.schema";
 import { esc } from "../../../engine/dom";
-import { twoStep } from "./twoStep";
+import { twoStep } from "../../../engine/games/twoStep";
 
 const W = 340, H = 190, L = 34, R = 326, T = 14, B = 160;
 function chart(c: FeverData["cases"][number]) {

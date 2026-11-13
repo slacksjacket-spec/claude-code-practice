@@ -15,7 +15,7 @@ export const shockContent: GridData = {
   question: "どのショック？",
   treatQuestion: "最初の一手は？",
   treatments: ["止血と輸液・輸血", "原因の治療（再灌流）と強心薬", "胸腔の脱気", "心嚢穿刺", "アドレナリン筋注", "抗菌薬・輸液・ノルアドレナリン"],
-  stampAt: 5,
+  stampAt: 4,
   cases: [
     { ...M, id: "bleed", who: "30歳 男性（交通外傷）", signs: ["皮膚が冷たく湿っている", "頸静脈は虚脱", "骨盤骨折"], cell: "hypo", treatment: 0,
       explanation: "出血性ショック。骨盤の固定、輸血、塞栓や手術で止血。" },

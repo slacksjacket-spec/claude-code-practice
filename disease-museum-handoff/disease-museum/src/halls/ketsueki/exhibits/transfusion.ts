@@ -5,7 +5,8 @@ import type { TransfusionData } from "./transfusion.schema";
 import { compatible, PRODUCT_LABEL, TYPES } from "./transfusion.consts";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const COINS = 20;
+import { SINGLE_COINS } from "../../../engine/games/twoStep";
+const COINS = SINGLE_COINS;
 const show = (t: string) => t === "unknown" ? "不明" : t.replace("-", "（Rh−）").replace("+", "（Rh＋）");
 
 export const transfusion: CustomModule<TransfusionData> = {
