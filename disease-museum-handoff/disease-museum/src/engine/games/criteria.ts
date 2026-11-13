@@ -4,7 +4,8 @@ import type { CustomModule } from "../exhibits/types";
 import type { CriteriaData } from "./criteria.schema";
 import { $, $$, esc, shuffle } from "../dom";
 
-const PICK_COINS = 15, Q_COINS = 10;
+import { STEP1_COINS, STEP2_COINS } from "./twoStep";
+const PICK_COINS = STEP1_COINS, Q_COINS = STEP2_COINS;
 
 export const criteria: CustomModule<CriteriaData> = {
   mount(root, ex, ctx) {

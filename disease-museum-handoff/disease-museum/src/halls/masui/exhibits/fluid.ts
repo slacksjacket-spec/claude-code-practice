@@ -5,7 +5,8 @@ import type { FluidData } from "./fluid.schema";
 import { PRODUCTS, split, type Product } from "./fluid.consts";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const C1 = 15, C2 = 10;
+import { STEP1_COINS, STEP2_COINS } from "../../../engine/games/twoStep";
+const C1 = STEP1_COINS, C2 = STEP2_COINS;
 const near = (g: number, t: number) => Math.abs(g - t) <= Math.max(40, t * 0.2);
 
 export const fluidSpace: CustomModule<FluidData> = {

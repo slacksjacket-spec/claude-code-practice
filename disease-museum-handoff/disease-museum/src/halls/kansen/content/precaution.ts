@@ -12,7 +12,7 @@ export const precautionContent: GridData = {
     { id: "airborne", row: 0, col: 2, label: "空気予防策", sub: "陰圧個室・N95" },
   ],
   question: "どの予防策を加える？",
-  stampAt: 5,
+  stampAt: 4,
   cases: [
     { ...M, id: "tb", who: "70歳 男性", signs: ["喀痰の抗酸菌塗抹 陽性", "肺結核"], cell: "airborne",
       explanation: "結核は空気感染。陰圧個室、入室者はN95マスク。患者が部屋を出るときはサージカルマスク。" },

@@ -13,7 +13,7 @@ export const vasculitisContent: GridData = {
     { id: "ic", row: 0, col: 3, label: "免疫複合体" },
   ],
   question: "血管炎の大きさは？",
-  stampAt: 5,
+  stampAt: 4,
   cases: [
     { ...M, id: "takayasu", who: "25歳 女性", signs: ["左右の腕で血圧が違う", "脈が触れにくい", "微熱"], cell: "large",
       explanation: "高安動脈炎。若い女性。大動脈弓の枝の狭窄。" },

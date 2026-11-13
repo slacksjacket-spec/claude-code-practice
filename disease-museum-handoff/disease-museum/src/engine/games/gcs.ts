@@ -5,7 +5,8 @@ import type { GcsData } from "./gcs.schema";
 import { GCS, type GcsKey } from "./gcs.consts";
 import { $, $$, esc, shuffle } from "../dom";
 
-const COINS = 15, FOLLOW_COINS = 10;
+import { STEP1_COINS, STEP2_COINS } from "./twoStep";
+const COINS = STEP1_COINS, FOLLOW_COINS = STEP2_COINS;
 const NAME: Record<GcsKey, string> = { E: "E 開眼", V: "V 言葉", M: "M 運動" };
 
 export const gcs: CustomModule<GcsData> = {

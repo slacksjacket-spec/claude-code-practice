@@ -5,7 +5,8 @@ import type { EpiData } from "./epi.schema";
 import { ASK_LABEL, HEAD, solve, type Ask, type Design } from "./epi.consts";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const COINS = 18;
+import { SINGLE_COINS } from "../../../engine/games/twoStep";
+const COINS = SINGLE_COINS;
 
 export const epiCalc: CustomModule<EpiData> = {
   mount(root, ex, ctx) {

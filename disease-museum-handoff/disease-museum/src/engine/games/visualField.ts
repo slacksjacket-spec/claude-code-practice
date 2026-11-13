@@ -5,7 +5,8 @@ import type { VisualFieldData } from "./visualField.schema";
 import { LESIONS, LESION_IDS, type Field, type LesionId, type Quad } from "./visualField.consts";
 import { $, $$, esc, shuffle } from "../dom";
 
-const TAP_COINS = 15, FOLLOW_COINS = 10;
+import { STEP1_COINS, STEP2_COINS } from "./twoStep";
+const TAP_COINS = STEP1_COINS, FOLLOW_COINS = STEP2_COINS;
 const QUAD_PATH: Record<Quad, string> = { UL: "M50 50 L50 6 A44 44 0 0 0 6 50Z", UR: "M50 50 L94 50 A44 44 0 0 0 50 6Z", LL: "M50 50 L6 50 A44 44 0 0 0 50 94Z", LR: "M50 50 L50 94 A44 44 0 0 0 94 50Z" };
 
 function eye(qs: readonly Quad[], spare: boolean) {

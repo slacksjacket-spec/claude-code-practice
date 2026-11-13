@@ -3,9 +3,9 @@ import "./tox.css";
 import type { CustomModule } from "../../../engine/exhibits/types";
 import type { ToxData } from "./tox.schema";
 import { TOX, TOX_IDS, type Tox } from "./tox.consts";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { esc } from "../../../engine/dom";
+import { twoStep } from "../../../engine/games/twoStep";
 
-const C1 = 12, C2 = 12;
 const PUP = { miosis: 2.5, mydriasis: 9, normal: 5 }, BOWEL = { up: "亢進", down: "低下", normal: "正常" };
 
 function face(c: ToxData["cases"][number]) {
@@ -21,37 +21,16 @@ function face(c: ToxData["cases"][number]) {
 
 export const toxidrome: CustomModule<ToxData> = {
   mount(root, ex, ctx) {
-    const d = ex.data, okKey = `${ex.id}.ok`;
-    let q = shuffle(d.cases), qi = 0;
-    function render() {
-      const c = q[qi % q.length], ans = c.answer as Tox, v = c.vitals;
-      let stage = 0, ok1 = false;
-      ctx.cheat.reset(ex.id);
-      root.innerHTML = `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
+    twoStep(root, ex, ctx, ex.data.cases, ex.data.stampAt, (c) => {
+      const ans = c.answer as Tox, v = c.vitals;
+      return {
+        head: `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
         <div class="toxWrap">${face(c)}
           <div class="toxVit"><div><small>心拍数</small>${v.HR}</div><div><small>血圧</small>${esc(v.BP)}</div><div><small>呼吸数</small>${v.RR}</div><div><small>体温</small>${v.T}</div></div></div>
-        <div class="signs" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="chip">意識：${esc(c.mental)}</span><span class="chip">腸の音：${BOWEL[c.bowel]}</span></div>
-        <div class="stepLabel">① どの中毒症候群？</div>
-        <div class="toxTypes">${TOX_IDS.map((k) => `<button class="opt" data-k="${k}">${TOX[k]}</button>`).join("")}</div>
-        <div class="step2"></div>`;
-      $$<HTMLButtonElement>(".toxTypes .opt", root).forEach((b) => (b.onclick = () => {
-        if (stage) return;
-        stage = 1; ok1 = b.dataset.k === ans;
-        $$<HTMLButtonElement>(".toxTypes .opt", root).forEach((x) => { x.disabled = true; if (x.dataset.k === ans) x.classList.add("right"); });
-        if (ok1) { ctx.sound.ding(); ctx.award(C1, b); } else { b.classList.add("wrong"); ctx.sound.boo(); }
-        const f = c.followUp, box = $(".step2", root);
-        box.innerHTML = `<div class="stepLabel">② ${esc(f.question)}</div><div class="opts">${f.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div><div class="fbBox"></div>`;
-        $$<HTMLButtonElement>(".opt", box).forEach((o) => (o.onclick = () => {
-          const ok = +o.dataset.i! === f.answer;
-          $$<HTMLButtonElement>(".opt", box).forEach((x) => { x.disabled = true; if (+x.dataset.i! === f.answer) x.classList.add("right"); });
-          if (ok) { ctx.sound.ding(); ctx.award(C2, o); ctx.cheat.rewardIfUnpeeked(ex.id, o); } else { o.classList.add("wrong"); ctx.sound.boo(); }
-          if (!ok || !ok1) ctx.miss({ id: `${ex.id}-${c.id}`, src: ex.title, q: `${c.story}（${TOX[ans]}）${f.question}`, opts: shuffle([f.options[f.answer], ...shuffle(f.options.filter((_, i) => i !== f.answer)).slice(0, 2)]), ans: f.options[f.answer] });
-          if (ok && ok1 && ctx.prog(okKey) >= d.stampAt) ctx.stamp(ex.id);
-          ctx.feedback($(".fbBox", box), ok && ok1, ok && ok1 ? "両方正解！" : ok ? "②は正解！" : `正解は「${esc(f.options[f.answer])}」`, `${TOX[ans]}。${esc(c.explanation)}<div style="margin-top:8px"><button class="btn next">次の患者</button></div>`);
-          $(".next", box).onclick = () => { qi++; if (qi % q.length === 0) q = shuffle(d.cases); render(); };
-        }));
-      }));
-    }
-    render();
+        <div class="signs" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="chip">意識：${esc(c.mental)}</span><span class="chip">腸の音：${BOWEL[c.bowel]}</span></div>`,
+        q1: "どの中毒症候群？", o1: TOX_IDS.map((k) => TOX[k]), a1: TOX_IDS.indexOf(ans), s1Class: "toxTypes",
+        f: c.followUp, lead: TOX[ans], expl: c.explanation, miss: `${c.story}（${TOX[ans]}）`, next: "次の患者",
+      };
+    });
   },
 };

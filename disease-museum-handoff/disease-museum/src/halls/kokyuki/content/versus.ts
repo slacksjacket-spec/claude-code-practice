@@ -28,5 +28,16 @@ export const versusContent: ExhibitOf<"VersusQuiz">["data"] = {
         { text: "治療はイソニアジド・リファンピシンなど4剤から", side: "a" },
         { text: "治療はクラリスロマイシンを含む3剤", side: "b" },
       ] },
+    { ...M, id: "adeno-sclc", title: "肺腺癌 vs 小細胞肺癌",
+      a: { name: "肺腺癌", color: "cobalt", traits: ["末梢", "非喫煙者にも", "EGFR・ALK"] },
+      b: { name: "小細胞肺癌", color: "tomato", traits: ["肺門部", "喫煙", "腫瘍随伴症候群"] },
+      clues: [
+        { text: "肺の末梢の結節やすりガラス影", side: "a" },
+        { text: "肺門部の腫瘤と縦隔リンパ節の腫れ", side: "b" },
+        { text: "EGFR変異に分子標的薬が効く", side: "a" },
+        { text: "ProGRP・NSEが高い", side: "b" },
+        { text: "SIADHやLambert-Eaton症候群を合併", side: "b" },
+        { text: "タバコを吸わない女性にも多い", side: "a" },
+      ] },
   ],
 };

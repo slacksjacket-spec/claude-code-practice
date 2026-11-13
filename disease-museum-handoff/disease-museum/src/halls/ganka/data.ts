@@ -1,5 +1,6 @@
 // 眼ホール（NO.15）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { anatomyContent } from "./content/anatomy";
 import { redeyeContent } from "./content/redeye";
 import { versusContent } from "./content/versus";
@@ -19,19 +20,19 @@ export const hall: Hall = {
     viewBox: "0 0 600 400", ariaLabel: "眼ホールの館内図", hint: "タップすると、その展示室へ移動します",
     organs: [
       { go: "w-front", label: "目の前のほうのウィングへ",
-        svg: `<ellipse cx="150" cy="130" rx="100" ry="60" fill="#fff" stroke="#1C1537" stroke-width="4"/><circle cx="150" cy="130" r="42" fill="#6A8AC8"/><circle cx="150" cy="130" r="18" fill="#111"/><circle cx="162" cy="118" r="7" fill="#fff"/>
+        svg: `<ellipse cx="150" cy="130" rx="100" ry="60" fill="#fff" stroke="#1C1537" stroke-width="4"/><g class="eye"><circle cx="150" cy="130" r="42" fill="#6A8AC8"/><circle cx="150" cy="130" r="18" fill="#111"/><circle cx="162" cy="118" r="7" fill="#fff"/></g>
         <path d="M60 110 Q100 92 110 96" stroke="var(--tomato)" stroke-width="3" fill="none"/><path d="M240 150 Q210 170 196 164" stroke="var(--tomato)" stroke-width="3" fill="none"/>
         <text x="150" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">目の前のほう</text>` },
       { go: "w-back", label: "眼底と瞳孔のウィングへ",
         svg: `<circle cx="420" cy="130" r="70" fill="#D9622B" stroke="#1C1537" stroke-width="4"/><circle cx="392" cy="130" r="16" fill="#FFE2A8"/><circle cx="440" cy="130" r="8" fill="#A8401C"/>
         <path d="M392 120 C410 90 440 76 480 80 M392 140 C410 170 440 184 480 180" stroke="#9A1A12" stroke-width="4" fill="none"/>
-        <text x="420" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">眼底と瞳孔</text>` },
+        <text x="420" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">眼底と瞳孔</text>${face(435, 158, 0.7)}` },
       { go: "w-sys", label: "全身と目のウィングへ",
         svg: `<circle cx="150" cy="300" r="40" fill="#F6D9BE" stroke="#1C1537" stroke-width="4"/><circle class="eye" cx="136" cy="294" r="6" fill="#1C1537"/><circle class="eye" cx="164" cy="294" r="6" fill="#1C1537"/><path d="M140 316 Q150 322 160 316" stroke="#1C1537" stroke-width="3" fill="none"/>
         <text x="150" y="370" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">全身と目</text>` },
       { go: "w-er", label: "眼科ERへ",
         svg: `<circle cx="420" cy="310" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="420" y="323" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="420" y="305" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(420, 322, 0.7)}
         <text x="420" y="374" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">眼科ER</text>` },
     ],
   },
@@ -41,7 +42,11 @@ export const hall: Hall = {
         { id: "anatomy", no: 1, type: "Custom", kind: "tapMap", title: "眼球のどこ？", stampLabel: "眼球",
           how: "症状から、病気の場所を眼球の断面図でタップしよう。通算4回正解でスタンプ。", data: anatomyContent },
         { id: "redeye", no: 2, type: "DiagnosisLab", title: "赤い目ラボ", stampLabel: "赤い目",
-          how: "目が赤い患者が次々やってくる。予算内で検査を選んで診断しよう。4人正解でスタンプ。", data: redeyeContent },
+          how: "目が赤い患者が次々やってくる。予算内で検査を選んで診断しよう。4人正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "赤い目の見分け方",
+            html: `<table><tr><th>結膜充血</th><td>まぶたの裏に近いほど赤い。目やに。視力は保たれる（結膜炎）</td></tr><tr><th>毛様充血</th><td>黒目のまわりが赤い。痛み・まぶしさ・視力低下（角膜炎、ぶどう膜炎、急性緑内障）</td></tr><tr><th>目やに</th><td>膿性＝細菌、水っぽい＝ウイルス、かゆみ＝アレルギー</td></tr><tr><th>瞳孔</th><td>散大して動かない＝急性緑内障、小さくいびつ＝虹彩炎</td></tr></table><p>痛み・視力低下・まぶしさのどれかがあれば、急いで眼科へ。</p>` },
+          data: redeyeContent },
         { id: "versus", no: 3, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
           how: "ヒントがどちらの病気のものか左右で答えよう。6問中5問以上でスタンプ。", data: versusContent },
       ] },
@@ -58,7 +63,11 @@ export const hall: Hall = {
     { id: "w-sys", label: "全身と目", color: "mint", headline: "目に出る全身の病気",
       exhibits: [
         { id: "vision", no: 6, type: "Custom", kind: "grid", title: "視力低下の4マス", stampLabel: "視力低下",
-          how: "急にか、ゆっくりか。痛いか、痛くないか。視力低下を4マスに分けよう。通算4人正解でスタンプ。", data: visionContent },
+          how: "急にか、ゆっくりか。痛いか、痛くないか。視力低下を4マスに分けよう。通算4人正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "視力低下の見分け方",
+            html: `<table><tr><th>急・痛くない</th><td>網膜中心動脈閉塞症（cherry-red spot）、網膜静脈閉塞症、網膜剝離（飛蚊症・光視症）、硝子体出血</td></tr><tr><th>急・痛い</th><td>急性緑内障発作、角膜炎、視神経炎（目を動かすと痛い）</td></tr><tr><th>ゆっくり</th><td>白内障、開放隅角緑内障、加齢黄斑変性、糖尿病網膜症</td></tr></table>` },
+          data: visionContent },
         { id: "memory", no: 7, type: "MemoryMatch", title: "全身の病気と目 神経衰弱", stampLabel: "全身と目",
           how: "全身の病気と、その目の所見のカードをペアにしよう。全部そろえるとスタンプ。", data: memoryContent },
       ] },

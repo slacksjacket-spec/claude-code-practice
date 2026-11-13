@@ -1,5 +1,6 @@
 // 感染症ホール（NO.10）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { gramContent } from "./content/gram";
 import { spectrumContent } from "./content/spectrum";
 import { csfContent } from "./content/csf";
@@ -30,10 +31,10 @@ export const hall: Hall = {
         <text x="320" y="226" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">感染症の診断</text>` },
       { go: "w-ic", label: "感染対策のウィングへ",
         svg: `<path d="M470 80 C470 60 540 60 540 80 L540 150 C540 170 470 170 470 150Z" fill="#fff" stroke="#1C1537" stroke-width="4"/><path d="M470 100 L450 90 M540 100 L560 90" stroke="#1C1537" stroke-width="3"/><path d="M480 110 H530 M480 125 H530 M480 140 H530" stroke="#9EC8FF" stroke-width="3"/>
-        <text x="505" y="200" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">感染対策</text>` },
+        <text x="505" y="200" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">感染対策</text>${face(505, 88, 0.6)}` },
       { go: "w-er", label: "感染症ERへ",
         svg: `<circle cx="300" cy="320" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="333" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="315" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 332, 0.7)}
         <text x="300" y="384" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">感染症ER</text>` },
     ],
   },
@@ -51,7 +52,11 @@ export const hall: Hall = {
     { id: "w-dx", label: "感染症の診断", color: "cobalt", labelText: "light", headline: "どこから、何が？",
       exhibits: [
         { id: "csf", no: 3, type: "Custom", kind: "grid", title: "髄液を読む", stampLabel: "髄液",
-          how: "髄液の細胞と糖からマスを選び、治療を決めよう。両方正解を通算4人でスタンプ。", data: csfContent },
+          how: "髄液の細胞と糖からマスを選び、治療を決めよう。両方正解を通算4人でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "髄液の読み方",
+            html: `<table><tr><th>細菌性</th><td>多核球が増える、糖は低い、蛋白は高い</td></tr><tr><th>ウイルス性</th><td>リンパ球が増える、糖は正常</td></tr><tr><th>結核性・真菌性</th><td>リンパ球が増える、糖は低い。結核はADA高値、クリプトコッカスは墨汁染色</td></tr></table><p>正常：細胞数5/μL以下、糖は血糖の約2/3、蛋白15〜45 mg/dL。</p>` },
+          data: csfContent },
         { id: "travel", no: 4, type: "DiagnosisLab", title: "帰国後の発熱ラボ", stampLabel: "渡航",
           how: "海外から帰ってきた発熱の患者。予算内で検査を選んで診断しよう。4人正解でスタンプ。", data: travelContent },
         { id: "memory", no: 5, type: "MemoryMatch", title: "動物と虫 神経衰弱", stampLabel: "動物と虫",
@@ -62,7 +67,11 @@ export const hall: Hall = {
     { id: "w-ic", label: "感染対策", color: "mint", headline: "広げない",
       exhibits: [
         { id: "precaution", no: 7, type: "Custom", kind: "grid", title: "どの予防策？", stampLabel: "予防策",
-          how: "標準予防策に加えて、接触・飛沫・空気のどれが必要かを選ぼう。通算5人正解でスタンプ。", data: precautionContent },
+          how: "標準予防策に加えて、接触・飛沫・空気のどれが必要かを選ぼう。通算4人正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "感染経路別の予防策",
+            html: `<table><tr><th>空気</th><td>結核・麻疹・水痘。陰圧個室、N95マスク</td></tr><tr><th>飛沫</th><td>インフルエンザ・風疹・ムンプス・百日咳・髄膜炎菌・マイコプラズマ。サージカルマスク</td></tr><tr><th>接触</th><td>MRSAなどの耐性菌・C. difficile・ノロウイルス・疥癬。手袋とガウン</td></tr></table><p>どれも標準予防策（すべての患者の血液・体液・粘膜・傷は感染性があるとして扱う）に加えて行う。</p>` },
+          data: precautionContent },
       ] },
     { id: "w-er", label: "感染症ER", color: "tomato", labelText: "light", headline: "1時間以内に",
       exhibits: [

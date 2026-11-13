@@ -1,5 +1,6 @@
 // 救急・中毒ホール（NO.18）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { toxContent } from "./content/tox";
 import { memoryContent } from "./content/memory";
 import { fastContent } from "./content/fast";
@@ -25,13 +26,13 @@ export const hall: Hall = {
         <text x="130" y="246" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">中毒</text>` },
       { go: "w-trauma", label: "外傷とショックのウィングへ",
         svg: `<rect x="280" y="60" width="120" height="120" rx="24" fill="#fff" stroke="#1C1537" stroke-width="4"/><path d="M340 80 V160 M300 120 H380" stroke="var(--tomato)" stroke-width="20"/>
-        <text x="340" y="220" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">外傷とショック</text>` },
+        <text x="340" y="220" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">外傷とショック</text>${face(340, 116, 0.8)}` },
       { go: "w-mass", label: "災害と蘇生のウィングへ",
         svg: `${[["#FF5A5A", 460], ["#FFD84A", 495], ["#4CCB7A", 530], ["#2A2440", 565]].map(([c, x]) => `<rect x="${x}" y="80" width="28" height="56" rx="6" fill="${c}" stroke="#1C1537" stroke-width="3"/>`).join("")}
-        <text x="512" y="170" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">災害と蘇生</text>` },
+        <text x="512" y="170" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">災害と蘇生</text>${face(509, 104, 0.5)}` },
       { go: "w-er", label: "救急ERへ",
         svg: `<circle cx="300" cy="310" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="323" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="305" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 322, 0.7)}
         <text x="300" y="374" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">救急ER</text>` },
     ],
   },
@@ -51,7 +52,11 @@ export const hall: Hall = {
         { id: "fast", no: 3, type: "Custom", kind: "tapMap", title: "FASTで探せ", stampLabel: "FAST",
           how: "外傷の患者で、どこにエコーを当てれば液体（出血）が見つかるかをタップしよう。通算4回正解でスタンプ。", data: fastContent },
         { id: "shock", no: 4, type: "Custom", kind: "grid", title: "ショックの4分類", stampLabel: "ショック",
-          how: "所見からショックの種類を選び、最初の一手を決めよう。両方正解を通算5人でスタンプ。", data: shockContent },
+          how: "所見からショックの種類を選び、最初の一手を決めよう。両方正解を通算4人でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "ショックの4分類",
+            html: `<table><tr><th>循環血液量減少性</th><td>出血・脱水。頸静脈は虚脱、皮膚は冷たい</td></tr><tr><th>心原性</th><td>心筋梗塞・不整脈。頸静脈怒張、肺うっ血</td></tr><tr><th>閉塞性</th><td>緊張性気胸・心タンポナーデ・肺塞栓。頸静脈怒張</td></tr><tr><th>血液分布異常性</th><td>敗血症・アナフィラキシー・神経原性。皮膚は温かい</td></tr></table><p>頸静脈と皮膚の温かさで、まず大きく分ける。</p>` },
+          data: shockContent },
         { id: "versus", no: 5, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
           how: "ヒントがどちらの病気のものか左右で答えよう。6問中5問以上でスタンプ。", data: versusContent },
       ] },

@@ -2,9 +2,10 @@
 import "./masui.css";
 import type { CustomModule } from "../../../engine/exhibits/types";
 import type { AirwayData } from "./airway.schema";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { esc } from "../../../engine/dom";
+import { twoStep } from "../../../engine/games/twoStep";
 
-const C1 = 12, C2 = 12;
+const CLS = ["I", "II", "III", "IV"];
 const SEEN = ["", "軟口蓋・口峡・口蓋垂・口蓋弓が見える", "軟口蓋・口峡・口蓋垂が見える", "軟口蓋と口蓋垂の根元だけ見える", "硬口蓋しか見えない"];
 /** 舌の上端の高さで、奥がどこまで見えるかが変わる */
 function mouth(cls: number) {
@@ -25,36 +26,11 @@ function mouth(cls: number) {
 
 export const mallampati: CustomModule<AirwayData> = {
   mount(root, ex, ctx) {
-    const d = ex.data, okKey = `${ex.id}.ok`;
-    let q = shuffle(d.cases), qi = 0;
-    function render() {
-      const c = q[qi % q.length];
-      let stage = 0, ok1 = false;
-      ctx.cheat.reset(ex.id);
-      root.innerHTML = `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
-        ${mouth(c.cls)}
-        <div class="stepLabel">① Mallampati分類は？（座って口を大きく開け、舌を出し、声は出さない）</div>
-        <div class="classes s1">${[1, 2, 3, 4].map((k) => `<button class="opt" data-k="${k}">${["I", "II", "III", "IV"][k - 1]}</button>`).join("")}</div>
-        <div class="step2"></div>`;
-      $$<HTMLButtonElement>(".s1 .opt", root).forEach((b) => (b.onclick = () => {
-        if (stage) return;
-        stage = 1; ok1 = +b.dataset.k! === c.cls;
-        $$<HTMLButtonElement>(".s1 .opt", root).forEach((x) => { x.disabled = true; if (+x.dataset.k! === c.cls) x.classList.add("right"); });
-        if (ok1) { ctx.sound.ding(); ctx.award(C1, b); } else { b.classList.add("wrong"); ctx.sound.boo(); }
-        const f = c.followUp, box = $(".step2", root);
-        box.innerHTML = `<div class="stepLabel">② ${esc(f.question)}</div><div class="opts">${f.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div><div class="fbBox"></div>`;
-        $$<HTMLButtonElement>(".opt", box).forEach((o) => (o.onclick = () => {
-          const ok = +o.dataset.i! === f.answer;
-          $$<HTMLButtonElement>(".opt", box).forEach((x) => { x.disabled = true; if (+x.dataset.i! === f.answer) x.classList.add("right"); });
-          if (ok) { ctx.sound.ding(); ctx.award(C2, o); ctx.cheat.rewardIfUnpeeked(ex.id, o); } else { o.classList.add("wrong"); ctx.sound.boo(); }
-          if (!ok1) ctx.miss({ id: `${ex.id}-${c.id}-cls`, src: ex.title, q: `口を開けると「${SEEN[c.cls]}」。Mallampati分類は？`, opts: shuffle([`クラス${c.cls}`, ...shuffle([1, 2, 3, 4].filter((k) => k !== c.cls)).slice(0, 2).map((k) => `クラス${k}`)]), ans: `クラス${c.cls}` });
-          if (!ok) ctx.miss({ id: `${ex.id}-${c.id}`, src: ex.title, q: `${c.story}${f.question}`, opts: shuffle([f.options[f.answer], ...shuffle(f.options.filter((_, i) => i !== f.answer)).slice(0, 2)]), ans: f.options[f.answer] });
-          if (ok && ok1 && ctx.prog(okKey) >= d.stampAt) ctx.stamp(ex.id);
-          ctx.feedback($(".fbBox", box), ok && ok1, ok && ok1 ? "両方正解！" : ok ? "②は正解！" : `正解は「${esc(f.options[f.answer])}」`, `クラス${["I", "II", "III", "IV"][c.cls - 1]}：${SEEN[c.cls]}。${esc(c.explanation)}<div style="margin-top:8px"><button class="btn next">次の患者</button></div>`);
-          $(".next", box).onclick = () => { qi++; if (qi % q.length === 0) q = shuffle(d.cases); render(); };
-        }));
-      }));
-    }
-    render();
+    twoStep(root, ex, ctx, ex.data.cases, ex.data.stampAt, (c) => ({
+      head: `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>${mouth(c.cls)}`,
+      q1: "Mallampati分類は？（座って口を大きく開け、舌を出し、声は出さない）", o1: CLS.map((k) => `クラス${k}`), a1: c.cls - 1, s1Class: "classes",
+      f: c.followUp, lead: `クラス${CLS[c.cls - 1]}：${SEEN[c.cls]}`, expl: c.explanation,
+      miss: c.story, miss1: `口を開けると「${SEEN[c.cls]}」。Mallampati分類は？`, next: "次の患者",
+    }));
   },
 };

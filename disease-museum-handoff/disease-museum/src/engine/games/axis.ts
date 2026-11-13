@@ -4,7 +4,8 @@ import type { CustomModule } from "../exhibits/types";
 import type { AxisData } from "./axis.schema";
 import { $, $$, esc, shuffle } from "../dom";
 
-const ARROW_COINS = 15, Q_COINS = 10;
+import { STEP1_COINS, STEP2_COINS } from "./twoStep";
+const ARROW_COINS = STEP1_COINS, Q_COINS = STEP2_COINS;
 type D = "up" | "nl" | "down";
 const SYM: Record<D | "q", string> = { up: "↑", nl: "→", down: "↓", q: "？" };
 const NAME: Record<D, string> = { up: "上がる", nl: "正常", down: "下がる" };

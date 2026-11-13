@@ -4,7 +4,8 @@ import type { CustomModule } from "../exhibits/types";
 import type { MicroscopeData } from "./microscope.schema";
 import { $, $$, esc, shuffle } from "../dom";
 
-const FIND_COINS = 12, Q_COINS = 12, MISS_PENALTY = 3, R = 120;
+import { STEP1_COINS, STEP2_COINS } from "./twoStep";
+const FIND_COINS = STEP1_COINS, Q_COINS = STEP2_COINS, MISS_PENALTY = 3, R = 120;
 
 /** 重ならないように円の中へ並べる */
 function place(n: number, minGap = 26) {

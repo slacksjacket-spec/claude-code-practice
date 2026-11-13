@@ -1,5 +1,6 @@
 // 内分泌・代謝ホール（NO.06）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { axisContent } from "./content/axis";
 import { cushingContent } from "./content/cushing";
 import { thyroidContent } from "./content/thyroid";
@@ -36,7 +37,7 @@ export const hall: Hall = {
         <text x="490" y="262" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">膵島と糖代謝</text>` },
       { go: "w-er", label: "内分泌ERへ",
         svg: `<circle cx="300" cy="320" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="333" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="315" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 332, 0.7)}
         <text x="300" y="384" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">内分泌ER</text>` },
     ],
   },
@@ -44,7 +45,7 @@ export const hall: Hall = {
     { id: "w-axis", label: "視床下部・下垂体", color: "pink", headline: "上の階と下の階の会話",
       exhibits: [
         { id: "feedback", no: 1, type: "Custom", kind: "axis", title: "フィードバック矢印パズル", stampLabel: "ホルモン軸",
-          how: "視床下部→下垂体→標的臓器。検査値をヒントに、残りのホルモンが上がるか下がるかを矢印で予想し、原因を答えよう。両方正解を通算5回でスタンプ。",
+          how: "視床下部→下垂体→標的臓器。検査値をヒントに、残りのホルモンが上がるか下がるかを矢印で予想し、原因を答えよう。両方正解を通算4回でスタンプ。",
           cheatSheet: { ...D, title: "負のフィードバック",
             html: `<p>下の階のホルモンが増えると、上の階は出すのを控える。</p><table><tr><th>原発性（標的臓器）の亢進</th><td>上の階は ↓↓</td></tr><tr><th>原発性の低下</th><td>上の階は ↑↑</td></tr><tr><th>下垂体の亢進</th><td>下は ↑、上（視床下部）は ↓</td></tr><tr><th>下垂体の低下</th><td>下は ↓、上は ↑</td></tr></table>` },
           data: axisContent },
@@ -54,7 +55,11 @@ export const hall: Hall = {
     { id: "w-thyroid", label: "甲状腺・副甲状腺", color: "tomato", labelText: "light", headline: "表のどこに落ちる？",
       exhibits: [
         { id: "thyroid", no: 3, type: "Custom", kind: "grid", title: "甲状腺の9マス", stampLabel: "甲状腺",
-          how: "FT4とTSHの組み合わせからマスを選び、対応を決めよう。両方正解を通算4人でスタンプ。", data: thyroidContent },
+          how: "FT4とTSHの組み合わせからマスを選び、対応を決めよう。両方正解を通算4人でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "甲状腺中毒症の見分け方",
+            html: `<table><tr><th>バセドウ病</th><td>TRAb陽性、ヨウ素摂取率が高い。抗甲状腺薬・アイソトープ・手術</td></tr><tr><th>無痛性甲状腺炎</th><td>摂取率が低い。痛みなし。産後や橋本病に。自然に治る</td></tr><tr><th>亜急性甲状腺炎</th><td>摂取率が低い。痛みと発熱、CRP高値。NSAIDsやステロイド</td></tr></table><p>摂取率が低いものは、壊れた甲状腺からホルモンが漏れているだけ。抗甲状腺薬は効かない。</p><p>副腎不全を合併した機能低下症は、ステロイドを先に補う。</p>` },
+          data: thyroidContent },
         { id: "calcium", no: 4, type: "Custom", kind: "grid", title: "カルシウムとPTH", stampLabel: "Ca・PTH",
           how: "CaとPTHの組み合わせから、高Ca・低Caの原因を4マスで見分けよう。通算4人正解でスタンプ。", data: calciumContent },
       ] },

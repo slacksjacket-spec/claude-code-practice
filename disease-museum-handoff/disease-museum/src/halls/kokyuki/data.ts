@@ -1,5 +1,6 @@
 // 呼吸器ホール（NO.04）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { cxrContent } from "./content/cxr";
 import { lungSoundsContent } from "./content/lungSounds";
 import { spiroContent } from "./content/spiro";
@@ -7,13 +8,14 @@ import { abgContent } from "./content/abg";
 import { pleuralContent } from "./content/pleural";
 import { adropContent } from "./content/adrop";
 import { versusContent } from "./content/versus";
+import { lungcaContent } from "./content/lungca";
 import { scenarioContent } from "./content/scenario";
 
 const D = { review: "draft" as const, sources: [] as string[] };
 
 export const hall: Hall = {
   id: "kokyuki", no: 4, title: "呼吸器ホール",
-  catch: "聴いて、測って、読み解いて、息を取り戻す。展示をクリアしてスタンプを8つ集めよう。",
+  catch: "聴いて、測って、読み解いて、息を取り戻す。展示をクリアしてスタンプを9つ集めよう。",
   ticketNote: "肺音は合成した模式。まちがいは収蔵庫へ",
   map: {
     viewBox: "0 0 600 400", ariaLabel: "呼吸器ホールの館内図", hint: "タップすると、その展示室へ移動します",
@@ -28,14 +30,14 @@ export const hall: Hall = {
       { go: "w-func", label: "呼吸機能と血液ガスのウィングへ",
         svg: `<rect x="40" y="60" width="120" height="90" rx="14" fill="var(--sun)" stroke="#1C1537" stroke-width="4"/>
         <path d="M56 130 C70 70 90 72 100 100 C110 124 130 128 146 128" stroke="#1C1537" stroke-width="4" fill="none"/>
-        <text x="100" y="178" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">呼吸機能</text>` },
+        <text x="100" y="178" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">呼吸機能</text>${face(120, 90, 0.6)}` },
       { go: "w-dz", label: "病気を見きわめるウィングへ",
         svg: `<path d="M500 60 L500 100 L470 160 C464 176 476 186 490 186 L530 186 C544 186 556 176 550 160 L520 100 L520 60Z" fill="var(--mint)" stroke="#1C1537" stroke-width="4"/>
         <path d="M470 150 L550 150" stroke="#1C1537" stroke-width="3"/>
-        <text x="510" y="214" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">病気を見きわめる</text>` },
+        <text x="510" y="214" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">病気を見きわめる</text>${face(510, 168, 0.6)}` },
       { go: "w-er", label: "呼吸器ERへ",
         svg: `<circle cx="510" cy="300" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="510" y="313" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="510" y="295" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(510, 312, 0.7)}
         <text x="510" y="362" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">呼吸器ER</text>` },
     ],
   },
@@ -74,10 +76,15 @@ export const hall: Hall = {
           how: "肺炎の患者の情報から、A-DROPに当てはまる項目をタップして重症度を判定しよう。2回正解でスタンプ。", data: adropContent },
         { id: "versus", no: 7, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
           how: "ヒントがどちらの病気のものか左右で答えよう。6問中5問以上でスタンプ。", data: versusContent },
+        { id: "lungca", no: 8, type: "AlgorithmBoard", title: "肺癌 治療すごろく", stampLabel: "肺癌",
+          how: "組織型 → 病期 → 遺伝子。患者カードを見て分かれ道を選び、ゴールで治療を決めよう。まちがえるとコマが戻る。4人ゴールでスタンプ。",
+          cheatSheet: { ...D, title: "肺癌の組織型",
+            html: `<table><tr><th>腺癌</th><td>末梢。最も多い。非喫煙者・女性にも。EGFR変異・ALK融合遺伝子。CEA</td></tr><tr><th>扁平上皮癌</th><td>中枢（肺門）。喫煙。空洞をつくる。高Ca血症（PTHrP）。SCC・CYFRA</td></tr><tr><th>小細胞癌</th><td>中枢。喫煙。進行が速い。SIADH・異所性ACTH・Lambert-Eaton症候群。ProGRP・NSE</td></tr><tr><th>大細胞癌</th><td>末梢の大きな腫瘤</td></tr></table><p>肺尖部の癌はPancoast症候群（腕の痛み、Horner症候群）。縦隔への広がりで上大静脈症候群、嗄声（反回神経）。</p>` },
+          data: lungcaContent },
       ] },
     { id: "w-er", label: "呼吸器ER", color: "tomato", labelText: "light", headline: "息を取り戻す",
       exhibits: [
-        { id: "er", no: 8, type: "Custom", kind: "scenario", title: "呼吸器ER", stampLabel: "ER",
+        { id: "er", no: 9, type: "Custom", kind: "scenario", title: "呼吸器ER", stampLabel: "ER",
           how: "喘息の大発作、COPDの増悪、気胸。状況とバイタルを見て次の一手を選ぼう。ミス1回までならクリア、通算2シナリオでスタンプ。", data: scenarioContent },
       ] },
   ],
@@ -97,5 +104,5 @@ export const hall: Hall = {
       { ...D, id: "humidifier", name: "加湿器肺", rarity: 4, weight: 6, color: "#3D5AFE", text: "汚れた加湿器の微生物による過敏性肺炎。" },
     ],
   },
-  stampOrder: ["cxr", "lung", "spiro", "abg", "pleural", "adrop", "versus", "er"],
+  stampOrder: ["cxr", "lung", "spiro", "abg", "pleural", "adrop", "versus", "lungca", "er"],
 };

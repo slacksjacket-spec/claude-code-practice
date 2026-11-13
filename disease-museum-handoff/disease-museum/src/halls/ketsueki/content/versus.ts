@@ -28,5 +28,16 @@ export const versusContent: ExhibitOf<"VersusQuiz">["data"] = {
         { text: "血漿交換が第一選択", side: "b" },
         { text: "ステロイドやトロンボポエチン受容体作動薬", side: "a" },
       ] },
+    { ...M, id: "dic-ttp", title: "DIC vs TTP",
+      a: { name: "播種性血管内凝固", color: "sun", traits: ["凝固因子を使い果たす", "FDP高値", "基礎疾患"] },
+      b: { name: "血栓性血小板減少性紫斑病", color: "cobalt", traits: ["凝固は正常", "ADAMTS13", "血漿交換"] },
+      clues: [
+        { text: "PTが延び、フィブリノゲンが低い", side: "a" },
+        { text: "PT・APTT・フィブリノゲンは正常", side: "b" },
+        { text: "敗血症、急性前骨髄球性白血病、常位胎盤早期剝離が原因に", side: "a" },
+        { text: "ADAMTS13活性が著しく低い", side: "b" },
+        { text: "FDP・Dダイマーが著しく高い", side: "a" },
+        { text: "血小板輸血は原則しない", side: "b" },
+      ] },
   ],
 };

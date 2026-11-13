@@ -7,13 +7,16 @@ import { designContent } from "./content/design";
 import { memoryContent } from "./content/memory";
 import { preventionContent } from "./content/prevention";
 import { occupationalContent } from "./content/occupational";
+import { lawContent } from "./content/law";
+import { insuranceContent } from "./content/insurance";
+import { face } from "../../engine/face";
 import { scenarioContent } from "./content/scenario";
 
 const D = { review: "draft" as const, sources: [] as string[] };
 
 export const hall: Hall = {
   id: "koshu", no: 20, title: "公衆衛生ホール",
-  catch: "1人ではなく、集団を診る。表とカットオフで考えよう。展示をクリアしてスタンプを8つ集めよう。",
+  catch: "1人ではなく、集団を診る。表とカットオフで考えよう。展示をクリアしてスタンプを10つ集めよう。",
   ticketNote: "a・b・c・dの4つのマスに、答えがある。まちがいは収蔵庫へ",
   map: {
     viewBox: "0 0 600 400", ariaLabel: "公衆衛生ホールの館内図", hint: "タップすると、その展示室へ移動します",
@@ -22,17 +25,22 @@ export const hall: Hall = {
         svg: `<path d="M40 190 C80 190 90 80 130 80 C170 80 180 190 220 190" fill="var(--mint)" fill-opacity=".4" stroke="var(--mint)" stroke-width="4"/>
         <path d="M100 190 C140 190 150 70 190 70 C230 70 240 190 280 190" fill="var(--tomato)" fill-opacity=".35" stroke="var(--tomato)" stroke-width="4"/>
         <line x1="160" y1="50" x2="160" y2="200" stroke="var(--cobalt)" stroke-width="5"/>
-        <text x="160" y="230" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">検査を読む</text>` },
+        <text x="160" y="230" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">検査を読む</text>${face(200, 140, 0.7)}` },
       { go: "w-epi", label: "疫学のウィングへ",
         svg: `<rect x="350" y="60" width="160" height="120" rx="12" fill="#fff" stroke="#1C1537" stroke-width="4"/><path d="M430 60 V180 M350 120 H510" stroke="#1C1537" stroke-width="3"/>
-        ${[["a", 390, 100], ["b", 470, 100], ["c", 390, 160], ["d", 470, 160]].map(([t, x, y]) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Dela Gothic One" font-size="24" fill="#1C1537">${t}</text>`).join("")}
+        ${[["a", 390, 100], ["b", 470, 100], ["c", 390, 160]].map(([t, x, y]) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Dela Gothic One" font-size="24" fill="#1C1537">${t}</text>`).join("")}
+        ${face(470, 146, 0.6)}
         <text x="430" y="210" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">疫学</text>` },
       { go: "w-prev", label: "予防と職場のウィングへ",
-        svg: `<path d="M120 270 L180 250 L240 270 V320 C240 350 180 370 180 370 C180 370 120 350 120 320Z" fill="var(--sun)" stroke="#1C1537" stroke-width="4"/><path d="M160 310 L176 326 L204 290" stroke="#1C1537" stroke-width="6" fill="none"/>
-        <text x="180" y="394" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">予防と職場</text>` },
+        svg: `<path d="M120 270 L180 250 L240 270 V320 C240 350 180 370 180 370 C180 370 120 350 120 320Z" fill="var(--sun)" stroke="#1C1537" stroke-width="4"/><path d="M164 328 L178 342 L200 314" stroke="#1C1537" stroke-width="5" fill="none"/>
+        <text x="180" y="394" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">予防と職場</text>${face(180, 284, 0.7)}` },
+      { go: "w-system", label: "制度と法律のウィングへ",
+        svg: `<path d="M270 282 L310 252 L350 282Z" fill="var(--pink)" stroke="#1C1537" stroke-width="4" stroke-linejoin="round"/><rect x="276" y="282" width="68" height="62" rx="6" fill="#fff" stroke="#1C1537" stroke-width="4"/>
+        ${face(310, 306, 0.8)}
+        <text x="310" y="368" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">制度と法律</text>` },
       { go: "w-field", label: "公衆衛生の現場へ",
         svg: `<circle cx="430" cy="310" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="430" y="320" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">現場</text>
+        <text x="430" y="305" text-anchor="middle" font-family="Dela Gothic One" font-size="16" fill="#fff">現場</text>${face(430, 322, 0.7)}
         <text x="430" y="374" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">公衆衛生の現場</text>` },
     ],
   },
@@ -50,22 +58,36 @@ export const hall: Hall = {
     { id: "w-epi", label: "疫学", color: "mint", headline: "表から因果を考える",
       exhibits: [
         { id: "epi", no: 3, type: "Custom", kind: "epiCalc", title: "2×2表を計算せよ", stampLabel: "2×2表",
-          how: "研究の2×2表から、相対危険・オッズ比・リスク差・NNT・感度などを計算しよう。通算5問正解でスタンプ。", data: epiContent },
+          how: "研究の2×2表から、相対危険・オッズ比・リスク差・NNT・感度などを計算しよう。通算4問正解でスタンプ。", data: epiContent },
         { id: "design", no: 4, type: "Custom", kind: "grid", title: "研究デザインを見抜け", stampLabel: "研究デザイン",
-          how: "論文の要旨から研究デザインを選ぼう。通算5本正解でスタンプ。", data: designContent },
+          how: "論文の要旨から研究デザインを選ぼう。通算4本正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "研究デザインの見分け方",
+            html: `<table><tr><th>横断研究</th><td>ある一時点。有病率がわかる。因果の前後はわからない</td></tr><tr><th>症例対照研究</th><td>結果 → 過去の曝露。オッズ比。まれな病気向き。思い出しバイアス</td></tr><tr><th>コホート研究</th><td>曝露 → 将来の結果。罹患率、相対危険、寄与危険。まれな曝露向き</td></tr><tr><th>ランダム化比較試験</th><td>無作為に割り付けて介入。交絡をそろえる</td></tr><tr><th>メタアナリシス</th><td>複数の研究を統合。出版バイアスに注意</td></tr></table>` },
+          data: designContent },
         { id: "memory", no: 5, type: "MemoryMatch", title: "バイアス 神経衰弱", stampLabel: "バイアス",
           how: "バイアスの名前と、その例のカードをペアにしよう。全部そろえるとスタンプ。", data: memoryContent },
       ] },
     { id: "w-prev", label: "予防と職場", color: "sun", headline: "病気になる前に",
       exhibits: [
         { id: "prevention", no: 6, type: "Custom", kind: "grid", title: "予防の3段階", stampLabel: "予防",
-          how: "取り組みが一次・二次・三次予防のどれかを選ぼう。通算5つ正解でスタンプ。", data: preventionContent },
+          how: "取り組みが一次・二次・三次予防のどれかを選ぼう。通算4つ正解でスタンプ。", data: preventionContent },
         { id: "occupational", no: 7, type: "Custom", kind: "grid", title: "産業保健の3管理", stampLabel: "産業保健",
-          how: "職場の対策が、作業環境管理・作業管理・健康管理のどれかを選ぼう。通算5つ正解でスタンプ。", data: occupationalContent },
+          how: "職場の対策が、作業環境管理・作業管理・健康管理のどれかを選ぼう。通算4つ正解でスタンプ。", data: occupationalContent },
+      ] },
+    { id: "w-system", label: "制度と法律", color: "pink", headline: "医療を支えるしくみ",
+      exhibits: [
+        { id: "law", no: 8, type: "Custom", kind: "grid", title: "どの法律？", stampLabel: "法律",
+          how: "医師の義務、病院のきまり、届出、健診。どの法律のきまりかをマスで選ぼう。通算4つ正解でスタンプ。", data: lawContent },
+        { id: "insurance", no: 9, type: "AlgorithmBoard", title: "窓口負担すごろく", stampLabel: "医療保険",
+          how: "年齢と所得から、窓口で払う割合を決めよう。まちがえるとコマが戻る。4人ゴールでスタンプ。",
+          cheatSheet: { ...D, title: "医療保険と介護保険",
+            html: `<table><tr><th>被用者保険</th><td>会社員・公務員とその家族（協会けんぽ、健保組合、共済）</td></tr><tr><th>国民健康保険</th><td>自営業・無職など。都道府県と市町村</td></tr><tr><th>後期高齢者医療制度</th><td>75歳以上の全員。広域連合</td></tr></table><p>窓口負担：就学前2割、〜69歳3割、70〜74歳2割、75歳以上1割（所得により2〜3割）。高額療養費制度で上限あり。</p><table><tr><th>介護保険</th><td>保険者は市町村。第1号＝65歳以上、第2号＝40〜64歳（特定疾病のみ）。原則1割負担</td></tr><tr><th>要介護認定</th><td>市町村に申請 → 認定調査と主治医意見書 → 介護認定審査会。要支援1・2、要介護1〜5</td></tr></table>` },
+          data: insuranceContent },
       ] },
     { id: "w-field", label: "公衆衛生の現場", color: "tomato", labelText: "light", headline: "届け出て、広げない",
       exhibits: [
-        { id: "field", no: 8, type: "Custom", kind: "scenario", title: "公衆衛生の現場", stampLabel: "現場",
+        { id: "field", no: 10, type: "Custom", kind: "scenario", title: "公衆衛生の現場", stampLabel: "現場",
           how: "食中毒の集団発生、結核患者の発生、職場の熱中症。次の一手を選ぼう。ミス1回までならクリア、通算2シナリオでスタンプ。", data: scenarioContent },
       ] },
   ],
@@ -85,5 +107,5 @@ export const hall: Hall = {
       { ...D, id: "pump", name: "ブロード街のポンプ", rarity: 4, weight: 6, color: "#C8A27A", text: "John Snowがコレラの地図から止めた井戸。疫学のはじまり。" },
     ],
   },
-  stampOrder: ["cutoff", "versus", "epi", "design", "memory", "prevention", "occupational", "field"],
+  stampOrder: ["cutoff", "versus", "epi", "design", "memory", "prevention", "occupational", "law", "insurance", "field"],
 };

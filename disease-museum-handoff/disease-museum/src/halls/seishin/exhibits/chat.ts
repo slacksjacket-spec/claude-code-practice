@@ -4,7 +4,8 @@ import type { CustomModule } from "../../../engine/exhibits/types";
 import type { ChatData } from "./chat.schema";
 import { $, $$, esc, shuffle } from "../../../engine/dom";
 
-const LINE_COINS = 6, DX_COINS = 12;
+import { STEP2_COINS } from "../../../engine/games/twoStep";
+const LINE_COINS = 6, DX_COINS = STEP2_COINS;
 
 export const chat: CustomModule<ChatData> = {
   mount(root, ex, ctx) {

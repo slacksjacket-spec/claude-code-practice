@@ -13,7 +13,7 @@ export const allergyContent: GridData = {
     { id: "t4", row: 0, col: 3, label: "IV型" },
   ],
   question: "アレルギーの型は？",
-  stampAt: 5,
+  stampAt: 4,
   cases: [
     { ...M, id: "ana", who: "20歳 男性", signs: ["そばを食べて15分", "じんましん・喘鳴・血圧低下"], cell: "t1",
       explanation: "IgEが肥満細胞に結合し、抗原でヒスタミンなどが一気に出る。アナフィラキシー。" },

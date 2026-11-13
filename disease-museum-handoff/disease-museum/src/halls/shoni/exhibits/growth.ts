@@ -3,7 +3,7 @@ import "./growth.css";
 import type { CustomModule } from "../../../engine/exhibits/types";
 import type { GrowthData } from "./growth.schema";
 import { AGES, at, H_MEAN, H_SD, W_MEAN, W_SD } from "./growth.consts";
-import { twoStep } from "./twoStep";
+import { twoStep } from "../../../engine/games/twoStep";
 import { esc } from "../../../engine/dom";
 
 const W = 340, H = 260, L = 34, R = 300, T = 12, B = 232;
@@ -32,6 +32,6 @@ function chart(c: GrowthData["cases"][number]) {
 
 export const growth: CustomModule<GrowthData> = {
   mount(root, ex, ctx) {
-    twoStep(root, ex, ctx, ex.data.cases, ex.data.stampAt, (c) => ({ head: `<div class="pcard"><span class="tagk">${esc(c.who)}</span><div style="margin-top:6px;font-weight:800">${esc(c.story)}</div></div>${chart(c)}`, q1: c.question, o1: c.options, a1: c.answer, f: c.followUp, expl: c.explanation, miss: `${c.who}：${c.story}` }));
+    twoStep(root, ex, ctx, ex.data.cases, ex.data.stampAt, (c) => ({ head: `<div class="pcard"><span class="tagk">${esc(c.who)}</span><div style="margin-top:6px;font-weight:800">${esc(c.story)}</div></div>${chart(c)}`, q1: c.question, o1: c.options, a1: c.answer, f: c.followUp, expl: c.explanation, miss: `${c.who}：${c.story} ` }));
   },
 };

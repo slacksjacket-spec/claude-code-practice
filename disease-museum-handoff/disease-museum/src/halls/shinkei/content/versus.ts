@@ -28,5 +28,16 @@ export const versusContent: ExhibitOf<"VersusQuiz">["data"] = {
         { text: "MRIで中脳被蓋の萎縮（ハチドリ徴候）", side: "b" },
         { text: "L-ドパがよく効く", side: "a" },
       ] },
+    { ...M, id: "absence-focal", title: "欠神発作 vs 焦点意識減損発作",
+      a: { name: "欠神発作", color: "sun", traits: ["学童", "数秒", "3 Hz棘徐波"] },
+      b: { name: "焦点意識減損発作", color: "mint", traits: ["側頭葉", "自動症", "発作後もうろう"] },
+      clues: [
+        { text: "授業中に数秒ぼんやりして、すぐ元に戻る", side: "a" },
+        { text: "口をもぐもぐさせ、1〜2分反応がない", side: "b" },
+        { text: "深呼吸を続ける（過換気）と誘発される", side: "a" },
+        { text: "発作の前に、こみ上げる感じや既視感", side: "b" },
+        { text: "エトスクシミドやバルプロ酸", side: "a" },
+        { text: "発作のあとしばらくもうろうとしている", side: "b" },
+      ] },
   ],
 };

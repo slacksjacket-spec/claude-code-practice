@@ -1,6 +1,7 @@
 // 肝胆膵ホール（NO.03）。reference/kantansui_hall_v2.html（試作 ver.2）から移植。
 // 医学内容はすべて未レビュー（review: "draft"）。要レビューの箇所は TODO(review) と ROADMAP の一覧を参照。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 
 export const hall: Hall = {
   id: "kantansui",
@@ -20,7 +21,7 @@ export const hall: Hall = {
       {
         go: "w-marker", label: "マーカーの間へ",
         svg: `<path d="M300 250 C250 250 236 300 250 340 C266 386 360 392 380 350" fill="none" stroke="#FFB38A" stroke-width="44" stroke-linecap="round"/>
-        <text x="228" y="398" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">十二指腸（マーカーの間）</text>`,
+        <text x="228" y="398" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">十二指腸（マーカーの間）</text>${face(250, 305, 0.6)}`,
       },
       {
         go: "w-pan", label: "膵ウィングへ",
@@ -32,7 +33,7 @@ export const hall: Hall = {
       {
         go: "w-duct", label: "胆管ウィングへ",
         svg: `<path d="M300 170 C302 210 296 240 290 280" stroke="var(--bile)" stroke-width="18" fill="none" stroke-linecap="round"/>
-        <text x="312" y="236" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">胆管</text>`,
+        <text x="312" y="236" font-family="Dela Gothic One" font-size="16" fill="var(--ink)">胆管</text>${face(298, 215, 0.4)}`,
       },
       {
         go: "w-liver", label: "肝ウィングへ",
@@ -52,7 +53,7 @@ export const hall: Hall = {
       {
         go: "w-vs", label: "対決の間へ",
         svg: `<circle cx="530" cy="150" r="44" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="530" y="164" text-anchor="middle" font-family="Dela Gothic One" font-size="34" fill="#fff">VS</text>
+        <text x="530" y="145" text-anchor="middle" font-family="Dela Gothic One" font-size="22" fill="#fff">VS</text>${face(530, 163, 0.77)}
         <text x="530" y="214" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">対決の間</text>`,
       },
     ],

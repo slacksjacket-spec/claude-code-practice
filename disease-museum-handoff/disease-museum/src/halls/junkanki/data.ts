@@ -1,5 +1,6 @@
 // 循環器ホール（NO.01）。Phase 3。心電図は合成（ecg/）で、毎回ちがう波形が出る。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { RHYTHMS, PATTERNS } from "./content/ecgInfo";
 import { calipersContent } from "./content/calipers";
 import { twelveContent } from "./content/twelve";
@@ -44,7 +45,7 @@ export const hall: Hall = {
       {
         go: "w-er", label: "循環器ERへ",
         svg: `<circle cx="512" cy="112" r="50" fill="var(--cobalt)" stroke="#1C1537" stroke-width="4"/>
-        <text x="512" y="127" text-anchor="middle" font-family="Dela Gothic One" font-size="38" fill="#fff">ER</text>
+        <text x="512" y="106" text-anchor="middle" font-family="Dela Gothic One" font-size="25" fill="#fff">ER</text>${face(512, 127, 0.88)}
         <text x="512" y="186" text-anchor="middle" font-family="Dela Gothic One" font-size="15" fill="var(--ink)">循環器ER</text>`,
       },
     ],
@@ -72,7 +73,7 @@ export const hall: Hall = {
           how: "2本の線を動かして間隔を測り、正常かどうかを判定しよう。計測と判定の両方が正解を通算4回でスタンプ。",
           data: calipersContent },
         { id: "twelve", no: 3, type: "Custom", kind: "twelve", title: "12誘導読影", stampLabel: "12誘導",
-          how: "STが上がっている誘導をタップして、梗塞の部位と責任血管を当てよう。「所見当て」モードもある。通算5回の正解でスタンプ。",
+          how: "STが上がっている誘導をタップして、梗塞の部位と責任血管を当てよう。「所見当て」モードもある。通算4回の正解でスタンプ。",
           // TODO(review)
           cheatSheet: { ...D, sources: [], title: "ST上昇の誘導と部位",
             html: `<table><tr><th>V1〜V4</th><td>前壁中隔（左前下行枝）</td></tr><tr><th>V1〜V6、I、aVL</th><td>広範前壁（左前下行枝の近位部）</td></tr><tr><th>II、III、aVF</th><td>下壁（多くは右冠動脈）</td></tr><tr><th>I、aVL、V5、V6</th><td>側壁（左回旋枝）</td></tr><tr><th>V1〜V3のST低下＋高いR</th><td>後壁（V7〜V9で確認）</td></tr></table><p>冠動脈の支配に合わない広範なST上昇で鏡像変化がなければ、心膜炎を考える。</p>` },

@@ -3,9 +3,9 @@ import "./lungSounds.css";
 import type { CustomModule } from "../../../engine/exhibits/types";
 import type { LungSoundsData } from "./lungSounds.schema";
 import type { LungProfile } from "./lungSounds.consts";
-import { $, $$, esc, shuffle } from "../../../engine/dom";
+import { $, esc, shuffle } from "../../../engine/dom";
+import { twoStep } from "../../../engine/games/twoStep";
 
-const NAME_COINS = 12, DX_COINS = 12;
 const INS = 1.3, EXP = 1.9, CYC = INS + EXP; // 吸気・呼気（秒）
 
 /** 1呼吸のなかの付加音。phase は吸気/呼気、from/to はその相のなかの位置（0〜1） */
@@ -87,35 +87,18 @@ function play(p: LungProfile, breaths = 2) {
 
 export const lungSounds: CustomModule<LungSoundsData> = {
   mount(root, ex, ctx) {
-    const d = ex.data, okKey = `${ex.id}.ok`, allNames = Object.values(d.names);
-    let q = shuffle(d.cases), qi = 0;
-    function render() {
-      const c = q[qi % q.length], name = d.names[c.profile];
-      let nameOk = false;
-      const opts = shuffle([name, ...shuffle(allNames.filter((n) => n !== name)).slice(0, 4)]);
-      root.innerHTML = `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
+    const d = ex.data, allNames = Object.values(d.names);
+    twoStep(root, ex, ctx, d.cases, d.stampAt, (c) => {
+      const name = d.names[c.profile], opts = shuffle([name, ...shuffle(allNames.filter((n) => n !== name)).slice(0, 4)]);
+      return {
+        head: `<div class="finding" style="border:3px solid var(--line);border-radius:14px;background:var(--bg);padding:10px 12px;font-weight:800">${esc(c.story)}</div>
         <div class="row" style="margin:8px 0"><button class="btn play">▶ 聴く（2呼吸）</button><span class="small" style="font-weight:800;color:var(--sub)">イヤホン推奨。濃い部分が吸気</span></div>
-        ${wave(c.profile)}
-        <div class="stepLabel">① 聴こえる音は？</div><div class="opts n1">${opts.map((o) => `<button class="opt" data-a="${esc(o)}">${esc(o)}</button>`).join("")}</div><div class="step2"></div>`;
-      $(".play", root).onclick = () => play(c.profile);
-      $$<HTMLButtonElement>(".n1 .opt", root).forEach((b) => (b.onclick = () => {
-        nameOk = b.dataset.a === name;
-        $$<HTMLButtonElement>(".n1 .opt", root).forEach((x) => { x.disabled = true; if (x.dataset.a === name) x.classList.add("right"); });
-        if (nameOk) { ctx.sound.ding(); ctx.award(NAME_COINS, b); } else { b.classList.add("wrong"); ctx.sound.boo(); }
-        const box = $(".step2", root), dz = c.disease;
-        box.innerHTML = `<div class="stepLabel">② 考える病気は？</div><div class="opts">${dz.options.map((o, i) => `<button class="opt" data-i="${i}">${esc(o)}</button>`).join("")}</div><div class="fbBox"></div>`;
-        $$<HTMLButtonElement>(".opt", box).forEach((o) => (o.onclick = () => {
-          const ok = +o.dataset.i! === dz.answer;
-          $$<HTMLButtonElement>(".opt", box).forEach((x) => { x.disabled = true; if (+x.dataset.i! === dz.answer) x.classList.add("right"); });
-          if (ok) { ctx.sound.ding(); ctx.award(DX_COINS, o); } else { o.classList.add("wrong"); ctx.sound.boo(); }
-          if (!ok || !nameOk) ctx.miss({ id: `${ex.id}-${c.id}`, src: ex.title, q: `${c.story}（${name}が聴こえる）考える病気は？`, opts: shuffle([dz.options[dz.answer], ...shuffle(dz.options.filter((_, i) => i !== dz.answer)).slice(0, 2)]), ans: dz.options[dz.answer] });
-          if (ok && nameOk && ctx.prog(okKey) >= d.stampAt) ctx.stamp(ex.id);
-          const fb = $(".fbBox", box);
-          ctx.feedback(fb, ok && nameOk, ok && nameOk ? "両方正解！" : ok ? "病気は正解！" : `正解は「${esc(dz.options[dz.answer])}」`, `${esc(name)}。${esc(c.explanation)}<div style="margin-top:8px"><button class="btn next">次の患者</button></div>`);
-          $(".next", fb).onclick = () => { qi++; if (qi % q.length === 0) q = shuffle(d.cases); render(); };
-        }));
-      }));
-    }
-    render();
+        ${wave(c.profile)}`,
+        q1: "聴こえる音は？", o1: opts, a1: opts.indexOf(name), s1Class: "opts n1",
+        f: { question: "考える病気は？", options: c.disease.options, answer: c.disease.answer },
+        lead: name, expl: c.explanation, miss: `${c.story}（${name}が聴こえる）`, next: "次の患者",
+        after: (el) => { $(".play", el).onclick = () => play(c.profile); },
+      };
+    });
   },
 };

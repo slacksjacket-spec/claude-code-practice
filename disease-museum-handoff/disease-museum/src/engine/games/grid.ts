@@ -4,10 +4,11 @@ import type { CustomModule } from "../exhibits/types";
 import type { GridData } from "./grid.schema";
 import { $, $$, esc, shuffle } from "../dom";
 
+import { SINGLE_COINS, STEP1_COINS, STEP2_COINS } from "./twoStep";
 export const grid: CustomModule<GridData> = {
   mount(root, ex, ctx) {
     const d = ex.data, okKey = `${ex.id}.ok`, R = d.rowLabels.length, C = d.colLabels.length;
-    const cellCoins = d.treatments ? 10 : 15, TX_COINS = 15;
+    const cellCoins = d.treatments ? STEP1_COINS : SINGLE_COINS, TX_COINS = STEP2_COINS;
     let q = shuffle(d.cases), qi = 0;
     function render() {
       const c = q[qi % q.length], ans = d.cells.find((x) => x.id === c.cell)!;

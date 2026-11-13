@@ -12,7 +12,7 @@ export const preventionContent: GridData = {
     { id: "p3", row: 0, col: 2, label: "三次", sub: "悪化・再発を防ぐ" },
   ],
   question: "どの予防？",
-  stampAt: 5,
+  stampAt: 4,
   cases: [
     { ...M, id: "vac", who: "地域", signs: ["子どもへのMRワクチン"], cell: "p1", explanation: "予防接種は一次予防（特異的予防）。" },
     { ...M, id: "smoke", who: "職場", signs: ["禁煙の指導"], cell: "p1", explanation: "健康増進・生活習慣の改善は一次予防。" },

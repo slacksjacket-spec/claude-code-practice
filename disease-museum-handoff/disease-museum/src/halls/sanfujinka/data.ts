@@ -1,5 +1,6 @@
 // 産科・婦人科ホール（NO.11）。医学内容はすべて未レビュー（review: "draft"）。
 import type { Hall } from "../../engine/schema";
+import { face } from "../../engine/face";
 import { ctgContent } from "./content/ctg";
 import { orderContent } from "./content/order";
 import { abortionContent } from "./content/abortion";
@@ -30,7 +31,7 @@ export const hall: Hall = {
         <text x="365" y="196" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">婦人科</text>` },
       { go: "w-er", label: "産婦人科ERへ",
         svg: `<circle cx="300" cy="300" r="40" fill="var(--tomato)" stroke="#1C1537" stroke-width="4"/>
-        <text x="300" y="313" text-anchor="middle" font-family="Dela Gothic One" font-size="30" fill="#fff">ER</text>
+        <text x="300" y="295" text-anchor="middle" font-family="Dela Gothic One" font-size="20" fill="#fff">ER</text>${face(300, 312, 0.7)}
         <text x="300" y="364" text-anchor="middle" font-family="Dela Gothic One" font-size="14" fill="var(--ink)">産婦人科ER</text>` },
     ],
   },
@@ -45,14 +46,22 @@ export const hall: Hall = {
         { id: "order", no: 2, type: "Custom", kind: "order", title: "順番に並べよ", stampLabel: "順番",
           how: "回旋、分娩、思春期、卵胞の一生。カードを正しい順にタップしよう。ノーミスを通算3問でスタンプ。", data: orderContent },
         { id: "abortion", no: 3, type: "Custom", kind: "grid", title: "流産の5つのマス", stampLabel: "流産",
-          how: "子宮口と子宮の中の様子から流産の種類を選び、対応を決めよう。両方正解を通算4人でスタンプ。", data: abortionContent },
+          how: "子宮口と子宮の中の様子から流産の種類を選び、対応を決めよう。両方正解を通算4人でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "流産の分類",
+            html: `<table><tr><th>切迫流産</th><td>出血はあるが子宮口は閉じ、妊娠を続けられる</td></tr><tr><th>稽留流産</th><td>胎児（胎芽）は亡くなっているが、症状がなく子宮内にとどまる</td></tr><tr><th>進行流産</th><td>子宮口が開き、止められない</td></tr><tr><th>不全流産</th><td>一部が出て、一部が残る</td></tr><tr><th>完全流産</th><td>すべて出た</td></tr></table><p>流産は妊娠22週未満。12週未満が早期流産で、多くは胎児の染色体異常。</p>` },
+          data: abortionContent },
         { id: "versus", no: 4, type: "VersusQuiz", title: "ヒントはどっちの味方？", stampLabel: "対決",
           how: "ヒントがどちらの病気のものか左右で答えよう。6問中5問以上でスタンプ。", data: versusContent },
       ] },
     { id: "w-gyn", label: "婦人科", color: "mint", headline: "痛みと出血の正体",
       exhibits: [
         { id: "pelvis", no: 5, type: "Custom", kind: "tapMap", title: "骨盤の中のどこ？", stampLabel: "骨盤",
-          how: "症状から、病気の場所を子宮・卵管・卵巣・ダグラス窩の図でタップしよう。通算4回正解でスタンプ。", data: pelvisContent },
+          how: "症状から、病気の場所を子宮・卵管・卵巣・ダグラス窩の図でタップしよう。通算4回正解でスタンプ。",
+          // TODO(review) カンペの内容は記憶から書いた
+          cheatSheet: { ...D, title: "婦人科の病気の目印",
+            html: `<table><tr><th>子宮頸癌</th><td>HPV 16・18型。扁平上皮癌が多い。性交後の出血。SCC</td></tr><tr><th>子宮体癌</th><td>エストロゲン。類内膜癌。閉経後の不正出血</td></tr><tr><th>卵巣癌</th><td>症状が出にくい。漿液性癌が最多、CA125</td></tr><tr><th>子宮筋腫</th><td>過多月経と貧血。エストロゲンで大きくなる</td></tr><tr><th>子宮内膜症</th><td>月経痛・性交痛・不妊。チョコレート嚢胞、ダグラス窩の硬結</td></tr><tr><th>異所性妊娠</th><td>卵管膨大部が最多</td></tr></table>` },
+          data: pelvisContent },
         { id: "pain", no: 6, type: "DiagnosisLab", title: "下腹部痛ラボ", stampLabel: "下腹部痛",
           how: "下腹部痛の女性が次々やってくる。予算内で検査を選んで診断しよう。4人正解でスタンプ。", data: painContent },
         { id: "memory", no: 7, type: "MemoryMatch", title: "マーカー 神経衰弱", stampLabel: "マーカー",

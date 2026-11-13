@@ -4,7 +4,7 @@ import type { EpiData } from "../exhibits/epi.schema";
 const M = { review: "draft" as const, sources: [] as string[] };
 
 export const epiContent: EpiData = {
-  stampAt: 5,
+  stampAt: 4,
   cases: [
     { ...M, id: "rr", story: "喫煙者と非喫煙者を10年追いかけた（コホート研究）。", design: "cohort", table: [60, 940, 10, 990], ask: "rr", explanation: "6%÷1%＝6。喫煙者は6倍なりやすい。" },
     { ...M, id: "or", story: "病気の人（症例）と病気でない人（対照）に、過去の曝露を尋ねた（症例対照研究）。", design: "casecontrol", table: [80, 40, 20, 60], ask: "or", explanation: "症例対照研究では発症率が計算できないので、オッズ比で相対危険を近似する（まれな病気で近くなる）。" },
