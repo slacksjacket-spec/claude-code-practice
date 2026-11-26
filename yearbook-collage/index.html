@@ -53,6 +53,7 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 .otherlab span{background:rgba(255,255,255,.92);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;color:#5b544a;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .nopage{position:absolute;display:flex;align-items:center;justify-content:center;color:#9a9286;font-size:13px;background:repeating-linear-gradient(45deg,#eee9e0 0 8px,#f6f3ee 8px 16px)}
 .tab small{font-size:10px;margin-left:2px;opacity:.75}
+.projsec{background:#fbf6ee;margin:0 -14px;padding:6px 14px}
 .pgrow{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:2px 0 4px}
 .pgrow label{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--sub);gap:2px}
 .pgrow select{width:100%;padding:3px 2px}
@@ -67,6 +68,12 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 .mode-crop .cell{cursor:move}
 .cell .x{position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;border:0;padding:0;background:rgba(0,0,0,.6);color:#fff;font-size:12px;line-height:20px;display:none;cursor:pointer}
 .cell:hover .x{display:block}
+.cell .acts{position:absolute;right:3px;top:3px;left:3px;display:none;gap:3px;flex-wrap:wrap;justify-content:flex-end;pointer-events:none;z-index:2}
+.cell:hover .acts{display:flex}
+.cell .acts > button{position:static;display:block;pointer-events:auto;flex:none;height:20px;min-width:20px;border:0;border-radius:999px;padding:0 6px;font-size:11px;line-height:20px;background:rgba(0,0,0,.65);color:#fff;cursor:pointer;white-space:nowrap}
+.cell .acts > button:hover{background:#e0a106}
+.cell .acts > button.fit.on{background:#3a8a5a}
+.cell .acts > button.trim.on{background:#3a7bd0}
 .cell .trim{position:absolute;right:26px;top:3px;width:20px;height:20px;border-radius:50%;border:0;padding:0;background:rgba(0,0,0,.6);color:#fff;font-size:11px;line-height:20px;display:none;cursor:pointer}
 .cell:hover .trim{display:block}
 .cell .trim.on{background:#3a7bd0}
@@ -100,9 +107,9 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 .cell .rz{position:absolute;right:0;bottom:0;width:22px;height:22px;cursor:nwse-resize;display:none;touch-action:none;
   background:linear-gradient(135deg,transparent 45%,#e0a106 45%,#e0a106 60%,transparent 60%,transparent 70%,#e0a106 70%,#e0a106 85%,transparent 85%)}
 .cell:hover .rz{display:block}
-.cell .sz{position:absolute;left:4px;top:4px;font-size:11px;background:rgba(0,0,0,.7);color:#fff;border-radius:6px;padding:2px 6px;display:none;pointer-events:none}
+.cell .sz{position:absolute;left:4px;top:28px;font-size:11px;background:rgba(0,0,0,.7);color:#fff;border-radius:6px;padding:2px 6px;display:none;pointer-events:none}
 .cell:hover .sz,.cell.moving .sz{display:block}
-@media (hover:none){ .cell .ftb,.cell .rz,.cell .sz{display:flex} .cell .star,.cell .trim{display:block} }
+@media (hover:none){ .cell .ftb,.cell .rz,.cell .sz,.cell .acts{display:flex} }
 .ttl{position:absolute;white-space:nowrap;overflow:hidden;line-height:1;display:flex;align-items:center;pointer-events:none}
 .empty{border:2px dashed #c9c1b4;border-radius:16px;padding:40px;text-align:center;color:var(--sub);background:rgba(255,255,255,.6);max-width:520px}
 .empty b{display:block;font-size:18px;color:var(--ink);margin-bottom:8px}
@@ -126,6 +133,21 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 </header>
 <div class="app">
 <aside>
+  <details open class="projsec">
+    <summary>💾 保存・分担作業</summary>
+    <div class="btns">
+      <button id="btnSaveAll">💾 全学年を保存</button>
+      <button id="btnSaveCur">💾 この学年だけ保存</button>
+    </div>
+    <div class="btns">
+      <button id="btnOpen">📂 開く</button>
+      <button id="btnMerge">🧩 担当分を合体</button>
+    </div>
+    <p class="note">写真と配置（並び・大きさ・トリミング・設定）を1つの <b>.ybk ファイル</b>に保存します。途中保存にも使えます。<br>
+    <b>分担のしかた</b>：各担当が自分の学年を「この学年だけ保存」→ ファイルを渡す → まとめ役が「担当分を合体」（複数まとめて選べます）。<br>
+    写真はファイルに入るだけで、どこにもアップロードされません。</p>
+  </details>
+
   <details open>
     <summary>① 写真</summary>
     <div class="btns">
@@ -275,6 +297,7 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 <input type="file" id="fileIn" accept="image/*" multiple hidden>
 <input type="file" id="dirIn" webkitdirectory multiple hidden>
 <input type="file" id="distIn" accept="image/*" multiple hidden>
+<input type="file" id="projIn" accept=".ybk" multiple hidden>
 <div id="trim"><div class="tbox">
   <div class="thead"><b>✂ トリミング</b><span id="trimInfo"></span></div>
   <div id="trimStage"><img id="trimImg" alt=""><div id="trimRect"><i data-h="nw"></i><i data-h="n"></i><i data-h="ne"></i><i data-h="e"></i><i data-h="se"></i><i data-h="s"></i><i data-h="sw"></i><i data-h="w"></i></div></div>
@@ -585,7 +608,7 @@ const layoutCache = new Map();
 function layoutGrade(gi, photos = S.grades[gi].photos, seed = S.grades[gi].seed){
   const st = S.set, gp = gradePages(gi);
   const key = JSON.stringify([gi, gp.start, gp.n, seed, st.style, st.variety, st.pageW, st.pageH, st.mOuter, st.mInner, st.mTop, st.mBottom, st.gap,
-    st.titlePos, st.titlePt, st.featPos, st.featMax, photos.map(p => [p.w, p.h, p.feat ? 1 : 0, p.feat && p.fp ? [p.fp.page, p.fp.w, p.fp.cx, p.fp.cy] : 0])]);
+    st.titlePos, st.titlePt, st.featPos, st.featMax, photos.map(p => [p.w, p.h, p.feat ? 1 : 0, p.fit ? 1 : 0, p.feat && p.fp ? [p.fp.page, p.fp.w, p.fp.cx, p.fp.cy] : 0])]);
   if (layoutCache.has(key)) return structuredClone(layoutCache.get(key));
   const r = layoutGradeRaw(gi, photos, seed);
   if (layoutCache.size > 300) layoutCache.clear();
@@ -736,6 +759,13 @@ function layoutGradeRaw(gi, photos, seed){
   }
   let off = 0;
   cnt.forEach((v, k) => { for (const c of evalPage(k, off, off + v).cells) cells.push({ ...c, i:norm[c.i + off], gp:pages[k].gp }); off += v; });
+  for (const c of cells) {   // 「全体表示」の写真：割り当てられた枠の中で、元の比率のまま中央に置く（切らない）
+    const p = photos[c.i];
+    if (!p.fit || c.feat) continue;
+    const ar = p.w / p.h;
+    if (ar > c.w / c.h) { const h = c.w / ar; c.y += (c.h - h)/2; c.h = h; }
+    else { const w = c.h * ar; c.x += (c.w - w)/2; c.w = w; }
+  }
   if (s.style === 'scatter') {   // ちらし：少し大きくして傾け、重ねる
     const R = rng(seed*104729 + 7);
     for (const c of cells) {
@@ -832,10 +862,14 @@ function render(){
         if (!own) continue;
         el.dataset.idx = c.i;
         view.cells.set(c.i, c);
-        const x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.title = 'この写真を外す'; x.dataset.del = c.i;
-        el.appendChild(x);
-        const tr = document.createElement('button'); tr.className = 'trim' + (p.crop ? ' on' : ''); tr.textContent = '✂'; tr.title = 'トリミング（残す範囲を選ぶ）'; tr.dataset.trim = c.i;
-        el.appendChild(tr);
+        const acts = document.createElement('div'); acts.className = 'acts';
+        const narrow = D(c.w) < 130;
+        const cut = Math.abs(Math.log((c.w / c.h) / (p.w / p.h))) > 0.03 || p.z > 1.01;   // 枠に合わせて自動で切れている
+        if (!c.feat) acts.insertAdjacentHTML('beforeend', `<button class="star" data-feat="${c.i}" title="集合写真などを大きく載せる（あとで大きさ・場所を自由に変えられます）">${narrow ? '☆' : '☆ 大きく'}</button>`);
+        if (!c.feat && (cut || p.fit)) acts.insertAdjacentHTML('beforeend', `<button class="fit${p.fit ? ' on' : ''}" data-fit="${c.i}" title="${p.fit ? '枠いっぱいに戻す' : '切らずに全体を表示（元の比率に戻す）'}">${p.fit ? '⤡' : '⤢'}${narrow ? '' : (p.fit ? ' 枠に合わせる' : ' 全体')}</button>`);
+        acts.insertAdjacentHTML('beforeend', `<button class="trim${p.crop ? ' on' : ''}" data-trim="${c.i}" title="トリミング（残す範囲を選ぶ）">✂</button>`);
+        acts.insertAdjacentHTML('beforeend', `<button class="x" data-del="${c.i}" title="この写真を外す">×</button>`);
+        el.appendChild(acts);
         if (c.feat) {
           el.classList.add('featcell');
           const tb = document.createElement('div'); tb.className = 'ftb';
@@ -846,10 +880,6 @@ function render(){
           el.appendChild(tb);
           const rz = document.createElement('div'); rz.className = 'rz'; rz.title = 'ドラッグで大きさを変える'; el.appendChild(rz);
           const sz = document.createElement('div'); sz.className = 'sz'; sz.textContent = Math.round(c.w) + '×' + Math.round(c.h) + 'mm'; el.appendChild(sz);
-        } else {
-          const st = document.createElement('button'); st.className = 'star';
-          st.textContent = '☆ 大きく'; st.title = '集合写真などを大きく載せる（あとで大きさ・場所を自由に変えられます）'; st.dataset.feat = c.i;
-          el.appendChild(st);
         }
       }
     }
@@ -900,7 +930,7 @@ function renderStatus(lay){
   if (lay && lay.cells.length) txt += '　' + lay.counts.map((v, k) => `${k+1}p目 ${v}枚`).join('・');
   $('#status').innerHTML = txt;
   $('#hint').textContent = S.mode === 'swap'
-    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外す、✂でトリミング。☆で大きく → 大きい写真はドラッグで移動（この学年の別ページにも）、右下の角をドラッグ（またはホイール・－＋）で大きさ変更。'
+    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外す、✂でトリミング、⤢で切らずに全体表示。☆で大きく → 大きい写真はドラッグで移動（この学年の別ページにも）、右下の角をドラッグ（またはホイール・－＋）で大きさ変更。'
     : '写真をドラッグすると見せる位置がずれます。ホイールで拡大、ダブルクリックで元に戻ります。';
 }
 
@@ -956,7 +986,7 @@ function featCommand(p, cmd, step = 1.1){
   else if (cmd === 'unfeat') { p.feat = false; p.fp = null; }
 }
 $('#stage').addEventListener('pointerdown', e => {
-  if (e.target.dataset.del != null || e.target.dataset.feat != null || e.target.dataset.trim != null || e.target.closest('.ftb')) return;
+  if (e.target.closest('.acts') || e.target.closest('.ftb')) return;
   const cell = e.target.closest('.cell'); if (!cell || cell.dataset.idx == null || e.button !== 0) return;
   e.preventDefault();
   const idx = +cell.dataset.idx, p = S.grades[S.cur].photos[idx];
@@ -1037,6 +1067,14 @@ function endDrag(){
 $('#stage').addEventListener('pointerup', endDrag);
 $('#stage').addEventListener('pointercancel', endDrag);
 $('#stage').addEventListener('click', e => {
+  const fit = e.target.dataset.fit;
+  if (fit != null) {   // ワンタッチで元の比率（全体表示）⇔ 枠いっぱい
+    const p = S.grades[S.cur].photos[+fit];
+    p.fit = !p.fit;
+    if (p.fit && p.crop) { p.crop = null; p.w = p.ow; p.h = p.oh; }   // 手動トリミングも外して元の写真全体に
+    p.fx = p.fy = .5; p.z = 1;
+    render(); return;
+  }
   const ti = e.target.dataset.trim;
   if (ti != null) { openTrim(S.grades[S.cur].photos[+ti]); return; }
   const fi = e.target.dataset.feat;
@@ -1079,6 +1117,11 @@ stage.addEventListener('dragleave', () => stage.classList.remove('drag'));
 stage.addEventListener('drop', async e => {
   e.preventDefault(); stage.classList.remove('drag');
   const files = await filesFromDrop(e.dataTransfer);
+  const projs = files.filter(f => /\.ybk$/i.test(f.name));
+  if (projs.length) {   // .ybk を落としたら開く／合体
+    for (const f of projs) await loadProject(f, S.grades.some(g => g.photos.length) ? 'merge' : 'open');
+    return;
+  }
   importFiles(files, () => S.cur);
 });
 async function filesFromDrop(dt){
@@ -1590,6 +1633,157 @@ $('#trimOk').onclick = () => {
 };
 addEventListener('resize', () => { if (trim) layoutTrim(); });
 addEventListener('keydown', e => { if (trim && e.key === 'Escape') closeTrim(); });
+
+/* ---------- プロジェクトの保存・読み込み（分担作業用・サーバーなし） ---------- */
+// .ybk ＝ 無圧縮ZIP： project.json（並び・大きさ・トリミング・設定）＋ photos/（元の写真ファイルそのまま）
+async function makeZipAsync(entries, mime, onProg){
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0, done = 0;
+  for (const f of entries) {
+    const nm = enc.encode(f.name);
+    let data = f.data != null ? (typeof f.data === 'string' ? enc.encode(f.data) : f.data) : null, crc, size;
+    if (data) { crc = crc32(data); size = data.length; }
+    else { const buf = new Uint8Array(await f.blob.arrayBuffer()); crc = crc32(buf); size = buf.length; }   // CRCだけ計算し、中身は元のファイルを参照
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(12, 0x21, true); lh.setUint32(14, crc, true); lh.setUint32(18, size, true);
+    lh.setUint32(22, size, true); lh.setUint16(26, nm.length, true);
+    parts.push(lh, nm, data || f.blob);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(14, 0x21, true); ch.setUint32(16, crc, true); ch.setUint32(20, size, true);
+    ch.setUint32(24, size, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    central.push(ch, nm);
+    off += 30 + nm.length + size;
+    onProg && onProg(++done / entries.length);
+  }
+  const cd = central.reduce((a, b) => a + b.byteLength, 0), e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, entries.length, true); e.setUint16(10, entries.length, true);
+  e.setUint32(12, cd, true); e.setUint32(16, off, true);
+  return new Blob([...parts, ...central, e], { type:mime });
+}
+async function readZip(blob){
+  const from = Math.max(0, blob.size - 22 - 65535);
+  const tail = new DataView(await blob.slice(from).arrayBuffer());
+  let e = -1;
+  for (let i = tail.byteLength - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error('プロジェクトファイル（.ybk）ではありません');
+  const count = tail.getUint16(e + 10, true), cdSize = tail.getUint32(e + 12, true), cdOff = tail.getUint32(e + 16, true);
+  const cd = new DataView(await blob.slice(cdOff, cdOff + cdSize).arrayBuffer());
+  const dec = new TextDecoder(), list = new Map();
+  let q = 0;
+  for (let i = 0; i < count; i++) {
+    if (cd.getUint32(q, true) !== 0x02014b50) throw new Error('ファイルが壊れています');
+    const nl = cd.getUint16(q + 28, true), xl = cd.getUint16(q + 30, true), cl = cd.getUint16(q + 32, true);
+    list.set(dec.decode(new Uint8Array(cd.buffer, cd.byteOffset + q + 46, nl)),
+      { method:cd.getUint16(q + 10, true), size:cd.getUint32(q + 20, true), lo:cd.getUint32(q + 42, true) });
+    q += 46 + nl + xl + cl;
+  }
+  const get = async name => {
+    const en = list.get(name);
+    if (!en) return null;
+    if (en.method !== 0) throw new Error('圧縮し直されたファイルには対応していません（アプリで保存した .ybk をそのまま使ってください）');
+    const lh = new DataView(await blob.slice(en.lo, en.lo + 30).arrayBuffer());
+    const start = en.lo + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+    return blob.slice(start, start + en.size);
+  };
+  return { get };
+}
+const ymd = () => { const d = new Date(); return `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}`; };
+async function saveProject(scope){
+  const list = (scope === 'cur' ? [S.cur] : [0, 1, 2, 3, 4, 5]).filter(gi => S.grades[gi].photos.length);
+  if (!list.length) { alert(scope === 'cur' ? 'この学年には写真がありません。' : '保存する写真がありません。'); return; }
+  const entries = [], proj = { app:'yearbook-collage', version:1, savedAt:new Date().toISOString(), scope, settings:S.set, grades:[] };
+  for (const gi of list) {
+    const g = S.grades[gi];
+    const photos = g.photos.map((p, k) => {
+      const ext = ((p.name.match(/\.[A-Za-z0-9]{1,5}$/) || ['.jpg'])[0]).toLowerCase();
+      const path = `photos/g${gi + 1}_${String(k + 1).padStart(4, '0')}${ext}`;
+      entries.push({ name:path, blob:p.file });
+      return { file:path, name:p.name, type:p.file.type || 'image/jpeg', lastModified:p.file.lastModified || 0, date:p.date,
+               crop:p.crop || null, fx:p.fx, fy:p.fy, z:p.z, feat:!!p.feat, fp:p.fp || null, fit:!!p.fit };
+    });
+    proj.grades.push({ index:gi, title:S.set.titles[gi], sort:g.sort, seed:g.seed, photos });
+  }
+  entries.unshift({ name:'project.json', data:JSON.stringify(proj) });
+  const total = entries.reduce((a, en) => a + (en.blob ? en.blob.size : 0), 0);
+  if (total > 3.8e9) { alert(`写真の合計が ${(total/1e9).toFixed(1)}GB あり、1ファイルにまとめられません（上限は約3.8GB）。\n「この学年だけ保存」で学年ごとに分けて保存してください。`); return; }
+  try {
+    const blob = await makeZipAsync(entries, 'application/octet-stream', f => overlay(true, `保存中…（写真をまとめています ${Math.round(f*100)}%）`, f));
+    download(blob, scope === 'cur' ? `yearbook_grade${S.cur + 1}_${ymd()}.ybk` : `yearbook_all_${ymd()}.ybk`);
+  } catch (err) { alert('保存に失敗しました：' + err.message); }
+  finally { overlay(false); }
+}
+// mode: 'open'＝今の作業を閉じて開く／'merge'＝ファイルに入っている学年だけ取り込む（担当分の合体）
+async function loadProject(file, mode){
+  let zip, proj;
+  try {
+    zip = await readZip(file);
+    const j = await zip.get('project.json');
+    if (!j) throw new Error('プロジェクトファイル（.ybk）ではありません');
+    proj = JSON.parse(await j.text());
+    if (proj.app !== 'yearbook-collage') throw new Error('このアプリのプロジェクトファイルではありません');
+  } catch (err) { alert('読み込めませんでした：' + err.message); return; }
+  const incoming = (proj.grades || []).filter(gr => gr.photos && gr.photos.length && gr.index >= 0 && gr.index < 6);
+  if (!incoming.length) { alert('このファイルには写真が入っていません。'); return; }
+  let targets = [];
+  const notes = [];
+  if (mode === 'open') {
+    if (S.grades.some(g => g.photos.length) && !confirm('今の作業を閉じて、このファイルを開きます。\n保存していない変更は消えますが、よろしいですか？')) return;
+    S.set = Object.assign({}, DEFAULTS, proj.settings || {});
+    S.set.titles = [...S.set.titles]; S.set.pages = [...S.set.pages];
+    S.grades.forEach(g => { g.photos.forEach(p => URL.revokeObjectURL(p.thumb)); g.photos = []; });
+    targets = incoming;
+  } else {
+    for (const gr of incoming) {
+      const g = S.grades[gr.index];
+      if (g.photos.length && !confirm(`${gr.index + 1}年には今 ${g.photos.length}枚 入っています。\nファイルの ${gr.photos.length}枚 で置き換えますか？\n\nOK＝置き換える ／ キャンセル＝${gr.index + 1}年は取り込まない`)) continue;
+      targets.push(gr);
+    }
+    if (!targets.length) return;
+    const fp = proj.settings && proj.settings.pages;
+    if (fp && JSON.stringify(fp) !== JSON.stringify(S.set.pages))
+      notes.push(`※ ファイル側と「学年ごとのページ数」の設定が違います（ファイル：${fp.join('/')}、今：${S.set.pages.join('/')}）。今の設定のまま取り込みました。`);
+  }
+  const total = targets.reduce((a, gr) => a + gr.photos.length, 0), fails = [];
+  let done = 0;
+  overlay(true, `読み込み中… 0 / ${total}`, 0);
+  try {
+    for (const gr of targets) {
+      const items = new Array(gr.photos.length);
+      await pool(gr.photos, 4, async (m, k) => {
+        try {
+          const blob = await zip.get(m.file);
+          if (!blob) throw new Error('missing');
+          const p = await makePhoto(new File([blob], m.name, { type:m.type || 'image/jpeg', lastModified:m.lastModified || 0 }));
+          Object.assign(p, { date:m.date ?? p.date, fx:m.fx ?? .5, fy:m.fy ?? .5, z:m.z ?? 1, feat:!!m.feat, fp:m.fp || null, crop:m.crop || null, fit:!!m.fit });
+          if (p.crop) { p.w = p.ow * (1 - p.crop.l - p.crop.r); p.h = p.oh * (1 - p.crop.t - p.crop.b); }
+          items[k] = p;
+        } catch { fails.push(m.name); }
+        done++; overlay(true, `読み込み中… ${done} / ${total}`, done / total);
+      });
+      const g = S.grades[gr.index];
+      g.photos.forEach(p => URL.revokeObjectURL(p.thumb));
+      g.photos = items.filter(Boolean);
+      g.sort = gr.sort || 'manual'; g.seed = gr.seed || 1;
+      if (gr.title != null) S.set.titles[gr.index] = gr.title;
+    }
+  } finally { overlay(false); }
+  saveSettings(); layoutCache.clear();
+  S.cur = targets[0].index; render();
+  let msg = `${targets.map(gr => `${gr.index + 1}年（${gr.photos.length}枚）`).join('・')} を${mode === 'open' ? '開きました' : '取り込みました'}。`;
+  if (fails.length) msg += `\n\n${fails.length}枚は読み込めませんでした：\n${fails.slice(0, 10).join('\n')}`;
+  if (notes.length) msg += '\n\n' + notes.join('\n');
+  alert(msg);
+}
+let projMode = 'open';
+$('#btnSaveAll').onclick = () => saveProject('all');
+$('#btnSaveCur').onclick = () => saveProject('cur');
+$('#btnOpen').onclick = () => { projMode = 'open'; $('#projIn').click(); };
+$('#btnMerge').onclick = () => { projMode = 'merge'; $('#projIn').click(); };
+$('#projIn').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  for (const f of files) await loadProject(f, files.length > 1 ? 'merge' : projMode);   // 複数選んだら全部合体
+};
 
 render();
 </script>
