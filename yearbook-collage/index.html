@@ -475,7 +475,7 @@ function partition(a, k){
   for (let j = k; j >= 1; j--) { const p = back[j-1][i]; groups.unshift([p, i]); i = p; }
   return groups;
 }
-function justify(ars, W, H, gap){
+function justify(ars, W, H, gap, fits = []){
   const n = ars.length;
   if (!n) return { cells:[], score:0 };
   let best = null;
@@ -495,7 +495,15 @@ function justify(ars, W, H, gap){
   const cells = []; let y = 0;
   best.groups.forEach(([a,b], gi) => {
     const rh = best.hs[gi] * best.s; let x = 0;
-    for (let i = a; i < b; i++) { const w = ars[i]*best.hs[gi]; cells.push({ i, x, y, w, h:rh }); x += w + gap; }
+    // 全体表示の写真はその比率どおりの幅（切れない）。行の残りの幅は、同じ行のほかの写真で分け合う
+    const avail = W - (b-a-1)*gap;
+    let fixedW = 0, flexAr = 0;
+    for (let i = a; i < b; i++) { if (fits[i]) fixedW += ars[i]*rh; else flexAr += ars[i]; }
+    const k = flexAr > 0 && fixedW > 0 && fixedW < avail*0.85 ? (avail - fixedW) / flexAr : 0;
+    for (let i = a; i < b; i++) {
+      const w = k ? (fits[i] ? ars[i]*rh : ars[i]*k) : ars[i]*best.hs[gi];
+      cells.push({ i, x, y, w, h:rh }); x += w + gap;
+    }
     y += rh + gap;
   });
   return { cells, score:best.score };
@@ -594,14 +602,14 @@ function mosaic(ars, W, H, gap, seed){
   }
   return best;
 }
-function layoutPage(ars, W, H, gap, seed){
+function layoutPage(ars, W, H, gap, seed, fits = []){
   const st = S.set.style;
   if (st === 'cols') {
-    const r = justify(ars.map(a => 1/a), H, W, gap);
+    const r = justify(ars.map(a => 1/a), H, W, gap, fits);
     return { score:r.score, cells:r.cells.map(c => ({ i:c.i, x:c.y, y:c.x, w:c.h, h:c.w })) };
   }
   if (st === 'mosaic' || st === 'scatter') return mosaic(ars, W, H, gap, seed);
-  return justify(ars, W, H, gap);
+  return justify(ars, W, H, gap, fits);
 }
 function strokeW(){ return S.set.style === 'scatter' ? Math.max(S.set.stroke, 2) : S.set.stroke; }
 const layoutCache = new Map();
@@ -688,7 +696,7 @@ function insetShared(rects, gap){
   });
 }
 // 写真（並び順のまま）を空きの長方形に面積の比で配り、それぞれをレイアウト
-function layoutRegions(ars, rects, gap, seed){
+function layoutRegions(ars, rects, gap, seed, fits = []){
   const m = ars.length;
   if (!m || !rects.length) return { cells:[], score: m ? 5 : 0 };
   const tot = rects.reduce((a, r) => a + r.w*r.h, 0);
@@ -698,10 +706,12 @@ function layoutRegions(ars, rects, gap, seed){
   const cells = []; let score = 0, off = 0;
   rects.forEach((r, k) => {
     const sub = ars.slice(off, off + cnt[k]);
-    const res = layoutPage(sub, r.w, r.h, gap, seed*13 + k);
+    const res = layoutPage(sub, r.w, r.h, gap, seed*13 + k, fits.slice(off, off + cnt[k]));
     for (const c of res.cells) {
       cells.push({ ...c, i:c.i + off, x:c.x + r.x, y:c.y + r.y });
-      score += Math.max(0, Math.abs(Math.log((c.w/c.h) / sub[c.i])) - 0.3) * 3 / m;   // 大きく切れる写真は強めに減点
+      const mis = Math.abs(Math.log((c.w/c.h) / sub[c.i]));
+      score += Math.max(0, mis - 0.3) * 3 / m;   // 大きく切れる写真は強めに減点
+      if (fits[off + c.i]) score += mis * 2 / m;   // 全体表示の写真：形が合わないぶん余白になる
     }
     score += res.score * sub.length / m;
     if (!sub.length) score += 0.3 * (r.w*r.h) / tot;   // 空きが残るのは減点
@@ -728,7 +738,7 @@ function layoutGradeRaw(gi, photos, seed){
     pg.options = pg.f.length ? [freeRects(pg, occ, false), freeRects(pg, occ, true)] : [[{ x:pg.x, y:pg.y, w:pg.w, h:pg.h }]];
     pg.area = pg.options[0].reduce((a, r) => a + r.w*r.h, 0);
   });
-  const ars = norm.map(i => photos[i].w / photos[i].h), m = ars.length;
+  const ars = norm.map(i => photos[i].w / photos[i].h), m = ars.length, fits = norm.map(i => !!photos[i].fit);
   const totA = pages.reduce((a, pg) => a + pg.area, 0);
   const ideal = pages.map(pg => totA ? m * pg.area / totA : m / n);
   let cnt = ideal.map(Math.floor), left = m - cnt.reduce((a, b) => a + b, 0);
@@ -739,7 +749,7 @@ function layoutGradeRaw(gi, photos, seed){
     if (memo.has(key)) return memo.get(key);
     const sub = ars.slice(a, b);
     const r = !pages[k].area ? { cells:[], score: sub.length * 5 }
-      : pages[k].options.map(o => layoutRegions(sub, o, gap, seed*7 + k)).reduce((x, y) => y.score < x.score ? y : x);
+      : pages[k].options.map(o => layoutRegions(sub, o, gap, seed*7 + k, fits.slice(a, b))).reduce((x, y) => y.score < x.score ? y : x);
     memo.set(key, r); return r;
   };
   const total = c => { let off = 0, sc = 0; c.forEach((v, k) => { sc += evalPage(k, off, off + v).score + Math.abs(v - ideal[k])*0.05; off += v; }); return sc; };
@@ -866,7 +876,7 @@ function render(){
         const narrow = D(c.w) < 130;
         const cut = Math.abs(Math.log((c.w / c.h) / (p.w / p.h))) > 0.03 || p.z > 1.01;   // 枠に合わせて自動で切れている
         if (!c.feat) acts.insertAdjacentHTML('beforeend', `<button class="star" data-feat="${c.i}" title="集合写真などを大きく載せる（あとで大きさ・場所を自由に変えられます）">${narrow ? '☆' : '☆ 大きく'}</button>`);
-        if (!c.feat && (cut || p.fit)) acts.insertAdjacentHTML('beforeend', `<button class="fit${p.fit ? ' on' : ''}" data-fit="${c.i}" title="${p.fit ? '枠いっぱいに戻す' : '切らずに全体を表示（元の比率に戻す）'}">${p.fit ? '⤡' : '⤢'}${narrow ? '' : (p.fit ? ' 枠に合わせる' : ' 全体')}</button>`);
+        if (!c.feat && (cut || p.fit)) acts.insertAdjacentHTML('beforeend', `<button class="fit${p.fit ? ' on' : ''}" data-fit="${c.i}" title="${p.fit ? '枠いっぱいに広げる（はみ出た所は切れる）' : p.crop ? 'トリミングした範囲を切らずに表示' : '切らずに全体を表示（元の比率に戻す）'}">${p.fit ? '⤡' : '⤢'}${narrow ? '' : (p.fit ? ' 枠に合わせる' : ' 全体')}</button>`);
         acts.insertAdjacentHTML('beforeend', `<button class="trim${p.crop ? ' on' : ''}" data-trim="${c.i}" title="トリミング（残す範囲を選ぶ）">✂</button>`);
         acts.insertAdjacentHTML('beforeend', `<button class="x" data-del="${c.i}" title="この写真を外す">×</button>`);
         el.appendChild(acts);
@@ -930,7 +940,7 @@ function renderStatus(lay){
   if (lay && lay.cells.length) txt += '　' + lay.counts.map((v, k) => `${k+1}p目 ${v}枚`).join('・');
   $('#status').innerHTML = txt;
   $('#hint').textContent = S.mode === 'swap'
-    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外す、✂でトリミング、⤢で切らずに全体表示。☆で大きく → 大きい写真はドラッグで移動（この学年の別ページにも）、右下の角をドラッグ（またはホイール・－＋）で大きさ変更。'
+    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外す、✂でトリミング（選んだ範囲がそのまま載ります）、⤢で切らずに全体表示⇔枠いっぱい。☆で大きく → 大きい写真はドラッグで移動（この学年の別ページにも）、右下の角をドラッグ（またはホイール・－＋）で大きさ変更。'
     : '写真をドラッグすると見せる位置がずれます。ホイールで拡大、ダブルクリックで元に戻ります。';
 }
 
@@ -1070,8 +1080,7 @@ $('#stage').addEventListener('click', e => {
   const fit = e.target.dataset.fit;
   if (fit != null) {   // ワンタッチで元の比率（全体表示）⇔ 枠いっぱい
     const p = S.grades[S.cur].photos[+fit];
-    p.fit = !p.fit;
-    if (p.fit && p.crop) { p.crop = null; p.w = p.ow; p.h = p.oh; }   // 手動トリミングも外して元の写真全体に
+    p.fit = !p.fit;   // トリミングはそのまま。トリミングした範囲（なければ写真全体）を切らずに見せる ⇔ 枠いっぱい
     p.fx = p.fy = .5; p.z = 1;
     render(); return;
   }
@@ -1628,6 +1637,7 @@ $('#trimOk').onclick = () => {
   const none = l + t + r + b < 0.002;
   p.crop = none ? null : { l, t, r, b };
   p.w = p.ow * (1 - l - r); p.h = p.oh * (1 - t - b);
+  if (!none) p.fit = true;   // 選んだ範囲がそのまま全部載るように
   p.fx = p.fy = .5; p.z = 1;
   closeTrim(); render();
 };
