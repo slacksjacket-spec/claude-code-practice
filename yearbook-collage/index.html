@@ -67,6 +67,27 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 .mode-crop .cell{cursor:move}
 .cell .x{position:absolute;right:3px;top:3px;width:20px;height:20px;border-radius:50%;border:0;padding:0;background:rgba(0,0,0,.6);color:#fff;font-size:12px;line-height:20px;display:none;cursor:pointer}
 .cell:hover .x{display:block}
+.cell .trim{position:absolute;right:26px;top:3px;width:20px;height:20px;border-radius:50%;border:0;padding:0;background:rgba(0,0,0,.6);color:#fff;font-size:11px;line-height:20px;display:none;cursor:pointer}
+.cell:hover .trim{display:block}
+.cell .trim.on{background:#3a7bd0}
+#trim{position:fixed;inset:0;background:rgba(20,18,15,.6);display:none;align-items:center;justify-content:center;z-index:20;padding:12px}
+#trim .tbox{background:#fff;border-radius:12px;padding:14px 16px;max-width:96vw;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+#trim .thead{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+#trim .thead span{color:var(--sub);font-size:12px}
+#trimStage{position:relative;overflow:hidden;margin:10px auto;touch-action:none;user-select:none;-webkit-user-select:none;background:#222}
+#trimImg{display:block;width:100%;height:100%;pointer-events:none}
+#trimRect{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.55);outline:2px solid #fff;cursor:move;
+  background-image:linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.5)),linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.5)),linear-gradient(90deg,rgba(255,255,255,.5),rgba(255,255,255,.5)),linear-gradient(90deg,rgba(255,255,255,.5),rgba(255,255,255,.5));
+  background-size:100% 1px,100% 1px,1px 100%,1px 100%;background-position:0 33.3%,0 66.6%,33.3% 0,66.6% 0;background-repeat:no-repeat}
+#trimRect i{position:absolute;width:16px;height:16px;background:#fff;border:2px solid var(--accent);border-radius:3px;margin:-8px 0 0 -8px}
+#trimRect i[data-h=nw]{left:0;top:0;cursor:nwse-resize} #trimRect i[data-h=n]{left:50%;top:0;cursor:ns-resize} #trimRect i[data-h=ne]{left:100%;top:0;cursor:nesw-resize}
+#trimRect i[data-h=e]{left:100%;top:50%;cursor:ew-resize} #trimRect i[data-h=se]{left:100%;top:100%;cursor:nwse-resize} #trimRect i[data-h=s]{left:50%;top:100%;cursor:ns-resize}
+#trimRect i[data-h=sw]{left:0;top:100%;cursor:nesw-resize} #trimRect i[data-h=w]{left:0;top:50%;cursor:ew-resize}
+#trimRect.locked i[data-h=n],#trimRect.locked i[data-h=e],#trimRect.locked i[data-h=s],#trimRect.locked i[data-h=w]{display:none}
+#trimRatios{display:flex;gap:6px;flex-wrap:wrap}
+#trimRatios button{padding:5px 10px;font-size:13px}
+#trimRatios button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+#trim .tfoot{display:flex;gap:8px;margin-top:12px;align-items:center}
 .cell .star{position:absolute;left:3px;top:3px;border:0;border-radius:999px;padding:2px 7px;font-size:11px;background:rgba(0,0,0,.6);color:#fff;display:none;cursor:pointer}
 .cell:hover .star,.cell .star.on{display:block}
 .cell .star.on{background:#e0a106;color:#fff}
@@ -81,7 +102,7 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 .cell:hover .rz{display:block}
 .cell .sz{position:absolute;left:4px;top:4px;font-size:11px;background:rgba(0,0,0,.7);color:#fff;border-radius:6px;padding:2px 6px;display:none;pointer-events:none}
 .cell:hover .sz,.cell.moving .sz{display:block}
-@media (hover:none){ .cell .ftb,.cell .rz,.cell .sz{display:flex} .cell .star{display:block} }
+@media (hover:none){ .cell .ftb,.cell .rz,.cell .sz{display:flex} .cell .star,.cell .trim{display:block} }
 .ttl{position:absolute;white-space:nowrap;overflow:hidden;line-height:1;display:flex;align-items:center;pointer-events:none}
 .empty{border:2px dashed #c9c1b4;border-radius:16px;padding:40px;text-align:center;color:var(--sub);background:rgba(255,255,255,.6);max-width:520px}
 .empty b{display:block;font-size:18px;color:var(--ink);margin-bottom:8px}
@@ -254,6 +275,13 @@ button.block{display:block;width:100%;margin:6px 0;text-align:left}
 <input type="file" id="fileIn" accept="image/*" multiple hidden>
 <input type="file" id="dirIn" webkitdirectory multiple hidden>
 <input type="file" id="distIn" accept="image/*" multiple hidden>
+<div id="trim"><div class="tbox">
+  <div class="thead"><b>✂ トリミング</b><span id="trimInfo"></span></div>
+  <div id="trimStage"><img id="trimImg" alt=""><div id="trimRect"><i data-h="nw"></i><i data-h="n"></i><i data-h="ne"></i><i data-h="e"></i><i data-h="se"></i><i data-h="s"></i><i data-h="sw"></i><i data-h="w"></i></div></div>
+  <div class="note" style="margin:0 0 6px">枠の中が残ります。枠をドラッグで移動、角や辺をドラッグで大きさを変更。比率を選ぶとその形に固定されます。</div>
+  <div id="trimRatios"></div>
+  <div class="tfoot"><button id="trimReset">トリミングなしに戻す</button><span style="flex:1"></span><button id="trimCancel">キャンセル</button><button class="primary" id="trimOk">決定</button></div>
+</div></div>
 <div id="overlay"><div class="box"><div id="ovText">処理中…</div><div class="bar"><i id="ovBar"></i></div></div></div>
 
 <script>
@@ -344,7 +372,7 @@ async function makePhoto(file){
     const cx = c.getContext('2d'); cx.imageSmoothingQuality = 'high';
     cx.drawImage(img, 0, 0, c.width, c.height);
     const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
-    return { id:uid(), file, name:file.name, date, w, h, thumb:URL.createObjectURL(blob), fx:.5, fy:.5, z:1 };
+    return { id:uid(), file, name:file.name, date, w, h, ow:w, oh:h, crop:null, thumb:URL.createObjectURL(blob), fx:.5, fy:.5, z:1 };
   } finally { URL.revokeObjectURL(url); }
 }
 
@@ -611,9 +639,30 @@ function freeRectsRows(pg, occ){
 }
 // 空きの分け方は「横長の帯を優先」と「縦長の列を優先」の2通り（縦は x/y を入れ替えて同じ処理）
 function freeRects(pg, occ, byCols){
-  if (!byCols) return freeRectsRows(pg, occ);
   const T = r => ({ x:r.y, y:r.x, w:r.h, h:r.w });
-  return freeRectsRows(T(pg), occ.map(T)).map(T).sort((a, b) => a.y - b.y || a.x - b.x);
+  const rects = byCols ? freeRectsRows(T(pg), occ.map(T)).map(T).sort((a, b) => a.y - b.y || a.x - b.x) : freeRectsRows(pg, occ);
+  return insetShared(rects, S.set.gap);
+}
+// 空きの長方形どうしが接している辺を「写真の間隔」の半分ずつ内側へ縮める。
+// こうしないと、境目をはさんだ写真どうしがすき間なしでくっついてしまう
+function insetShared(rects, gap){
+  const E = 0.01, h = gap / 2;
+  const overlap = (a0, a1, b0, b1) => Math.min(a1, b1) - Math.max(a0, b0) > E;
+  return rects.map(r => {
+    let l = 0, t = 0, ri = 0, b = 0;
+    for (const o of rects) {
+      if (o === r) continue;
+      if (overlap(r.y, r.y + r.h, o.y, o.y + o.h)) {
+        if (Math.abs(o.x + o.w - r.x) < E) l = h;
+        if (Math.abs(r.x + r.w - o.x) < E) ri = h;
+      }
+      if (overlap(r.x, r.x + r.w, o.x, o.x + o.w)) {
+        if (Math.abs(o.y + o.h - r.y) < E) t = h;
+        if (Math.abs(r.y + r.h - o.y) < E) b = h;
+      }
+    }
+    return { x:r.x + l, y:r.y + t, w:r.w - l - ri, h:r.h - t - b };
+  });
 }
 // 写真（並び順のまま）を空きの長方形に面積の比で配り、それぞれをレイアウト
 function layoutRegions(ars, rects, gap, seed){
@@ -700,6 +749,13 @@ function layoutGradeRaw(gi, photos, seed){
 }
 
 /* ---------- 画像の切り抜き計算（プレビューと書き出し共通） ---------- */
+// トリミング後の範囲をセルに合わせたとき、元画像全体がセルのどこに来るか（iw/ih＝元画像の大きさ）
+function fullBox(p, cw, ch, iw = p.ow || p.w, ih = p.oh || p.h){
+  const c = p.crop || { l:0, t:0, r:0, b:0 };
+  const b = cropBox({ ...p, w:iw*(1 - c.l - c.r), h:ih*(1 - c.t - c.b) }, cw, ch);
+  const W = b.width / (1 - c.l - c.r), H = b.height / (1 - c.t - c.b);
+  return { left:b.left - c.l*W, top:b.top - c.t*H, width:W, height:H, k:W / iw };
+}
 function cropBox(p, cw, ch){
   const k = Math.max(cw/p.w, ch/p.h) * p.z;
   const dw = p.w*k, dh = p.h*k;
@@ -778,6 +834,8 @@ function render(){
         view.cells.set(c.i, c);
         const x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.title = 'この写真を外す'; x.dataset.del = c.i;
         el.appendChild(x);
+        const tr = document.createElement('button'); tr.className = 'trim' + (p.crop ? ' on' : ''); tr.textContent = '✂'; tr.title = 'トリミング（残す範囲を選ぶ）'; tr.dataset.trim = c.i;
+        el.appendChild(tr);
         if (c.feat) {
           el.classList.add('featcell');
           const tb = document.createElement('div'); tb.className = 'ftb';
@@ -806,7 +864,7 @@ function render(){
   renderStatus(getLay(gi));
 }
 function placeImg(im, p, cw, ch){
-  const b = cropBox(p, cw, ch);
+  const b = fullBox(p, cw, ch);
   im.style.left = b.left + 'px'; im.style.top = b.top + 'px'; im.style.width = b.width + 'px'; im.style.height = b.height + 'px';
 }
 function add(parent, cls, box){
@@ -842,7 +900,7 @@ function renderStatus(lay){
   if (lay && lay.cells.length) txt += '　' + lay.counts.map((v, k) => `${k+1}p目 ${v}枚`).join('・');
   $('#status').innerHTML = txt;
   $('#hint').textContent = S.mode === 'swap'
-    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外せます。☆で大きく → 大きい写真はドラッグで移動（この学年の別ページにも）、右下の角をドラッグ（またはホイール・－＋）で大きさ変更。'
+    ? '写真をドラッグして別の写真の上で離すと入れ替わります。×で外す、✂でトリミング。☆で大きく → 大きい写真はドラッグで移動（この学年の別ページにも）、右下の角をドラッグ（またはホイール・－＋）で大きさ変更。'
     : '写真をドラッグすると見せる位置がずれます。ホイールで拡大、ダブルクリックで元に戻ります。';
 }
 
@@ -898,7 +956,7 @@ function featCommand(p, cmd, step = 1.1){
   else if (cmd === 'unfeat') { p.feat = false; p.fp = null; }
 }
 $('#stage').addEventListener('pointerdown', e => {
-  if (e.target.dataset.del != null || e.target.dataset.feat != null || e.target.closest('.ftb')) return;
+  if (e.target.dataset.del != null || e.target.dataset.feat != null || e.target.dataset.trim != null || e.target.closest('.ftb')) return;
   const cell = e.target.closest('.cell'); if (!cell || cell.dataset.idx == null || e.button !== 0) return;
   e.preventDefault();
   const idx = +cell.dataset.idx, p = S.grades[S.cur].photos[idx];
@@ -979,6 +1037,8 @@ function endDrag(){
 $('#stage').addEventListener('pointerup', endDrag);
 $('#stage').addEventListener('pointercancel', endDrag);
 $('#stage').addEventListener('click', e => {
+  const ti = e.target.dataset.trim;
+  if (ti != null) { openTrim(S.grades[S.cur].photos[+ti]); return; }
   const fi = e.target.dataset.feat;
   if (fi != null) { const g = S.grades[S.cur], p = g.photos[+fi]; p.fp = defaultFp(g, p); p.feat = true; p.fx = p.fy = .5; p.z = 1; render(); return; }
   const cmd = e.target.dataset.cmd;
@@ -1125,7 +1185,7 @@ async function renderSpreadCanvas(spi, onProg){
     try {
       const img = await loadImg(url);
       const iw = img.naturalWidth, ih = img.naturalHeight;
-      const b = cropBox({ ...p, w:iw, h:ih }, c.w, c.h);
+      const b = fullBox(p, c.w, c.h, iw, ih);
       const sx = -b.left / b.k, sy = -b.top / b.k, sw = c.w / b.k, sh = c.h / b.k;
       const stw = strokeW();
       ctx.save();
@@ -1246,7 +1306,7 @@ async function officePhotos(gi, ppm, onProg){
     const p = g.photos[c.i], url = URL.createObjectURL(p.file);
     try {
       const img = await loadImg(url), iw = img.naturalWidth, ih = img.naturalHeight;
-      const b = cropBox({ ...p, w:iw, h:ih }, c.w, c.h);
+      const b = fullBox(p, c.w, c.h, iw, ih);
       const sc = Math.min(1, b.width * ppm / iw, 5000 / Math.max(iw, ih));
       const cv = document.createElement('canvas');
       cv.width = Math.max(1, Math.round(iw*sc)); cv.height = Math.max(1, Math.round(ih*sc));
@@ -1433,6 +1493,103 @@ async function exportPptx(){
 $('#expDocx').onclick = exportDocx;
 $('#expPptx').onclick = exportPptx;
 
+
+/* ---------- トリミング（写真ごとに残す範囲を決める） ---------- */
+// p.ow/p.oh＝元の大きさ、p.crop＝{l,t,r,b}（元画像に対する割合）、p.w/p.h＝トリミング後の大きさ（レイアウトはこれを使う）
+const TRIM_RATIOS = [['自由', 0], ['元の比率', -1], ['1:1', 1], ['4:3', 4/3], ['3:4', 3/4], ['3:2', 3/2], ['2:3', 2/3], ['16:9', 16/9]];
+let trim = null;
+function openTrim(p){
+  const c = p.crop || { l:0, t:0, r:0, b:0 };
+  trim = { p, l:c.l, t:c.t, r:c.r, b:c.b, ratio:0 };
+  $('#trimImg').src = p.thumb;
+  $('#trim').style.display = 'flex';
+  $('#trimRatios').innerHTML = TRIM_RATIOS.map(([t, v], i) => `<button data-ri="${i}" class="${v === 0 ? 'on' : ''}">${t}</button>`).join('');
+  layoutTrim();
+}
+function layoutTrim(){
+  const p = trim.p, k = Math.min(innerWidth*0.86 / p.ow, (innerHeight - 220) / p.oh, 900 / p.ow);
+  trim.dw = p.ow*k; trim.dh = p.oh*k;
+  const st = $('#trimStage'); st.style.width = trim.dw + 'px'; st.style.height = trim.dh + 'px';
+  drawTrim();
+}
+function drawTrim(){
+  const { l, t, r, b, dw, dh, p } = trim, el = $('#trimRect');
+  el.style.left = l*dw + 'px'; el.style.top = t*dh + 'px';
+  el.style.width = (1-l-r)*dw + 'px'; el.style.height = (1-t-b)*dh + 'px';
+  el.classList.toggle('locked', !!trim.ratio);
+  const kept = Math.round((1-l-r)*(1-t-b)*100);
+  $('#trimInfo').textContent = `${Math.round((1-l-r)*p.ow)}×${Math.round((1-t-b)*p.oh)}px（元の写真の${kept}%）`;
+}
+function trimRatio(){ const v = TRIM_RATIOS[trim.ri || 0][1]; return v === -1 ? trim.p.ow / trim.p.oh : v; }
+// 比率を選んだら、今の枠の内側に収まる、その比率で一番大きな枠にする（中心はそのまま）
+function applyTrimRatio(){
+  const R = trimRatio(); trim.ratio = R;
+  if (!R) { drawTrim(); return; }
+  const { dw, dh } = trim;
+  const cw = (1 - trim.l - trim.r) * dw, ch = (1 - trim.t - trim.b) * dh;
+  const cx = trim.l*dw + cw/2, cy = trim.t*dh + ch/2;
+  let w = Math.min(cw, ch*R), h = w / R;
+  setTrimPx(cx - w/2, cy - h/2, w, h);
+}
+function setTrimPx(x, y, w, h){
+  const { dw, dh } = trim;
+  trim.l = x/dw; trim.t = y/dh; trim.r = Math.max(0, 1 - (x + w)/dw); trim.b = Math.max(0, 1 - (y + h)/dh);
+  drawTrim();
+}
+let trimDrag = null;
+$('#trimStage').addEventListener('pointerdown', e => {
+  if (!e.target.closest('#trimRect')) return;
+  e.preventDefault();
+  const { l, t, r, b, dw, dh } = trim;
+  trimDrag = { h:e.target.dataset.h || 'move', x0:e.clientX, y0:e.clientY, x:l*dw, y:t*dh, w:(1-l-r)*dw, h2:(1-t-b)*dh };
+  $('#trimStage').setPointerCapture(e.pointerId);
+});
+$('#trimStage').addEventListener('pointermove', e => {
+  if (!trimDrag) return;
+  const d = trimDrag, { dw, dh } = trim, dx = e.clientX - d.x0, dy = e.clientY - d.y0, MIN = 24;
+  const cl = (v, a, b) => Math.min(b, Math.max(a, v));
+  if (d.h === 'move') { setTrimPx(cl(d.x + dx, 0, dw - d.w), cl(d.y + dy, 0, dh - d.h2), d.w, d.h2); return; }
+  let x1 = d.x, y1 = d.y, x2 = d.x + d.w, y2 = d.y + d.h2;
+  if (d.h.includes('w')) x1 = cl(x1 + dx, 0, x2 - MIN);
+  if (d.h.includes('e')) x2 = cl(x2 + dx, x1 + MIN, dw);
+  if (d.h.includes('n')) y1 = cl(y1 + dy, 0, y2 - MIN);
+  if (d.h.includes('s')) y2 = cl(y2 + dy, y1 + MIN, dh);
+  const R = trim.ratio;
+  if (R) {   // 比率固定：小さい方に合わせ、つかんだ角の反対側を動かさない
+    let w = x2 - x1, h = y2 - y1;
+    if (w / h > R) w = h * R; else h = w / R;
+    if (d.h.includes('w')) x1 = x2 - w; else x2 = x1 + w;
+    if (d.h.includes('n')) y1 = y2 - h; else y2 = y1 + h;
+  }
+  setTrimPx(x1, y1, x2 - x1, y2 - y1);
+});
+const endTrimDrag = () => { trimDrag = null; };
+$('#trimStage').addEventListener('pointerup', endTrimDrag);
+$('#trimStage').addEventListener('pointercancel', endTrimDrag);
+$('#trimRatios').addEventListener('click', e => {
+  const i = e.target.dataset.ri; if (i == null) return;
+  trim.ri = +i;
+  $$('#trimRatios button').forEach(b => b.classList.toggle('on', b === e.target));
+  applyTrimRatio();
+});
+$('#trimReset').onclick = () => {
+  trim.l = trim.t = trim.r = trim.b = 0; trim.ri = 0; trim.ratio = 0;
+  $$('#trimRatios button').forEach((b, i) => b.classList.toggle('on', i === 0));
+  drawTrim();
+};
+const closeTrim = () => { $('#trim').style.display = 'none'; trim = null; trimDrag = null; };
+$('#trimCancel').onclick = closeTrim;
+$('#trim').addEventListener('click', e => { if (e.target.id === 'trim') closeTrim(); });
+$('#trimOk').onclick = () => {
+  const { p, l, t, r, b } = trim;
+  const none = l + t + r + b < 0.002;
+  p.crop = none ? null : { l, t, r, b };
+  p.w = p.ow * (1 - l - r); p.h = p.oh * (1 - t - b);
+  p.fx = p.fy = .5; p.z = 1;
+  closeTrim(); render();
+};
+addEventListener('resize', () => { if (trim) layoutTrim(); });
+addEventListener('keydown', e => { if (trim && e.key === 'Escape') closeTrim(); });
 
 render();
 </script>
